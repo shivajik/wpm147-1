@@ -1,0 +1,136 @@
+Partitioned cookie or storage access was provided to “https://vercel.live/_next-live/feedback/feedback.html?dpl=dpl_5yLhq6G2CTQkh132SwXY8By8Ba9X” because it is loaded in the third-party context and dynamic state partitioning is enabled. feedback.html:9:10574
+Missing required Google Analytics key: VITE_GA_MEASUREMENT_ID index-D5fqduFZ.js:605:6708
+=== FINAL UPDATE COUNTS === index-D5fqduFZ.js:553:179729
+Plugin updates: 0 index-D5fqduFZ.js:553:179772
+Theme updates: 0 index-D5fqduFZ.js:553:179812
+WordPress update: 0 index-D5fqduFZ.js:553:179851
+Total updates: 0 index-D5fqduFZ.js:553:179890
+========================== index-D5fqduFZ.js:553:179922
+=== FINAL UPDATE COUNTS === index-D5fqduFZ.js:553:179729
+Plugin updates: 0 index-D5fqduFZ.js:553:179772
+Theme updates: 0 index-D5fqduFZ.js:553:179812
+WordPress update: 0 index-D5fqduFZ.js:553:179851
+Total updates: 0 index-D5fqduFZ.js:553:179890
+========================== index-D5fqduFZ.js:553:179922
+=== FINAL UPDATE COUNTS === index-D5fqduFZ.js:553:179729
+Plugin updates: 0 index-D5fqduFZ.js:553:179772
+Theme updates: 0 index-D5fqduFZ.js:553:179812
+WordPress update: 0 index-D5fqduFZ.js:553:179851
+Total updates: 0 index-D5fqduFZ.js:553:179890
+========================== index-D5fqduFZ.js:553:179922
+=== FINAL UPDATE COUNTS === index-D5fqduFZ.js:553:179729
+Plugin updates: 0 index-D5fqduFZ.js:553:179772
+Theme updates: 0 index-D5fqduFZ.js:553:179812
+WordPress update: 0 index-D5fqduFZ.js:553:179851
+Total updates: 0 index-D5fqduFZ.js:553:179890
+========================== index-D5fqduFZ.js:553:179922
+=== FINAL UPDATE COUNTS === index-D5fqduFZ.js:553:179729
+Plugin updates: 0 index-D5fqduFZ.js:553:179772
+Theme updates: 0 index-D5fqduFZ.js:553:179812
+WordPress update: 0 index-D5fqduFZ.js:553:179851
+Total updates: 0 index-D5fqduFZ.js:553:179890
+========================== index-D5fqduFZ.js:553:179922
+=== FINAL UPDATE COUNTS === index-D5fqduFZ.js:553:179729
+Plugin updates: 0 index-D5fqduFZ.js:553:179772
+Theme updates: 0 index-D5fqduFZ.js:553:179812
+WordPress update: 0 index-D5fqduFZ.js:553:179851
+Total updates: 0 index-D5fqduFZ.js:553:179890
+========================== index-D5fqduFZ.js:553:179922
+=== FINAL UPDATE COUNTS === index-D5fqduFZ.js:553:179729
+Plugin updates: 0 index-D5fqduFZ.js:553:179772
+Theme updates: 0 index-D5fqduFZ.js:553:179812
+WordPress update: 0 index-D5fqduFZ.js:553:179851
+Total updates: 0 index-D5fqduFZ.js:553:179890
+========================== index-D5fqduFZ.js:553:179922
+=== FINAL UPDATE COUNTS === index-D5fqduFZ.js:553:179729
+Plugin updates: 0 index-D5fqduFZ.js:553:179772
+Theme updates: 0 index-D5fqduFZ.js:553:179812
+WordPress update: 0 index-D5fqduFZ.js:553:179851
+Total updates: 0 index-D5fqduFZ.js:553:179890
+========================== index-D5fqduFZ.js:553:179922
+=== FINAL UPDATE COUNTS === index-D5fqduFZ.js:553:179729
+Plugin updates: 0 index-D5fqduFZ.js:553:179772
+Theme updates: 0 index-D5fqduFZ.js:553:179812
+WordPress update: 0 index-D5fqduFZ.js:553:179851
+Total updates: 0 index-D5fqduFZ.js:553:179890
+========================== index-D5fqduFZ.js:553:179922
+=== FINAL UPDATE COUNTS === index-D5fqduFZ.js:553:179729
+Plugin updates: 0 index-D5fqduFZ.js:553:179772
+Theme updates: 0 index-D5fqduFZ.js:553:179812
+WordPress update: 0 index-D5fqduFZ.js:553:179851
+Total updates: 0 index-D5fqduFZ.js:553:179890
+========================== index-D5fqduFZ.js:553:179922
+=== FINAL UPDATE COUNTS === index-D5fqduFZ.js:553:179729
+Plugin updates: 0 index-D5fqduFZ.js:553:179772
+Theme updates: 0 index-D5fqduFZ.js:553:179812
+WordPress update: 0 index-D5fqduFZ.js:553:179851
+Total updates: 0 index-D5fqduFZ.js:553:179890
+========================== index-D5fqduFZ.js:553:179922
+Website data for plugins: 
+Object { id: 2, name: "KSoft Solution", url: "https://ksoftsolution.com/", wpAdminUsername: "", wpAdminPassword: "", wrmApiKey: "L._V?~f+rN7nKTv$WE#Rtv#Ej[UBKK$Iw .+]DJ4pLO:a_MyIh#3S=a7u7`X$k7u", wpVersion: "6.8.2", lastBackup: null, lastUpdate: null, lastSync: "2025-08-11T17:03:09.106Z", … }
+website-plugins-D0kelsq-.js:10:550
+Has wrmApiKey for plugins: true website-plugins-D0kelsq-.js:10:593
+WRM Plugins data: undefined website-plugins-D0kelsq-.js:10:660
+Query enabled condition: true website-plugins-D0kelsq-.js:10:695
+WebsiteId: 2 website-plugins-D0kelsq-.js:10:744
+Website exists: true website-plugins-D0kelsq-.js:10:772
+Website data for plugins: 
+Object { id: 2, name: "KSoft Solution", url: "https://ksoftsolution.com/", wpAdminUsername: "", wpAdminPassword: "", wrmApiKey: "L._V?~f+rN7nKTv$WE#Rtv#Ej[UBKK$Iw .+]DJ4pLO:a_MyIh#3S=a7u7`X$k7u", wpVersion: "6.8.2", lastBackup: null, lastUpdate: null, lastSync: "2025-08-11T17:03:09.106Z", … }
+website-plugins-D0kelsq-.js:10:550
+Has wrmApiKey for plugins: true website-plugins-D0kelsq-.js:10:593
+WRM Plugins data: 
+Object { success: true, plugins: (36) […], count: 36, timestamp: "2025-08-11T17:10:53+00:00" }
+website-plugins-D0kelsq-.js:10:660
+Query enabled condition: true website-plugins-D0kelsq-.js:10:695
+WebsiteId: 2 website-plugins-D0kelsq-.js:10:744
+Website exists: true website-plugins-D0kelsq-.js:10:772
+Processed plugins array: 
+Array(36) [ {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, … ]
+website-plugins-D0kelsq-.js:10:6855
+Processed plugins length: 36 website-plugins-D0kelsq-.js:10:6897
+Website data for themes: 
+Object { id: 2, name: "KSoft Solution", url: "https://ksoftsolution.com/", wpAdminUsername: "", wpAdminPassword: "", wrmApiKey: "L._V?~f+rN7nKTv$WE#Rtv#Ej[UBKK$Iw .+]DJ4pLO:a_MyIh#3S=a7u7`X$k7u", wpVersion: "6.8.2", lastBackup: null, lastUpdate: null, lastSync: "2025-08-11T17:03:09.106Z", … }
+website-themes-B2UOgm3i.js:1:821
+Has wrmApiKey for themes: true website-themes-B2UOgm3i.js:1:863
+Website data for themes: 
+Object { id: 2, name: "KSoft Solution", url: "https://ksoftsolution.com/", wpAdminUsername: "", wpAdminPassword: "", wrmApiKey: "L._V?~f+rN7nKTv$WE#Rtv#Ej[UBKK$Iw .+]DJ4pLO:a_MyIh#3S=a7u7`X$k7u", wpVersion: "6.8.2", lastBackup: null, lastUpdate: null, lastSync: "2025-08-11T17:03:09.106Z", … }
+website-themes-B2UOgm3i.js:1:821
+Has wrmApiKey for themes: true website-themes-B2UOgm3i.js:1:863
+Website data: 
+Object { id: 2, name: "KSoft Solution", url: "https://ksoftsolution.com/", wpAdminUsername: "", wpAdminPassword: "", wrmApiKey: "L._V?~f+rN7nKTv$WE#Rtv#Ej[UBKK$Iw .+]DJ4pLO:a_MyIh#3S=a7u7`X$k7u", wpVersion: "6.8.2", lastBackup: null, lastUpdate: null, lastSync: "2025-08-11T17:03:09.106Z", … }
+website-users-CYe89-Nz.js:6:700
+Has wrmApiKey: true website-users-CYe89-Nz.js:6:731
+Website data: 
+Object { id: 2, name: "KSoft Solution", url: "https://ksoftsolution.com/", wpAdminUsername: "", wpAdminPassword: "", wrmApiKey: "L._V?~f+rN7nKTv$WE#Rtv#Ej[UBKK$Iw .+]DJ4pLO:a_MyIh#3S=a7u7`X$k7u", wpVersion: "6.8.2", lastBackup: null, lastUpdate: null, lastSync: "2025-08-11T17:03:09.106Z", … }
+website-users-CYe89-Nz.js:6:700
+Has wrmApiKey: true website-users-CYe89-Nz.js:6:731
+WordPress data: 
+Object { systemInfo: {…}, healthData: null, updateData: {…}, pluginData: {…}, themeData: (3) […], userData: {…}, lastSync: "2025-08-11T17:10:45.316Z" }
+website-users-CYe89-Nz.js:6:2710
+Users data: 
+Array [ {…}, {…} ]
+website-users-CYe89-Nz.js:6:2743
+Users length: 2 website-users-CYe89-Nz.js:6:2772
+Filtering user: 
+Object { id: "57", username: "md", display_name: "md", registered_date: "2025-07-22 12:08:39", roles: (1) […], post_count: "0", avatar_url: "https://secure.gravatar.com/avatar/0f9de7b0140eb549688e284759a514e64ba9a680e9ebb533d983ebb94e9ff0f8?s=96&d=mm&r=g", email: "hr@ksoftsolution.com", user_email: "hr@ksoftsolution.com" }
+website-users-CYe89-Nz.js:6:2847
+User matches search: true matches role: true website-users-CYe89-Nz.js:6:3412
+Filtering user: 
+Object { id: "1", username: "ksoftsolution", display_name: "ksoftsolution", registered_date: "2018-06-23 05:48:49", roles: (1) […], post_count: "13", avatar_url: "https://secure.gravatar.com/avatar/481a91c3cbf74ec95b06b0d13f2beec6222c2b9bdf22447e5dece0bbf5d8f9d4?s=96&d=mm&r=g", email: "shivaji@ksoftsolution.com", user_email: "shivaji@ksoftsolution.com" }
+website-users-CYe89-Nz.js:6:2847
+User matches search: true matches role: true website-users-CYe89-Nz.js:6:3412
+Filtered users: 
+Array [ {…}, {…} ]
+website-users-CYe89-Nz.js:6:3475
+=== FINAL UPDATE COUNTS === index-D5fqduFZ.js:553:179729
+Plugin updates: 0 index-D5fqduFZ.js:553:179772
+Theme updates: 0 index-D5fqduFZ.js:553:179812
+WordPress update: 0 index-D5fqduFZ.js:553:179851
+Total updates: 0 index-D5fqduFZ.js:553:179890
+========================== index-D5fqduFZ.js:553:179922
+=== FINAL UPDATE COUNTS === index-D5fqduFZ.js:553:179729
+Plugin updates: 0 index-D5fqduFZ.js:553:179772
+Theme updates: 0 index-D5fqduFZ.js:553:179812
+WordPress update: 0 index-D5fqduFZ.js:553:179851
+Total updates: 0 index-D5fqduFZ.js:553:179890
+========================== index-D5fqduFZ.js:553:179922

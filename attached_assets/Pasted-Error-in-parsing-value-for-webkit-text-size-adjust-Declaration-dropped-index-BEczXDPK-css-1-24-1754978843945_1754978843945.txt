@@ -1,0 +1,28 @@
+Error in parsing value for ‘-webkit-text-size-adjust’.  Declaration dropped. index-BEczXDPK.css:1:2443
+Unknown property ‘-moz-osx-font-smoothing’.  Declaration dropped. index-BEczXDPK.css:1:5037
+Ruleset ignored due to bad selector. index-BEczXDPK.css:1:91762
+Ruleset ignored due to bad selector. index-BEczXDPK.css:1:91916
+Partitioned cookie or storage access was provided to “https://vercel.live/_next-live/feedback/feedback.html?dpl=dpl_5yLhq6G2CTQkh132SwXY8By8Ba9X” because it is loaded in the third-party context and dynamic state partitioning is enabled. feedback.html:9:10574
+Missing required Google Analytics key: VITE_GA_MEASUREMENT_ID index-D0rK35st.js:610:6708
+[LINK-MONITOR] Website ID: 1 link-monitor-Czrqrlh_.js:16:503
+[LINK-MONITOR] History loading: true link-monitor-Czrqrlh_.js:16:547
+[LINK-MONITOR] History error: null link-monitor-Czrqrlh_.js:16:596
+[LINK-MONITOR] Scan history data: undefined link-monitor-Czrqrlh_.js:16:643
+[LINK-MONITOR] Website ID: 1 link-monitor-Czrqrlh_.js:16:503
+[LINK-MONITOR] History loading: true link-monitor-Czrqrlh_.js:16:547
+[LINK-MONITOR] History error: null link-monitor-Czrqrlh_.js:16:596
+[LINK-MONITOR] Scan history data: undefined link-monitor-Czrqrlh_.js:16:643
+[LINK-MONITOR] Website ID: 1 link-monitor-Czrqrlh_.js:16:503
+[LINK-MONITOR] History loading: false link-monitor-Czrqrlh_.js:16:547
+[LINK-MONITOR] History error: null link-monitor-Czrqrlh_.js:16:596
+[LINK-MONITOR] Scan history data: 
+Array [ {…} ]
+link-monitor-Czrqrlh_.js:16:643
+[LINK-MONITOR] Loading recent scan data: 
+Object { id: 13, websiteId: 1, userId: 1, scanStartedAt: "2025-08-12T05:12:27.326Z", scanCompletedAt: "2025-08-12T05:13:02.794Z", scanDuration: 35, scanStatus: "completed", totalPages: 20, totalLinksFound: 78, brokenLinksFound: 3, … }
+link-monitor-Czrqrlh_.js:16:888
+[LINK-MONITOR] Broken links data: 
+Array(3) [ {…}, {…}, {…} ]
+link-monitor-Czrqrlh_.js:16:946
+Unknown property ‘-moz-osx-font-smoothing’.  Declaration dropped. feedback.html:1:451
+Error in parsing value for ‘-webkit-mask’.  Declaration dropped. feedback.html:1:2558

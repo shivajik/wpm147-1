@@ -1,0 +1,116 @@
+Missing required Google Analytics key: VITE_GA_MEASUREMENT_ID index-O8c89SQe.js:517:121923
+A resource is blocked by OpaqueResponseBlocking, please check browser console for details. 2 image-10b5e1.jpeg
+=== FINAL UPDATE COUNTS === index-O8c89SQe.js:512:156052
+Plugin updates: 0 index-O8c89SQe.js:512:156095
+Theme updates: 0 index-O8c89SQe.js:512:156135
+WordPress update: 0 index-O8c89SQe.js:512:156174
+Total updates: 0 index-O8c89SQe.js:512:156213
+========================== index-O8c89SQe.js:512:156245
+=== FINAL UPDATE COUNTS === index-O8c89SQe.js:512:156052
+Plugin updates: 0 index-O8c89SQe.js:512:156095
+Theme updates: 0 index-O8c89SQe.js:512:156135
+WordPress update: 0 index-O8c89SQe.js:512:156174
+Total updates: 0 index-O8c89SQe.js:512:156213
+========================== index-O8c89SQe.js:512:156245
+=== WRM UPDATES DEBUG === index-O8c89SQe.js:512:153809
+Full updates object: {
+  "count": {
+    "total": 0,
+    "plugins": 0,
+    "themes": 0,
+    "core": 0
+  },
+  "plugins": [],
+  "themes": [],
+  "wordpress": {
+    "update_available": false
+  }
+} index-O8c89SQe.js:512:153850
+Plugins array length: 0 index-O8c89SQe.js:512:153911
+Themes array length: 0 index-O8c89SQe.js:512:154005
+WordPress update available: false index-O8c89SQe.js:512:154096
+======================== index-O8c89SQe.js:512:154193
+=== FINAL UPDATE COUNTS === index-O8c89SQe.js:512:156052
+Plugin updates: 0 index-O8c89SQe.js:512:156095
+Theme updates: 0 index-O8c89SQe.js:512:156135
+WordPress update: 0 index-O8c89SQe.js:512:156174
+Total updates: 0 index-O8c89SQe.js:512:156213
+========================== index-O8c89SQe.js:512:156245
+=== WRM UPDATES DEBUG === index-O8c89SQe.js:512:153809
+Full updates object: {
+  "count": {
+    "total": 0,
+    "plugins": 0,
+    "themes": 0,
+    "core": 0
+  },
+  "plugins": [],
+  "themes": [],
+  "wordpress": {
+    "update_available": false
+  }
+} index-O8c89SQe.js:512:153850
+Plugins array length: 0 index-O8c89SQe.js:512:153911
+Themes array length: 0 index-O8c89SQe.js:512:154005
+WordPress update available: false index-O8c89SQe.js:512:154096
+======================== index-O8c89SQe.js:512:154193
+=== FINAL UPDATE COUNTS === index-O8c89SQe.js:512:156052
+Plugin updates: 0 index-O8c89SQe.js:512:156095
+Theme updates: 0 index-O8c89SQe.js:512:156135
+WordPress update: 0 index-O8c89SQe.js:512:156174
+Total updates: 0 index-O8c89SQe.js:512:156213
+========================== index-O8c89SQe.js:512:156245
+=== WRM UPDATES DEBUG === index-O8c89SQe.js:512:153809
+Full updates object: {
+  "count": {
+    "total": 0,
+    "plugins": 0,
+    "themes": 0,
+    "core": 0
+  },
+  "plugins": [],
+  "themes": [],
+  "wordpress": {
+    "update_available": false
+  }
+} index-O8c89SQe.js:512:153850
+Plugins array length: 0 index-O8c89SQe.js:512:153911
+Themes array length: 0 index-O8c89SQe.js:512:154005
+WordPress update available: false index-O8c89SQe.js:512:154096
+======================== index-O8c89SQe.js:512:154193
+=== FINAL UPDATE COUNTS === index-O8c89SQe.js:512:156052
+Plugin updates: 0 index-O8c89SQe.js:512:156095
+Theme updates: 0 index-O8c89SQe.js:512:156135
+WordPress update: 0 index-O8c89SQe.js:512:156174
+Total updates: 0 index-O8c89SQe.js:512:156213
+========================== index-O8c89SQe.js:512:156245
+TypeError: t.map is not a function
+    X$ https://www.aiositecare.com/assets/index-O8c89SQe.js:512
+    px https://www.aiositecare.com/assets/index-O8c89SQe.js:38
+    Ih https://www.aiositecare.com/assets/index-O8c89SQe.js:40
+    O2 https://www.aiositecare.com/assets/index-O8c89SQe.js:40
+    M2 https://www.aiositecare.com/assets/index-O8c89SQe.js:40
+    IA https://www.aiositecare.com/assets/index-O8c89SQe.js:40
+    hu https://www.aiositecare.com/assets/index-O8c89SQe.js:40
+    Hh https://www.aiositecare.com/assets/index-O8c89SQe.js:40
+    Y0 https://www.aiositecare.com/assets/index-O8c89SQe.js:40
+    Sa https://www.aiositecare.com/assets/index-O8c89SQe.js:38
+    Pr https://www.aiositecare.com/assets/index-O8c89SQe.js:40
+index-O8c89SQe.js:40:161
+Uncaught TypeError: t.map is not a function
+    X$ https://www.aiositecare.com/assets/index-O8c89SQe.js:512
+    px https://www.aiositecare.com/assets/index-O8c89SQe.js:38
+    Ih https://www.aiositecare.com/assets/index-O8c89SQe.js:40
+    O2 https://www.aiositecare.com/assets/index-O8c89SQe.js:40
+    M2 https://www.aiositecare.com/assets/index-O8c89SQe.js:40
+    IA https://www.aiositecare.com/assets/index-O8c89SQe.js:40
+    hu https://www.aiositecare.com/assets/index-O8c89SQe.js:40
+    Hh https://www.aiositecare.com/assets/index-O8c89SQe.js:40
+    Y0 https://www.aiositecare.com/assets/index-O8c89SQe.js:40
+    Sa https://www.aiositecare.com/assets/index-O8c89SQe.js:38
+    Pr https://www.aiositecare.com/assets/index-O8c89SQe.js:40
+index-O8c89SQe.js:512:190500
+Error in parsing value for ‘-webkit-text-size-adjust’.  Declaration dropped. index-OfL7wvbO.css:1:2443
+Unknown property ‘-moz-osx-font-smoothing’.  Declaration dropped. index-OfL7wvbO.css:1:5037
+Ruleset ignored due to bad selector. index-OfL7wvbO.css:1:73591
+Ruleset ignored due to bad selector. index-OfL7wvbO.css:1:73745

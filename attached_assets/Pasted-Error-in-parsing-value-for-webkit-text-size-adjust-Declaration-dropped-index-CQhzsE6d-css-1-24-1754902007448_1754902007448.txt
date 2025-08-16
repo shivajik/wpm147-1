@@ -1,0 +1,319 @@
+Error in parsing value for ‘-webkit-text-size-adjust’.  Declaration dropped. index-CQhzsE6d.css:1:2443
+Unknown property ‘-moz-osx-font-smoothing’.  Declaration dropped. index-CQhzsE6d.css:1:5037
+Ruleset ignored due to bad selector. index-CQhzsE6d.css:1:93730
+Ruleset ignored due to bad selector. index-CQhzsE6d.css:1:93884
+Partitioned cookie or storage access was provided to “https://vercel.live/_next-live/feedback/feedback.html?dpl=dpl_5yLhq6G2CTQkh132SwXY8By8Ba9X” because it is loaded in the third-party context and dynamic state partitioning is enabled. feedback.html:9:10574
+Missing required Google Analytics key: VITE_GA_MEASUREMENT_ID index-B2Z4DMsC.js:605:6708
+=== FINAL UPDATE COUNTS === index-B2Z4DMsC.js:553:179671
+Plugin updates: 0 index-B2Z4DMsC.js:553:179714
+Theme updates: 0 index-B2Z4DMsC.js:553:179754
+WordPress update: 0 index-B2Z4DMsC.js:553:179793
+Total updates: 0 index-B2Z4DMsC.js:553:179832
+========================== index-B2Z4DMsC.js:553:179864
+=== FINAL UPDATE COUNTS === index-B2Z4DMsC.js:553:179671
+Plugin updates: 0 index-B2Z4DMsC.js:553:179714
+Theme updates: 0 index-B2Z4DMsC.js:553:179754
+WordPress update: 0 index-B2Z4DMsC.js:553:179793
+Total updates: 0 index-B2Z4DMsC.js:553:179832
+========================== index-B2Z4DMsC.js:553:179864
+=== FINAL UPDATE COUNTS === index-B2Z4DMsC.js:553:179671
+Plugin updates: 0 index-B2Z4DMsC.js:553:179714
+Theme updates: 0 index-B2Z4DMsC.js:553:179754
+WordPress update: 0 index-B2Z4DMsC.js:553:179793
+Total updates: 0 index-B2Z4DMsC.js:553:179832
+========================== index-B2Z4DMsC.js:553:179864
+=== FINAL UPDATE COUNTS === index-B2Z4DMsC.js:553:179671
+Plugin updates: 0 index-B2Z4DMsC.js:553:179714
+Theme updates: 0 index-B2Z4DMsC.js:553:179754
+WordPress update: 0 index-B2Z4DMsC.js:553:179793
+Total updates: 0 index-B2Z4DMsC.js:553:179832
+========================== index-B2Z4DMsC.js:553:179864
+=== WRM UPDATES DEBUG === index-B2Z4DMsC.js:553:177088
+Full updates object: {
+  "code": "rest_no_route",
+  "message": "No route was found matching the URL and request method.",
+  "data": {
+    "status": 404
+  }
+} index-B2Z4DMsC.js:553:177129
+Plugins array length: Not an array index-B2Z4DMsC.js:553:177190
+Themes array length: Not an array index-B2Z4DMsC.js:553:177284
+WordPress update available: false index-B2Z4DMsC.js:553:177375
+======================== index-B2Z4DMsC.js:553:177472
+Updates plugins is not a valid array: undefined index-B2Z4DMsC.js:553:178131
+Updates themes is not a valid array: undefined index-B2Z4DMsC.js:553:178816
+=== FINAL UPDATE COUNTS === index-B2Z4DMsC.js:553:179671
+Plugin updates: 0 index-B2Z4DMsC.js:553:179714
+Theme updates: 0 index-B2Z4DMsC.js:553:179754
+WordPress update: 0 index-B2Z4DMsC.js:553:179793
+Total updates: 0 index-B2Z4DMsC.js:553:179832
+========================== index-B2Z4DMsC.js:553:179864
+=== WRM UPDATES DEBUG === index-B2Z4DMsC.js:553:177088
+Full updates object: {
+  "code": "rest_no_route",
+  "message": "No route was found matching the URL and request method.",
+  "data": {
+    "status": 404
+  }
+} index-B2Z4DMsC.js:553:177129
+Plugins array length: Not an array index-B2Z4DMsC.js:553:177190
+Themes array length: Not an array index-B2Z4DMsC.js:553:177284
+WordPress update available: false index-B2Z4DMsC.js:553:177375
+======================== index-B2Z4DMsC.js:553:177472
+Updates plugins is not a valid array: undefined index-B2Z4DMsC.js:553:178131
+Updates themes is not a valid array: undefined index-B2Z4DMsC.js:553:178816
+=== FINAL UPDATE COUNTS === index-B2Z4DMsC.js:553:179671
+Plugin updates: 0 index-B2Z4DMsC.js:553:179714
+Theme updates: 0 index-B2Z4DMsC.js:553:179754
+WordPress update: 0 index-B2Z4DMsC.js:553:179793
+Total updates: 0 index-B2Z4DMsC.js:553:179832
+========================== index-B2Z4DMsC.js:553:179864
+=== WRM UPDATES DEBUG === index-B2Z4DMsC.js:553:177088
+Full updates object: {
+  "code": "rest_no_route",
+  "message": "No route was found matching the URL and request method.",
+  "data": {
+    "status": 404
+  }
+} index-B2Z4DMsC.js:553:177129
+Plugins array length: Not an array index-B2Z4DMsC.js:553:177190
+Themes array length: Not an array index-B2Z4DMsC.js:553:177284
+WordPress update available: false index-B2Z4DMsC.js:553:177375
+======================== index-B2Z4DMsC.js:553:177472
+Updates plugins is not a valid array: undefined index-B2Z4DMsC.js:553:178131
+Updates themes is not a valid array: undefined index-B2Z4DMsC.js:553:178816
+=== FINAL UPDATE COUNTS === index-B2Z4DMsC.js:553:179671
+Plugin updates: 0 index-B2Z4DMsC.js:553:179714
+Theme updates: 0 index-B2Z4DMsC.js:553:179754
+WordPress update: 0 index-B2Z4DMsC.js:553:179793
+Total updates: 0 index-B2Z4DMsC.js:553:179832
+========================== index-B2Z4DMsC.js:553:179864
+=== WRM UPDATES DEBUG === index-B2Z4DMsC.js:553:177088
+Full updates object: {
+  "code": "rest_no_route",
+  "message": "No route was found matching the URL and request method.",
+  "data": {
+    "status": 404
+  }
+} index-B2Z4DMsC.js:553:177129
+Plugins array length: Not an array index-B2Z4DMsC.js:553:177190
+Themes array length: Not an array index-B2Z4DMsC.js:553:177284
+WordPress update available: false index-B2Z4DMsC.js:553:177375
+======================== index-B2Z4DMsC.js:553:177472
+Updates plugins is not a valid array: undefined index-B2Z4DMsC.js:553:178131
+Updates themes is not a valid array: undefined index-B2Z4DMsC.js:553:178816
+=== FINAL UPDATE COUNTS === index-B2Z4DMsC.js:553:179671
+Plugin updates: 0 index-B2Z4DMsC.js:553:179714
+Theme updates: 0 index-B2Z4DMsC.js:553:179754
+WordPress update: 0 index-B2Z4DMsC.js:553:179793
+Total updates: 0 index-B2Z4DMsC.js:553:179832
+========================== index-B2Z4DMsC.js:553:179864
+=== WRM UPDATES DEBUG === index-B2Z4DMsC.js:553:177088
+Full updates object: {
+  "code": "rest_no_route",
+  "message": "No route was found matching the URL and request method.",
+  "data": {
+    "status": 404
+  }
+} index-B2Z4DMsC.js:553:177129
+Plugins array length: Not an array index-B2Z4DMsC.js:553:177190
+Themes array length: Not an array index-B2Z4DMsC.js:553:177284
+WordPress update available: false index-B2Z4DMsC.js:553:177375
+======================== index-B2Z4DMsC.js:553:177472
+Updates plugins is not a valid array: undefined index-B2Z4DMsC.js:553:178131
+Updates themes is not a valid array: undefined index-B2Z4DMsC.js:553:178816
+=== FINAL UPDATE COUNTS === index-B2Z4DMsC.js:553:179671
+Plugin updates: 0 index-B2Z4DMsC.js:553:179714
+Theme updates: 0 index-B2Z4DMsC.js:553:179754
+WordPress update: 0 index-B2Z4DMsC.js:553:179793
+Total updates: 0 index-B2Z4DMsC.js:553:179832
+========================== index-B2Z4DMsC.js:553:179864
+=== WRM UPDATES DEBUG === index-B2Z4DMsC.js:553:177088
+Full updates object: {
+  "code": "rest_no_route",
+  "message": "No route was found matching the URL and request method.",
+  "data": {
+    "status": 404
+  }
+} index-B2Z4DMsC.js:553:177129
+Plugins array length: Not an array index-B2Z4DMsC.js:553:177190
+Themes array length: Not an array index-B2Z4DMsC.js:553:177284
+WordPress update available: false index-B2Z4DMsC.js:553:177375
+======================== index-B2Z4DMsC.js:553:177472
+Updates plugins is not a valid array: undefined index-B2Z4DMsC.js:553:178131
+Updates themes is not a valid array: undefined index-B2Z4DMsC.js:553:178816
+=== FINAL UPDATE COUNTS === index-B2Z4DMsC.js:553:179671
+Plugin updates: 0 index-B2Z4DMsC.js:553:179714
+Theme updates: 0 index-B2Z4DMsC.js:553:179754
+WordPress update: 0 index-B2Z4DMsC.js:553:179793
+Total updates: 0 index-B2Z4DMsC.js:553:179832
+========================== index-B2Z4DMsC.js:553:179864
+Website data for plugins: 
+Object { id: 1, name: "AS College", url: "https://ascollegechincholi.com", wpAdminUsername: "", wpAdminPassword: "", wrmApiKey: "E|:<wF~Zl|E}C#+,EdiGI[CdZcw]dRBAGPUrcxZwN$ *FSk~2P9k[0qP<G<a^l0W", wpVersion: "6.8.2", lastBackup: null, lastUpdate: null, lastSync: "2025-08-11T08:33:50.179Z", … }
+website-plugins-CH159gn1.js:10:550
+Has wrmApiKey for plugins: true website-plugins-CH159gn1.js:10:593
+WRM Plugins data: undefined website-plugins-CH159gn1.js:10:660
+Query enabled condition: true website-plugins-CH159gn1.js:10:695
+WebsiteId: 1 website-plugins-CH159gn1.js:10:744
+Website exists: true website-plugins-CH159gn1.js:10:772
+Website data for plugins: 
+Object { id: 1, name: "AS College", url: "https://ascollegechincholi.com", wpAdminUsername: "", wpAdminPassword: "", wrmApiKey: "E|:<wF~Zl|E}C#+,EdiGI[CdZcw]dRBAGPUrcxZwN$ *FSk~2P9k[0qP<G<a^l0W", wpVersion: "6.8.2", lastBackup: null, lastUpdate: null, lastSync: "2025-08-11T08:33:50.179Z", … }
+website-plugins-CH159gn1.js:10:550
+Has wrmApiKey for plugins: true website-plugins-CH159gn1.js:10:593
+WRM Plugins data: 
+Object { code: "rest_no_route", message: "No route was found matching the URL and request method.", data: {…} }
+website-plugins-CH159gn1.js:10:660
+Query enabled condition: true website-plugins-CH159gn1.js:10:695
+WebsiteId: 1 website-plugins-CH159gn1.js:10:744
+Website exists: true website-plugins-CH159gn1.js:10:772
+Processed plugins array: 
+Array []
+website-plugins-CH159gn1.js:10:6855
+Processed plugins length: 0 website-plugins-CH159gn1.js:10:6897
+Website data for plugins: 
+Object { id: 1, name: "AS College", url: "https://ascollegechincholi.com", wpAdminUsername: "", wpAdminPassword: "", wrmApiKey: "E|:<wF~Zl|E}C#+,EdiGI[CdZcw]dRBAGPUrcxZwN$ *FSk~2P9k[0qP<G<a^l0W", wpVersion: "6.8.2", lastBackup: null, lastUpdate: null, lastSync: "2025-08-11T08:33:50.179Z", … }
+website-plugins-CH159gn1.js:10:550
+Has wrmApiKey for plugins: true website-plugins-CH159gn1.js:10:593
+WRM Plugins data: 
+Object { code: "rest_no_route", message: "No route was found matching the URL and request method.", data: {…} }
+website-plugins-CH159gn1.js:10:660
+Query enabled condition: true website-plugins-CH159gn1.js:10:695
+WebsiteId: 1 website-plugins-CH159gn1.js:10:744
+Website exists: true website-plugins-CH159gn1.js:10:772
+Processed plugins array: 
+Array []
+website-plugins-CH159gn1.js:10:6855
+Processed plugins length: 0 website-plugins-CH159gn1.js:10:6897
+A resource is blocked by OpaqueResponseBlocking, please check browser console for details. png
+A resource is blocked by OpaqueResponseBlocking, please check browser console for details. png
+A resource is blocked by OpaqueResponseBlocking, please check browser console for details. png
+A resource is blocked by OpaqueResponseBlocking, please check browser console for details. png
+A resource is blocked by OpaqueResponseBlocking, please check browser console for details. png
+A resource is blocked by OpaqueResponseBlocking, please check browser console for details. png
+A resource is blocked by OpaqueResponseBlocking, please check browser console for details. png
+A resource is blocked by OpaqueResponseBlocking, please check browser console for details. png
+=== FINAL UPDATE COUNTS === index-B2Z4DMsC.js:553:179671
+Plugin updates: 0 index-B2Z4DMsC.js:553:179714
+Theme updates: 0 index-B2Z4DMsC.js:553:179754
+WordPress update: 0 index-B2Z4DMsC.js:553:179793
+Total updates: 0 index-B2Z4DMsC.js:553:179832
+========================== index-B2Z4DMsC.js:553:179864
+=== FINAL UPDATE COUNTS === index-B2Z4DMsC.js:553:179671
+Plugin updates: 0 index-B2Z4DMsC.js:553:179714
+Theme updates: 0 index-B2Z4DMsC.js:553:179754
+WordPress update: 0 index-B2Z4DMsC.js:553:179793
+Total updates: 0 index-B2Z4DMsC.js:553:179832
+========================== index-B2Z4DMsC.js:553:179864
+=== FINAL UPDATE COUNTS === index-B2Z4DMsC.js:553:179671
+Plugin updates: 0 index-B2Z4DMsC.js:553:179714
+Theme updates: 0 index-B2Z4DMsC.js:553:179754
+WordPress update: 0 index-B2Z4DMsC.js:553:179793
+Total updates: 0 index-B2Z4DMsC.js:553:179832
+========================== index-B2Z4DMsC.js:553:179864
+=== FINAL UPDATE COUNTS === index-B2Z4DMsC.js:553:179671
+Plugin updates: 0 index-B2Z4DMsC.js:553:179714
+Theme updates: 0 index-B2Z4DMsC.js:553:179754
+WordPress update: 0 index-B2Z4DMsC.js:553:179793
+Total updates: 0 index-B2Z4DMsC.js:553:179832
+========================== index-B2Z4DMsC.js:553:179864
+=== FINAL UPDATE COUNTS === index-B2Z4DMsC.js:553:179671
+Plugin updates: 0 index-B2Z4DMsC.js:553:179714
+Theme updates: 0 index-B2Z4DMsC.js:553:179754
+WordPress update: 0 index-B2Z4DMsC.js:553:179793
+Total updates: 0 index-B2Z4DMsC.js:553:179832
+========================== index-B2Z4DMsC.js:553:179864
+=== FINAL UPDATE COUNTS === index-B2Z4DMsC.js:553:179671
+Plugin updates: 0 index-B2Z4DMsC.js:553:179714
+Theme updates: 0 index-B2Z4DMsC.js:553:179754
+WordPress update: 0 index-B2Z4DMsC.js:553:179793
+Total updates: 0 index-B2Z4DMsC.js:553:179832
+========================== index-B2Z4DMsC.js:553:179864
+=== FINAL UPDATE COUNTS === index-B2Z4DMsC.js:553:179671
+Plugin updates: 0 index-B2Z4DMsC.js:553:179714
+Theme updates: 0 index-B2Z4DMsC.js:553:179754
+WordPress update: 0 index-B2Z4DMsC.js:553:179793
+Total updates: 0 index-B2Z4DMsC.js:553:179832
+========================== index-B2Z4DMsC.js:553:179864
+=== WRM UPDATES DEBUG === index-B2Z4DMsC.js:553:177088
+Full updates object: {
+  "code": "rest_no_route",
+  "message": "No route was found matching the URL and request method.",
+  "data": {
+    "status": 404
+  }
+} index-B2Z4DMsC.js:553:177129
+Plugins array length: Not an array index-B2Z4DMsC.js:553:177190
+Themes array length: Not an array index-B2Z4DMsC.js:553:177284
+WordPress update available: false index-B2Z4DMsC.js:553:177375
+======================== index-B2Z4DMsC.js:553:177472
+Updates plugins is not a valid array: undefined index-B2Z4DMsC.js:553:178131
+Updates themes is not a valid array: undefined index-B2Z4DMsC.js:553:178816
+=== FINAL UPDATE COUNTS === index-B2Z4DMsC.js:553:179671
+Plugin updates: 0 index-B2Z4DMsC.js:553:179714
+Theme updates: 0 index-B2Z4DMsC.js:553:179754
+WordPress update: 0 index-B2Z4DMsC.js:553:179793
+Total updates: 0 index-B2Z4DMsC.js:553:179832
+========================== index-B2Z4DMsC.js:553:179864
+=== WRM UPDATES DEBUG === index-B2Z4DMsC.js:553:177088
+Full updates object: {
+  "code": "rest_no_route",
+  "message": "No route was found matching the URL and request method.",
+  "data": {
+    "status": 404
+  }
+} index-B2Z4DMsC.js:553:177129
+Plugins array length: Not an array index-B2Z4DMsC.js:553:177190
+Themes array length: Not an array index-B2Z4DMsC.js:553:177284
+WordPress update available: false index-B2Z4DMsC.js:553:177375
+======================== index-B2Z4DMsC.js:553:177472
+Updates plugins is not a valid array: undefined index-B2Z4DMsC.js:553:178131
+Updates themes is not a valid array: undefined index-B2Z4DMsC.js:553:178816
+=== FINAL UPDATE COUNTS === index-B2Z4DMsC.js:553:179671
+Plugin updates: 0 index-B2Z4DMsC.js:553:179714
+Theme updates: 0 index-B2Z4DMsC.js:553:179754
+WordPress update: 0 index-B2Z4DMsC.js:553:179793
+Total updates: 0 index-B2Z4DMsC.js:553:179832
+========================== index-B2Z4DMsC.js:553:179864
+=== WRM UPDATES DEBUG === index-B2Z4DMsC.js:553:177088
+Full updates object: {
+  "code": "rest_no_route",
+  "message": "No route was found matching the URL and request method.",
+  "data": {
+    "status": 404
+  }
+} index-B2Z4DMsC.js:553:177129
+Plugins array length: Not an array index-B2Z4DMsC.js:553:177190
+Themes array length: Not an array index-B2Z4DMsC.js:553:177284
+WordPress update available: false index-B2Z4DMsC.js:553:177375
+======================== index-B2Z4DMsC.js:553:177472
+Updates plugins is not a valid array: undefined index-B2Z4DMsC.js:553:178131
+Updates themes is not a valid array: undefined index-B2Z4DMsC.js:553:178816
+=== FINAL UPDATE COUNTS === index-B2Z4DMsC.js:553:179671
+Plugin updates: 0 index-B2Z4DMsC.js:553:179714
+Theme updates: 0 index-B2Z4DMsC.js:553:179754
+WordPress update: 0 index-B2Z4DMsC.js:553:179793
+Total updates: 0 index-B2Z4DMsC.js:553:179832
+========================== index-B2Z4DMsC.js:553:179864
+=== WRM UPDATES DEBUG === index-B2Z4DMsC.js:553:177088
+Full updates object: {
+  "code": "rest_no_route",
+  "message": "No route was found matching the URL and request method.",
+  "data": {
+    "status": 404
+  }
+} index-B2Z4DMsC.js:553:177129
+Plugins array length: Not an array index-B2Z4DMsC.js:553:177190
+Themes array length: Not an array index-B2Z4DMsC.js:553:177284
+WordPress update available: false index-B2Z4DMsC.js:553:177375
+======================== index-B2Z4DMsC.js:553:177472
+Updates plugins is not a valid array: undefined index-B2Z4DMsC.js:553:178131
+Updates themes is not a valid array: undefined index-B2Z4DMsC.js:553:178816
+=== FINAL UPDATE COUNTS === index-B2Z4DMsC.js:553:179671
+Plugin updates: 0 index-B2Z4DMsC.js:553:179714
+Theme updates: 0 index-B2Z4DMsC.js:553:179754
+WordPress update: 0 index-B2Z4DMsC.js:553:179793
+Total updates: 0 index-B2Z4DMsC.js:553:179832
+========================== index-B2Z4DMsC.js:553:179864
+This site appears to use a scroll-linked positioning effect. This may not work well with asynchronous panning; see https://firefox-source-docs.mozilla.org/performance/scroll-linked_effects.html for further details and to join the discussion on related tools and features! 2
+Unknown property ‘-moz-osx-font-smoothing’.  Declaration dropped. feedback.html:1:451
+Error in parsing value for ‘-webkit-mask’.  Declaration dropped. feedback.html:1:2558

@@ -1,0 +1,351 @@
+Partitioned cookie or storage access was provided to “https://vercel.live/_next-live/feedback/feedback.html?dpl=dpl_EXyFeT5SdvXm5hcDsGYhuuTAXvr8” because it is loaded in the third-party context and dynamic state partitioning is enabled. feedback.html:9:10574
+Missing required Google Analytics key: VITE_GA_MEASUREMENT_ID index-Bu15eTuJ.js:547:186492
+=== FINAL UPDATE COUNTS === index-Bu15eTuJ.js:542:134731
+Plugin updates: 0 index-Bu15eTuJ.js:542:134774
+Theme updates: 0 index-Bu15eTuJ.js:542:134814
+WordPress update: 0 index-Bu15eTuJ.js:542:134853
+Total updates: 0 index-Bu15eTuJ.js:542:134892
+========================== index-Bu15eTuJ.js:542:134924
+=== FINAL UPDATE COUNTS === index-Bu15eTuJ.js:542:134731
+Plugin updates: 0 index-Bu15eTuJ.js:542:134774
+Theme updates: 0 index-Bu15eTuJ.js:542:134814
+WordPress update: 0 index-Bu15eTuJ.js:542:134853
+Total updates: 0 index-Bu15eTuJ.js:542:134892
+========================== index-Bu15eTuJ.js:542:134924
+=== FINAL UPDATE COUNTS === index-Bu15eTuJ.js:542:134731
+Plugin updates: 0 index-Bu15eTuJ.js:542:134774
+Theme updates: 0 index-Bu15eTuJ.js:542:134814
+WordPress update: 0 index-Bu15eTuJ.js:542:134853
+Total updates: 0 index-Bu15eTuJ.js:542:134892
+========================== index-Bu15eTuJ.js:542:134924
+=== WRM UPDATES DEBUG === index-Bu15eTuJ.js:542:132183
+Full updates object: {
+  "wordpress": {
+    "current_version": "6.8.2",
+    "update_available": false,
+    "new_version": null
+  },
+  "plugins": [
+    {
+      "plugin": "defender-security/wp-defender.php",
+      "name": "defender-security",
+      "current_version": "5.4.0",
+      "new_version": "5.4.1"
+    },
+    {
+      "plugin": "really-simple-ssl/rlrsssl-really-simple-ssl.php",
+      "name": "really-simple-ssl",
+      "current_version": "9.4.2",
+      "new_version": "9.4.3"
+    },
+    {
+      "plugin": "snapshot-backups/snapshot-backups.php",
+      "name": "wpmudev_install-3760011",
+      "current_version": "4.35.0",
+      "new_version": "4.35.1"
+    }
+  ],
+  "themes": []
+} index-Bu15eTuJ.js:542:132224
+Plugins array length: 3 index-Bu15eTuJ.js:542:132285
+Themes array length: 0 index-Bu15eTuJ.js:542:132379
+WordPress update available: false index-Bu15eTuJ.js:542:132470
+======================== index-Bu15eTuJ.js:542:132567
+=== FINAL UPDATE COUNTS === index-Bu15eTuJ.js:542:134731
+Plugin updates: 3 index-Bu15eTuJ.js:542:134774
+Theme updates: 0 index-Bu15eTuJ.js:542:134814
+WordPress update: 0 index-Bu15eTuJ.js:542:134853
+Total updates: 3 index-Bu15eTuJ.js:542:134892
+========================== index-Bu15eTuJ.js:542:134924
+=== WRM UPDATES DEBUG === index-Bu15eTuJ.js:542:132183
+Full updates object: {
+  "wordpress": {
+    "current_version": "6.8.2",
+    "update_available": false,
+    "new_version": null
+  },
+  "plugins": [
+    {
+      "plugin": "defender-security/wp-defender.php",
+      "name": "defender-security",
+      "current_version": "5.4.0",
+      "new_version": "5.4.1"
+    },
+    {
+      "plugin": "really-simple-ssl/rlrsssl-really-simple-ssl.php",
+      "name": "really-simple-ssl",
+      "current_version": "9.4.2",
+      "new_version": "9.4.3"
+    },
+    {
+      "plugin": "snapshot-backups/snapshot-backups.php",
+      "name": "wpmudev_install-3760011",
+      "current_version": "4.35.0",
+      "new_version": "4.35.1"
+    }
+  ],
+  "themes": []
+} index-Bu15eTuJ.js:542:132224
+Plugins array length: 3 index-Bu15eTuJ.js:542:132285
+Themes array length: 0 index-Bu15eTuJ.js:542:132379
+WordPress update available: false index-Bu15eTuJ.js:542:132470
+======================== index-Bu15eTuJ.js:542:132567
+=== FINAL UPDATE COUNTS === index-Bu15eTuJ.js:542:134731
+Plugin updates: 3 index-Bu15eTuJ.js:542:134774
+Theme updates: 0 index-Bu15eTuJ.js:542:134814
+WordPress update: 0 index-Bu15eTuJ.js:542:134853
+Total updates: 3 index-Bu15eTuJ.js:542:134892
+========================== index-Bu15eTuJ.js:542:134924
+=== SECURITY SCAN DEBUG === index-Bu15eTuJ.js:547:64908
+websiteId: 2 index-Bu15eTuJ.js:547:64951
+latestScan: undefined index-Bu15eTuJ.js:547:64979
+isLoadingLatest: true index-Bu15eTuJ.js:547:65008
+latestError: null index-Bu15eTuJ.js:547:65042
+scanHistory: 
+Array []
+index-Bu15eTuJ.js:547:65072
+API Base URL: https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app index-Bu15eTuJ.js:547:65102
+Environment: development index-Bu15eTuJ.js:547:65154
+========================= index-Bu15eTuJ.js:547:65783
+=== SECURITY SCAN DEBUG === index-Bu15eTuJ.js:547:64908
+websiteId: 2 index-Bu15eTuJ.js:547:64951
+latestScan: 
+Object { id: 2, name: "KSoft Solution", url: "https://ksoftsolution.com/", wpAdminUsername: "", wpAdminPassword: "", wrmApiKey: "Zxc0VqsZFe16RgKmi6rPNyQQ72QjNQPg", wpVersion: "6.8.2", lastBackup: null, lastUpdate: null, lastSync: "2025-08-06T06:28:05.835Z", … }
+index-Bu15eTuJ.js:547:64979
+isLoadingLatest: false index-Bu15eTuJ.js:547:65008
+latestError: null index-Bu15eTuJ.js:547:65042
+scanHistory: 
+Array []
+index-Bu15eTuJ.js:547:65072
+API Base URL: https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app index-Bu15eTuJ.js:547:65102
+Environment: development index-Bu15eTuJ.js:547:65154
+Scan data structure: index-Bu15eTuJ.js:547:65200
+- id: 2 index-Bu15eTuJ.js:547:65236
+- scanStatus: undefined index-Bu15eTuJ.js:547:65262
+- overallSecurityScore: undefined index-Bu15eTuJ.js:547:65304
+- threatLevel: undefined index-Bu15eTuJ.js:547:65366
+- scanStartedAt: undefined index-Bu15eTuJ.js:547:65410
+- scanCompletedAt: undefined index-Bu15eTuJ.js:547:65458
+- malwareResult: undefined index-Bu15eTuJ.js:547:65510
+- blacklistResult: undefined index-Bu15eTuJ.js:547:65558
+- vulnerabilityResult: undefined index-Bu15eTuJ.js:547:65610
+- securityHeaders: undefined index-Bu15eTuJ.js:547:65670
+- basicSecurityChecks: undefined index-Bu15eTuJ.js:547:65722
+========================= index-Bu15eTuJ.js:547:65783
+=== SECURITY SCAN DEBUG === index-Bu15eTuJ.js:547:64908
+websiteId: 2 index-Bu15eTuJ.js:547:64951
+latestScan: 
+Object { id: 2, name: "KSoft Solution", url: "https://ksoftsolution.com/", wpAdminUsername: "", wpAdminPassword: "", wrmApiKey: "Zxc0VqsZFe16RgKmi6rPNyQQ72QjNQPg", wpVersion: "6.8.2", lastBackup: null, lastUpdate: null, lastSync: "2025-08-06T06:28:05.835Z", … }
+index-Bu15eTuJ.js:547:64979
+isLoadingLatest: false index-Bu15eTuJ.js:547:65008
+latestError: null index-Bu15eTuJ.js:547:65042
+scanHistory: 
+Object { id: 2, name: "KSoft Solution", url: "https://ksoftsolution.com/", wpAdminUsername: "", wpAdminPassword: "", wrmApiKey: "Zxc0VqsZFe16RgKmi6rPNyQQ72QjNQPg", wpVersion: "6.8.2", lastBackup: null, lastUpdate: null, lastSync: "2025-08-06T06:28:05.835Z", … }
+index-Bu15eTuJ.js:547:65072
+API Base URL: https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app index-Bu15eTuJ.js:547:65102
+Environment: development index-Bu15eTuJ.js:547:65154
+Scan data structure: index-Bu15eTuJ.js:547:65200
+- id: 2 index-Bu15eTuJ.js:547:65236
+- scanStatus: undefined index-Bu15eTuJ.js:547:65262
+- overallSecurityScore: undefined index-Bu15eTuJ.js:547:65304
+- threatLevel: undefined index-Bu15eTuJ.js:547:65366
+- scanStartedAt: undefined index-Bu15eTuJ.js:547:65410
+- scanCompletedAt: undefined index-Bu15eTuJ.js:547:65458
+- malwareResult: undefined index-Bu15eTuJ.js:547:65510
+- blacklistResult: undefined index-Bu15eTuJ.js:547:65558
+- vulnerabilityResult: undefined index-Bu15eTuJ.js:547:65610
+- securityHeaders: undefined index-Bu15eTuJ.js:547:65670
+- basicSecurityChecks: undefined index-Bu15eTuJ.js:547:65722
+========================= index-Bu15eTuJ.js:547:65783
+=== SECURITY SCAN DEBUG === index-Bu15eTuJ.js:547:64908
+websiteId: 2 index-Bu15eTuJ.js:547:64951
+latestScan: 
+Object { id: 2, name: "KSoft Solution", url: "https://ksoftsolution.com/", wpAdminUsername: "", wpAdminPassword: "", wrmApiKey: "Zxc0VqsZFe16RgKmi6rPNyQQ72QjNQPg", wpVersion: "6.8.2", lastBackup: null, lastUpdate: null, lastSync: "2025-08-06T06:28:05.835Z", … }
+index-Bu15eTuJ.js:547:64979
+isLoadingLatest: false index-Bu15eTuJ.js:547:65008
+latestError: null index-Bu15eTuJ.js:547:65042
+scanHistory: 
+Object { id: 2, name: "KSoft Solution", url: "https://ksoftsolution.com/", wpAdminUsername: "", wpAdminPassword: "", wrmApiKey: "Zxc0VqsZFe16RgKmi6rPNyQQ72QjNQPg", wpVersion: "6.8.2", lastBackup: null, lastUpdate: null, lastSync: "2025-08-06T06:28:05.835Z", … }
+index-Bu15eTuJ.js:547:65072
+API Base URL: https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app index-Bu15eTuJ.js:547:65102
+Environment: development index-Bu15eTuJ.js:547:65154
+Scan data structure: index-Bu15eTuJ.js:547:65200
+- id: 2 index-Bu15eTuJ.js:547:65236
+- scanStatus: undefined index-Bu15eTuJ.js:547:65262
+- overallSecurityScore: undefined index-Bu15eTuJ.js:547:65304
+- threatLevel: undefined index-Bu15eTuJ.js:547:65366
+- scanStartedAt: undefined index-Bu15eTuJ.js:547:65410
+- scanCompletedAt: undefined index-Bu15eTuJ.js:547:65458
+- malwareResult: undefined index-Bu15eTuJ.js:547:65510
+- blacklistResult: undefined index-Bu15eTuJ.js:547:65558
+- vulnerabilityResult: undefined index-Bu15eTuJ.js:547:65610
+- securityHeaders: undefined index-Bu15eTuJ.js:547:65670
+- basicSecurityChecks: undefined index-Bu15eTuJ.js:547:65722
+========================= index-Bu15eTuJ.js:547:65783
+=== SECURITY SCAN DEBUG === index-Bu15eTuJ.js:547:64908
+websiteId: 2 index-Bu15eTuJ.js:547:64951
+latestScan: 
+Object { id: 2, name: "KSoft Solution", url: "https://ksoftsolution.com/", wpAdminUsername: "", wpAdminPassword: "", wrmApiKey: "Zxc0VqsZFe16RgKmi6rPNyQQ72QjNQPg", wpVersion: "6.8.2", lastBackup: null, lastUpdate: null, lastSync: "2025-08-06T06:28:05.835Z", … }
+index-Bu15eTuJ.js:547:64979
+isLoadingLatest: false index-Bu15eTuJ.js:547:65008
+latestError: null index-Bu15eTuJ.js:547:65042
+scanHistory: 
+Object { id: 2, name: "KSoft Solution", url: "https://ksoftsolution.com/", wpAdminUsername: "", wpAdminPassword: "", wrmApiKey: "Zxc0VqsZFe16RgKmi6rPNyQQ72QjNQPg", wpVersion: "6.8.2", lastBackup: null, lastUpdate: null, lastSync: "2025-08-06T06:28:05.835Z", … }
+index-Bu15eTuJ.js:547:65072
+API Base URL: https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app index-Bu15eTuJ.js:547:65102
+Environment: development index-Bu15eTuJ.js:547:65154
+Scan data structure: index-Bu15eTuJ.js:547:65200
+- id: 2 index-Bu15eTuJ.js:547:65236
+- scanStatus: undefined index-Bu15eTuJ.js:547:65262
+- overallSecurityScore: undefined index-Bu15eTuJ.js:547:65304
+- threatLevel: undefined index-Bu15eTuJ.js:547:65366
+- scanStartedAt: undefined index-Bu15eTuJ.js:547:65410
+- scanCompletedAt: undefined index-Bu15eTuJ.js:547:65458
+- malwareResult: undefined index-Bu15eTuJ.js:547:65510
+- blacklistResult: undefined index-Bu15eTuJ.js:547:65558
+- vulnerabilityResult: undefined index-Bu15eTuJ.js:547:65610
+- securityHeaders: undefined index-Bu15eTuJ.js:547:65670
+- basicSecurityChecks: undefined index-Bu15eTuJ.js:547:65722
+========================= index-Bu15eTuJ.js:547:65783
+=== SECURITY SCAN DEBUG === index-Bu15eTuJ.js:547:64908
+websiteId: 2 index-Bu15eTuJ.js:547:64951
+latestScan: 
+Object { id: 2, name: "KSoft Solution", url: "https://ksoftsolution.com/", wpAdminUsername: "", wpAdminPassword: "", wrmApiKey: "Zxc0VqsZFe16RgKmi6rPNyQQ72QjNQPg", wpVersion: "6.8.2", lastBackup: null, lastUpdate: null, lastSync: "2025-08-06T06:28:05.835Z", … }
+index-Bu15eTuJ.js:547:64979
+isLoadingLatest: false index-Bu15eTuJ.js:547:65008
+latestError: null index-Bu15eTuJ.js:547:65042
+scanHistory: 
+Object { id: 2, name: "KSoft Solution", url: "https://ksoftsolution.com/", wpAdminUsername: "", wpAdminPassword: "", wrmApiKey: "Zxc0VqsZFe16RgKmi6rPNyQQ72QjNQPg", wpVersion: "6.8.2", lastBackup: null, lastUpdate: null, lastSync: "2025-08-06T06:28:05.835Z", … }
+index-Bu15eTuJ.js:547:65072
+API Base URL: https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app index-Bu15eTuJ.js:547:65102
+Environment: development index-Bu15eTuJ.js:547:65154
+Scan data structure: index-Bu15eTuJ.js:547:65200
+- id: 2 index-Bu15eTuJ.js:547:65236
+- scanStatus: undefined index-Bu15eTuJ.js:547:65262
+- overallSecurityScore: undefined index-Bu15eTuJ.js:547:65304
+- threatLevel: undefined index-Bu15eTuJ.js:547:65366
+- scanStartedAt: undefined index-Bu15eTuJ.js:547:65410
+- scanCompletedAt: undefined index-Bu15eTuJ.js:547:65458
+- malwareResult: undefined index-Bu15eTuJ.js:547:65510
+- blacklistResult: undefined index-Bu15eTuJ.js:547:65558
+- vulnerabilityResult: undefined index-Bu15eTuJ.js:547:65610
+- securityHeaders: undefined index-Bu15eTuJ.js:547:65670
+- basicSecurityChecks: undefined index-Bu15eTuJ.js:547:65722
+========================= index-Bu15eTuJ.js:547:65783
+=== SECURITY SCAN DEBUG === index-Bu15eTuJ.js:547:64908
+websiteId: 2 index-Bu15eTuJ.js:547:64951
+latestScan: 
+Object { id: 2, name: "KSoft Solution", url: "https://ksoftsolution.com/", wpAdminUsername: "", wpAdminPassword: "", wrmApiKey: "Zxc0VqsZFe16RgKmi6rPNyQQ72QjNQPg", wpVersion: "6.8.2", lastBackup: null, lastUpdate: null, lastSync: "2025-08-06T06:28:05.835Z", … }
+index-Bu15eTuJ.js:547:64979
+isLoadingLatest: false index-Bu15eTuJ.js:547:65008
+latestError: null index-Bu15eTuJ.js:547:65042
+scanHistory: 
+Object { id: 2, name: "KSoft Solution", url: "https://ksoftsolution.com/", wpAdminUsername: "", wpAdminPassword: "", wrmApiKey: "Zxc0VqsZFe16RgKmi6rPNyQQ72QjNQPg", wpVersion: "6.8.2", lastBackup: null, lastUpdate: null, lastSync: "2025-08-06T06:28:05.835Z", … }
+index-Bu15eTuJ.js:547:65072
+API Base URL: https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app index-Bu15eTuJ.js:547:65102
+Environment: development index-Bu15eTuJ.js:547:65154
+Scan data structure: index-Bu15eTuJ.js:547:65200
+- id: 2 index-Bu15eTuJ.js:547:65236
+- scanStatus: undefined index-Bu15eTuJ.js:547:65262
+- overallSecurityScore: undefined index-Bu15eTuJ.js:547:65304
+- threatLevel: undefined index-Bu15eTuJ.js:547:65366
+- scanStartedAt: undefined index-Bu15eTuJ.js:547:65410
+- scanCompletedAt: undefined index-Bu15eTuJ.js:547:65458
+- malwareResult: undefined index-Bu15eTuJ.js:547:65510
+- blacklistResult: undefined index-Bu15eTuJ.js:547:65558
+- vulnerabilityResult: undefined index-Bu15eTuJ.js:547:65610
+- securityHeaders: undefined index-Bu15eTuJ.js:547:65670
+- basicSecurityChecks: undefined index-Bu15eTuJ.js:547:65722
+========================= index-Bu15eTuJ.js:547:65783
+=== SECURITY SCAN DEBUG === index-Bu15eTuJ.js:547:64908
+websiteId: 2 index-Bu15eTuJ.js:547:64951
+latestScan: 
+Object { id: 2, name: "KSoft Solution", url: "https://ksoftsolution.com/", wpAdminUsername: "", wpAdminPassword: "", wrmApiKey: "Zxc0VqsZFe16RgKmi6rPNyQQ72QjNQPg", wpVersion: "6.8.2", lastBackup: null, lastUpdate: null, lastSync: "2025-08-06T06:28:05.835Z", … }
+index-Bu15eTuJ.js:547:64979
+isLoadingLatest: false index-Bu15eTuJ.js:547:65008
+latestError: null index-Bu15eTuJ.js:547:65042
+scanHistory: 
+Object { id: 2, name: "KSoft Solution", url: "https://ksoftsolution.com/", wpAdminUsername: "", wpAdminPassword: "", wrmApiKey: "Zxc0VqsZFe16RgKmi6rPNyQQ72QjNQPg", wpVersion: "6.8.2", lastBackup: null, lastUpdate: null, lastSync: "2025-08-06T06:28:05.835Z", … }
+index-Bu15eTuJ.js:547:65072
+API Base URL: https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app index-Bu15eTuJ.js:547:65102
+Environment: development index-Bu15eTuJ.js:547:65154
+Scan data structure: index-Bu15eTuJ.js:547:65200
+- id: 2 index-Bu15eTuJ.js:547:65236
+- scanStatus: undefined index-Bu15eTuJ.js:547:65262
+- overallSecurityScore: undefined index-Bu15eTuJ.js:547:65304
+- threatLevel: undefined index-Bu15eTuJ.js:547:65366
+- scanStartedAt: undefined index-Bu15eTuJ.js:547:65410
+- scanCompletedAt: undefined index-Bu15eTuJ.js:547:65458
+- malwareResult: undefined index-Bu15eTuJ.js:547:65510
+- blacklistResult: undefined index-Bu15eTuJ.js:547:65558
+- vulnerabilityResult: undefined index-Bu15eTuJ.js:547:65610
+- securityHeaders: undefined index-Bu15eTuJ.js:547:65670
+- basicSecurityChecks: undefined index-Bu15eTuJ.js:547:65722
+========================= index-Bu15eTuJ.js:547:65783
+=== SECURITY SCAN DEBUG === index-Bu15eTuJ.js:547:64908
+websiteId: 2 index-Bu15eTuJ.js:547:64951
+latestScan: 
+Object { id: 2, name: "KSoft Solution", url: "https://ksoftsolution.com/", wpAdminUsername: "", wpAdminPassword: "", wrmApiKey: "Zxc0VqsZFe16RgKmi6rPNyQQ72QjNQPg", wpVersion: "6.8.2", lastBackup: null, lastUpdate: null, lastSync: "2025-08-06T06:28:05.835Z", … }
+index-Bu15eTuJ.js:547:64979
+isLoadingLatest: false index-Bu15eTuJ.js:547:65008
+latestError: null index-Bu15eTuJ.js:547:65042
+scanHistory: 
+Object { id: 2, name: "KSoft Solution", url: "https://ksoftsolution.com/", wpAdminUsername: "", wpAdminPassword: "", wrmApiKey: "Zxc0VqsZFe16RgKmi6rPNyQQ72QjNQPg", wpVersion: "6.8.2", lastBackup: null, lastUpdate: null, lastSync: "2025-08-06T06:28:05.835Z", … }
+index-Bu15eTuJ.js:547:65072
+API Base URL: https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app index-Bu15eTuJ.js:547:65102
+Environment: development index-Bu15eTuJ.js:547:65154
+Scan data structure: index-Bu15eTuJ.js:547:65200
+- id: 2 index-Bu15eTuJ.js:547:65236
+- scanStatus: undefined index-Bu15eTuJ.js:547:65262
+- overallSecurityScore: undefined index-Bu15eTuJ.js:547:65304
+- threatLevel: undefined index-Bu15eTuJ.js:547:65366
+- scanStartedAt: undefined index-Bu15eTuJ.js:547:65410
+- scanCompletedAt: undefined index-Bu15eTuJ.js:547:65458
+- malwareResult: undefined index-Bu15eTuJ.js:547:65510
+- blacklistResult: undefined index-Bu15eTuJ.js:547:65558
+- vulnerabilityResult: undefined index-Bu15eTuJ.js:547:65610
+- securityHeaders: undefined index-Bu15eTuJ.js:547:65670
+- basicSecurityChecks: undefined index-Bu15eTuJ.js:547:65722
+========================= index-Bu15eTuJ.js:547:65783
+=== SECURITY SCAN DEBUG === index-Bu15eTuJ.js:547:64908
+websiteId: 2 index-Bu15eTuJ.js:547:64951
+latestScan: 
+Object { id: 2, name: "KSoft Solution", url: "https://ksoftsolution.com/", wpAdminUsername: "", wpAdminPassword: "", wrmApiKey: "Zxc0VqsZFe16RgKmi6rPNyQQ72QjNQPg", wpVersion: "6.8.2", lastBackup: null, lastUpdate: null, lastSync: "2025-08-06T06:28:05.835Z", … }
+index-Bu15eTuJ.js:547:64979
+isLoadingLatest: false index-Bu15eTuJ.js:547:65008
+latestError: null index-Bu15eTuJ.js:547:65042
+scanHistory: 
+Object { id: 2, name: "KSoft Solution", url: "https://ksoftsolution.com/", wpAdminUsername: "", wpAdminPassword: "", wrmApiKey: "Zxc0VqsZFe16RgKmi6rPNyQQ72QjNQPg", wpVersion: "6.8.2", lastBackup: null, lastUpdate: null, lastSync: "2025-08-06T06:28:05.835Z", … }
+index-Bu15eTuJ.js:547:65072
+API Base URL: https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app index-Bu15eTuJ.js:547:65102
+Environment: development index-Bu15eTuJ.js:547:65154
+Scan data structure: index-Bu15eTuJ.js:547:65200
+- id: 2 index-Bu15eTuJ.js:547:65236
+- scanStatus: undefined index-Bu15eTuJ.js:547:65262
+- overallSecurityScore: undefined index-Bu15eTuJ.js:547:65304
+- threatLevel: undefined index-Bu15eTuJ.js:547:65366
+- scanStartedAt: undefined index-Bu15eTuJ.js:547:65410
+- scanCompletedAt: undefined index-Bu15eTuJ.js:547:65458
+- malwareResult: undefined index-Bu15eTuJ.js:547:65510
+- blacklistResult: undefined index-Bu15eTuJ.js:547:65558
+- vulnerabilityResult: undefined index-Bu15eTuJ.js:547:65610
+- securityHeaders: undefined index-Bu15eTuJ.js:547:65670
+- basicSecurityChecks: undefined index-Bu15eTuJ.js:547:65722
+========================= index-Bu15eTuJ.js:547:65783
+Unknown property ‘-moz-columns’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:510
+Unknown property ‘-moz-column-count’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:533
+Unknown property ‘-moz-column-fill’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:555
+Unknown property ‘-moz-column-gap’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:634
+Unknown property ‘-moz-column-rule’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:676
+Unknown property ‘-moz-column-span’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:755
+Unknown property ‘-moz-column-width’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:789
+Unknown property ‘orphans’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:1349
+Unknown property ‘-moz-text-align-last’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:1678
+Unknown property ‘widows’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:1998
+Unknown property ‘-moz-osx-font-smoothing’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:2103
+Unknown property ‘-moz-osx-font-smoothing’.  Declaration dropped. feedback.html:1:451
+Error in parsing value for ‘-webkit-mask’.  Declaration dropped. feedback.html:1:2558
+Error in parsing value for ‘-webkit-text-size-adjust’.  Declaration dropped. index-CD-l0GEy.css:1:2443
+Unknown property ‘-moz-osx-font-smoothing’.  Declaration dropped. index-CD-l0GEy.css:1:5037
+Ruleset ignored due to bad selector. index-CD-l0GEy.css:1:73912
+Ruleset ignored due to bad selector. index-CD-l0GEy.css:1:74066

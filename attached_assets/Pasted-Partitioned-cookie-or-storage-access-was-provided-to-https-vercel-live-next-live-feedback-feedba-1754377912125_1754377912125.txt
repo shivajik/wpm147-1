@@ -1,0 +1,179 @@
+Partitioned cookie or storage access was provided to “https://vercel.live/_next-live/feedback/feedback.html?dpl=dpl_EXyFeT5SdvXm5hcDsGYhuuTAXvr8” because it is loaded in the third-party context and dynamic state partitioning is enabled. feedback.html:9:10574
+Missing required Google Analytics key: VITE_GA_MEASUREMENT_ID index-HI-pOkd3.js:552:205970
+=== FINAL UPDATE COUNTS === index-HI-pOkd3.js:547:136060
+Plugin updates: 0 index-HI-pOkd3.js:547:136103
+Theme updates: 0 index-HI-pOkd3.js:547:136143
+WordPress update: 0 index-HI-pOkd3.js:547:136182
+Total updates: 0 index-HI-pOkd3.js:547:136221
+========================== index-HI-pOkd3.js:547:136253
+=== FINAL UPDATE COUNTS === index-HI-pOkd3.js:547:136060
+Plugin updates: 0 index-HI-pOkd3.js:547:136103
+Theme updates: 0 index-HI-pOkd3.js:547:136143
+WordPress update: 0 index-HI-pOkd3.js:547:136182
+Total updates: 0 index-HI-pOkd3.js:547:136221
+========================== index-HI-pOkd3.js:547:136253
+=== FINAL UPDATE COUNTS === index-HI-pOkd3.js:547:136060
+Plugin updates: 0 index-HI-pOkd3.js:547:136103
+Theme updates: 0 index-HI-pOkd3.js:547:136143
+WordPress update: 0 index-HI-pOkd3.js:547:136182
+Total updates: 0 index-HI-pOkd3.js:547:136221
+========================== index-HI-pOkd3.js:547:136253
+=== FINAL UPDATE COUNTS === index-HI-pOkd3.js:547:136060
+Plugin updates: 0 index-HI-pOkd3.js:547:136103
+Theme updates: 0 index-HI-pOkd3.js:547:136143
+WordPress update: 0 index-HI-pOkd3.js:547:136182
+Total updates: 0 index-HI-pOkd3.js:547:136221
+========================== index-HI-pOkd3.js:547:136253
+=== WRM UPDATES DEBUG === index-HI-pOkd3.js:547:133514
+Full updates object: {
+  "wordpress": {
+    "current_version": "6.8.2",
+    "update_available": false,
+    "new_version": null
+  },
+  "plugins": [
+    {
+      "plugin": "snapshot-backups/snapshot-backups.php",
+      "name": "wpmudev_install-3760011",
+      "current_version": "4.35.0",
+      "new_version": "4.35.1"
+    }
+  ],
+  "themes": []
+} index-HI-pOkd3.js:547:133555
+Plugins array length: 1 index-HI-pOkd3.js:547:133616
+Themes array length: 0 index-HI-pOkd3.js:547:133710
+WordPress update available: false index-HI-pOkd3.js:547:133801
+======================== index-HI-pOkd3.js:547:133898
+=== FINAL UPDATE COUNTS === index-HI-pOkd3.js:547:136060
+Plugin updates: 1 index-HI-pOkd3.js:547:136103
+Theme updates: 0 index-HI-pOkd3.js:547:136143
+WordPress update: 0 index-HI-pOkd3.js:547:136182
+Total updates: 1 index-HI-pOkd3.js:547:136221
+========================== index-HI-pOkd3.js:547:136253
+=== WRM UPDATES DEBUG === index-HI-pOkd3.js:547:133514
+Full updates object: {
+  "wordpress": {
+    "current_version": "6.8.2",
+    "update_available": false,
+    "new_version": null
+  },
+  "plugins": [
+    {
+      "plugin": "snapshot-backups/snapshot-backups.php",
+      "name": "wpmudev_install-3760011",
+      "current_version": "4.35.0",
+      "new_version": "4.35.1"
+    }
+  ],
+  "themes": []
+} index-HI-pOkd3.js:547:133555
+Plugins array length: 1 index-HI-pOkd3.js:547:133616
+Themes array length: 0 index-HI-pOkd3.js:547:133710
+WordPress update available: false index-HI-pOkd3.js:547:133801
+======================== index-HI-pOkd3.js:547:133898
+=== FINAL UPDATE COUNTS === index-HI-pOkd3.js:547:136060
+Plugin updates: 1 index-HI-pOkd3.js:547:136103
+Theme updates: 0 index-HI-pOkd3.js:547:136143
+WordPress update: 0 index-HI-pOkd3.js:547:136182
+Total updates: 1 index-HI-pOkd3.js:547:136221
+========================== index-HI-pOkd3.js:547:136253
+=== WRM UPDATES DEBUG === index-HI-pOkd3.js:547:133514
+Full updates object: {
+  "wordpress": {
+    "current_version": "6.8.2",
+    "update_available": false,
+    "new_version": null
+  },
+  "plugins": [
+    {
+      "plugin": "snapshot-backups/snapshot-backups.php",
+      "name": "wpmudev_install-3760011",
+      "current_version": "4.35.0",
+      "new_version": "4.35.1"
+    }
+  ],
+  "themes": []
+} index-HI-pOkd3.js:547:133555
+Plugins array length: 1 index-HI-pOkd3.js:547:133616
+Themes array length: 0 index-HI-pOkd3.js:547:133710
+WordPress update available: false index-HI-pOkd3.js:547:133801
+======================== index-HI-pOkd3.js:547:133898
+=== FINAL UPDATE COUNTS === index-HI-pOkd3.js:547:136060
+Plugin updates: 1 index-HI-pOkd3.js:547:136103
+Theme updates: 0 index-HI-pOkd3.js:547:136143
+WordPress update: 0 index-HI-pOkd3.js:547:136182
+Total updates: 1 index-HI-pOkd3.js:547:136221
+========================== index-HI-pOkd3.js:547:136253
+=== WRM UPDATES DEBUG === index-HI-pOkd3.js:547:133514
+Full updates object: {
+  "wordpress": {
+    "current_version": "6.8.2",
+    "update_available": false,
+    "new_version": null
+  },
+  "plugins": [
+    {
+      "plugin": "snapshot-backups/snapshot-backups.php",
+      "name": "wpmudev_install-3760011",
+      "current_version": "4.35.0",
+      "new_version": "4.35.1"
+    }
+  ],
+  "themes": []
+} index-HI-pOkd3.js:547:133555
+Plugins array length: 1 index-HI-pOkd3.js:547:133616
+Themes array length: 0 index-HI-pOkd3.js:547:133710
+WordPress update available: false index-HI-pOkd3.js:547:133801
+======================== index-HI-pOkd3.js:547:133898
+=== FINAL UPDATE COUNTS === index-HI-pOkd3.js:547:136060
+Plugin updates: 1 index-HI-pOkd3.js:547:136103
+Theme updates: 0 index-HI-pOkd3.js:547:136143
+WordPress update: 0 index-HI-pOkd3.js:547:136182
+Total updates: 1 index-HI-pOkd3.js:547:136221
+========================== index-HI-pOkd3.js:547:136253
+Website data for plugins: 
+Object { id: 2, name: "KSoft Solution", url: "https://ksoftsolution.com/", wpAdminUsername: "", wpAdminPassword: "", wrmApiKey: "Zxc0VqsZFe16RgKmi6rPNyQQ72QjNQPg", wpVersion: "6.8.2", lastBackup: null, lastUpdate: null, lastSync: "2025-08-05T06:55:09.162Z", … }
+index-HI-pOkd3.js:552:13134
+Has wrmApiKey for plugins: true index-HI-pOkd3.js:552:13177
+WRM Plugins data: undefined index-HI-pOkd3.js:552:13244
+Query enabled condition: true index-HI-pOkd3.js:552:13279
+WebsiteId: 2 index-HI-pOkd3.js:552:13328
+Website exists: true index-HI-pOkd3.js:552:13356
+Website data for plugins: 
+Object { id: 2, name: "KSoft Solution", url: "https://ksoftsolution.com/", wpAdminUsername: "", wpAdminPassword: "", wrmApiKey: "Zxc0VqsZFe16RgKmi6rPNyQQ72QjNQPg", wpVersion: "6.8.2", lastBackup: null, lastUpdate: null, lastSync: "2025-08-05T06:55:09.162Z", … }
+index-HI-pOkd3.js:552:13134
+Has wrmApiKey for plugins: true index-HI-pOkd3.js:552:13177
+WRM Plugins data: 
+Object { success: true, plugins: (36) […], total: 36 }
+index-HI-pOkd3.js:552:13244
+Query enabled condition: true index-HI-pOkd3.js:552:13279
+WebsiteId: 2 index-HI-pOkd3.js:552:13328
+Website exists: true index-HI-pOkd3.js:552:13356
+Website data for plugins: 
+Object { id: 2, name: "KSoft Solution", url: "https://ksoftsolution.com/", wpAdminUsername: "", wpAdminPassword: "", wrmApiKey: "Zxc0VqsZFe16RgKmi6rPNyQQ72QjNQPg", wpVersion: "6.8.2", lastBackup: null, lastUpdate: null, lastSync: "2025-08-05T06:55:09.162Z", … }
+index-HI-pOkd3.js:552:13134
+Has wrmApiKey for plugins: true index-HI-pOkd3.js:552:13177
+WRM Plugins data: 
+Object { success: true, plugins: (36) […], total: 36 }
+index-HI-pOkd3.js:552:13244
+Query enabled condition: true index-HI-pOkd3.js:552:13279
+WebsiteId: 2 index-HI-pOkd3.js:552:13328
+Website exists: true index-HI-pOkd3.js:552:13356
+Unknown property ‘-moz-osx-font-smoothing’.  Declaration dropped. feedback.html:1:451
+Unknown property ‘-moz-columns’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:510
+Unknown property ‘-moz-column-count’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:533
+Unknown property ‘-moz-column-fill’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:555
+Unknown property ‘-moz-column-gap’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:634
+Unknown property ‘-moz-column-rule’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:676
+Unknown property ‘-moz-column-span’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:755
+Unknown property ‘-moz-column-width’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:789
+Unknown property ‘orphans’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:1349
+Unknown property ‘-moz-text-align-last’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:1678
+Unknown property ‘widows’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:1998
+Unknown property ‘-moz-osx-font-smoothing’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:2103
+Error in parsing value for ‘-webkit-mask’.  Declaration dropped. feedback.html:1:2558
+Error in parsing value for ‘-webkit-text-size-adjust’.  Declaration dropped. index-CXJZiTQD.css:1:2443
+Unknown property ‘-moz-osx-font-smoothing’.  Declaration dropped. index-CXJZiTQD.css:1:5037
+Ruleset ignored due to bad selector. index-CXJZiTQD.css:1:75633
+Ruleset ignored due to bad selector. index-CXJZiTQD.css:1:75787

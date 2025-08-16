@@ -1,0 +1,163 @@
+Partitioned cookie or storage access was provided to “https://vercel.live/_next-live/feedback/feedback.html?dpl=dpl_5yLhq6G2CTQkh132SwXY8By8Ba9X” because it is loaded in the third-party context and dynamic state partitioning is enabled. feedback.html:9:10574
+Missing required Google Analytics key: VITE_GA_MEASUREMENT_ID index-B2Z4DMsC.js:605:6708
+=== FINAL UPDATE COUNTS === index-B2Z4DMsC.js:553:179671
+Plugin updates: 0 index-B2Z4DMsC.js:553:179714
+Theme updates: 0 index-B2Z4DMsC.js:553:179754
+WordPress update: 0 index-B2Z4DMsC.js:553:179793
+Total updates: 0 index-B2Z4DMsC.js:553:179832
+========================== index-B2Z4DMsC.js:553:179864
+=== FINAL UPDATE COUNTS === index-B2Z4DMsC.js:553:179671
+Plugin updates: 0 index-B2Z4DMsC.js:553:179714
+Theme updates: 0 index-B2Z4DMsC.js:553:179754
+WordPress update: 0 index-B2Z4DMsC.js:553:179793
+Total updates: 0 index-B2Z4DMsC.js:553:179832
+========================== index-B2Z4DMsC.js:553:179864
+=== FINAL UPDATE COUNTS === index-B2Z4DMsC.js:553:179671
+Plugin updates: 0 index-B2Z4DMsC.js:553:179714
+Theme updates: 0 index-B2Z4DMsC.js:553:179754
+WordPress update: 0 index-B2Z4DMsC.js:553:179793
+Total updates: 0 index-B2Z4DMsC.js:553:179832
+========================== index-B2Z4DMsC.js:553:179864
+=== FINAL UPDATE COUNTS === index-B2Z4DMsC.js:553:179671
+Plugin updates: 0 index-B2Z4DMsC.js:553:179714
+Theme updates: 0 index-B2Z4DMsC.js:553:179754
+WordPress update: 0 index-B2Z4DMsC.js:553:179793
+Total updates: 0 index-B2Z4DMsC.js:553:179832
+========================== index-B2Z4DMsC.js:553:179864
+=== FINAL UPDATE COUNTS === index-B2Z4DMsC.js:553:179671
+Plugin updates: 0 index-B2Z4DMsC.js:553:179714
+Theme updates: 0 index-B2Z4DMsC.js:553:179754
+WordPress update: 0 index-B2Z4DMsC.js:553:179793
+Total updates: 0 index-B2Z4DMsC.js:553:179832
+========================== index-B2Z4DMsC.js:553:179864
+=== FINAL UPDATE COUNTS === index-B2Z4DMsC.js:553:179671
+Plugin updates: 0 index-B2Z4DMsC.js:553:179714
+Theme updates: 0 index-B2Z4DMsC.js:553:179754
+WordPress update: 0 index-B2Z4DMsC.js:553:179793
+Total updates: 0 index-B2Z4DMsC.js:553:179832
+========================== index-B2Z4DMsC.js:553:179864
+=== FINAL UPDATE COUNTS === index-B2Z4DMsC.js:553:179671
+Plugin updates: 0 index-B2Z4DMsC.js:553:179714
+Theme updates: 0 index-B2Z4DMsC.js:553:179754
+WordPress update: 0 index-B2Z4DMsC.js:553:179793
+Total updates: 0 index-B2Z4DMsC.js:553:179832
+========================== index-B2Z4DMsC.js:553:179864
+=== FINAL UPDATE COUNTS === index-B2Z4DMsC.js:553:179671
+Plugin updates: 0 index-B2Z4DMsC.js:553:179714
+Theme updates: 0 index-B2Z4DMsC.js:553:179754
+WordPress update: 0 index-B2Z4DMsC.js:553:179793
+Total updates: 0 index-B2Z4DMsC.js:553:179832
+========================== index-B2Z4DMsC.js:553:179864
+=== FINAL UPDATE COUNTS === index-B2Z4DMsC.js:553:179671
+Plugin updates: 0 index-B2Z4DMsC.js:553:179714
+Theme updates: 0 index-B2Z4DMsC.js:553:179754
+WordPress update: 0 index-B2Z4DMsC.js:553:179793
+Total updates: 0 index-B2Z4DMsC.js:553:179832
+========================== index-B2Z4DMsC.js:553:179864
+=== WRM UPDATES DEBUG === index-B2Z4DMsC.js:553:177088
+Full updates object: {
+  "code": "rest_no_route",
+  "message": "No route was found matching the URL and request method.",
+  "data": {
+    "status": 404
+  }
+} index-B2Z4DMsC.js:553:177129
+Plugins array length: Not an array index-B2Z4DMsC.js:553:177190
+Themes array length: Not an array index-B2Z4DMsC.js:553:177284
+WordPress update available: false index-B2Z4DMsC.js:553:177375
+======================== index-B2Z4DMsC.js:553:177472
+Updates plugins is not a valid array: undefined index-B2Z4DMsC.js:553:178131
+Updates themes is not a valid array: undefined index-B2Z4DMsC.js:553:178816
+=== FINAL UPDATE COUNTS === index-B2Z4DMsC.js:553:179671
+Plugin updates: 0 index-B2Z4DMsC.js:553:179714
+Theme updates: 0 index-B2Z4DMsC.js:553:179754
+WordPress update: 0 index-B2Z4DMsC.js:553:179793
+Total updates: 0 index-B2Z4DMsC.js:553:179832
+========================== index-B2Z4DMsC.js:553:179864
+=== WRM UPDATES DEBUG === index-B2Z4DMsC.js:553:177088
+Full updates object: {
+  "code": "rest_no_route",
+  "message": "No route was found matching the URL and request method.",
+  "data": {
+    "status": 404
+  }
+} index-B2Z4DMsC.js:553:177129
+Plugins array length: Not an array index-B2Z4DMsC.js:553:177190
+Themes array length: Not an array index-B2Z4DMsC.js:553:177284
+WordPress update available: false index-B2Z4DMsC.js:553:177375
+======================== index-B2Z4DMsC.js:553:177472
+Updates plugins is not a valid array: undefined index-B2Z4DMsC.js:553:178131
+Updates themes is not a valid array: undefined index-B2Z4DMsC.js:553:178816
+=== FINAL UPDATE COUNTS === index-B2Z4DMsC.js:553:179671
+Plugin updates: 0 index-B2Z4DMsC.js:553:179714
+Theme updates: 0 index-B2Z4DMsC.js:553:179754
+WordPress update: 0 index-B2Z4DMsC.js:553:179793
+Total updates: 0 index-B2Z4DMsC.js:553:179832
+========================== index-B2Z4DMsC.js:553:179864
+=== WRM UPDATES DEBUG === index-B2Z4DMsC.js:553:177088
+Full updates object: {
+  "code": "rest_no_route",
+  "message": "No route was found matching the URL and request method.",
+  "data": {
+    "status": 404
+  }
+} index-B2Z4DMsC.js:553:177129
+Plugins array length: Not an array index-B2Z4DMsC.js:553:177190
+Themes array length: Not an array index-B2Z4DMsC.js:553:177284
+WordPress update available: false index-B2Z4DMsC.js:553:177375
+======================== index-B2Z4DMsC.js:553:177472
+Updates plugins is not a valid array: undefined index-B2Z4DMsC.js:553:178131
+Updates themes is not a valid array: undefined index-B2Z4DMsC.js:553:178816
+=== FINAL UPDATE COUNTS === index-B2Z4DMsC.js:553:179671
+Plugin updates: 0 index-B2Z4DMsC.js:553:179714
+Theme updates: 0 index-B2Z4DMsC.js:553:179754
+WordPress update: 0 index-B2Z4DMsC.js:553:179793
+Total updates: 0 index-B2Z4DMsC.js:553:179832
+========================== index-B2Z4DMsC.js:553:179864
+Unknown property ‘-moz-columns’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:510
+Unknown property ‘-moz-column-count’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:533
+Unknown property ‘-moz-column-fill’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:555
+Unknown property ‘-moz-column-gap’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:634
+Unknown property ‘-moz-column-rule’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:676
+Unknown property ‘-moz-column-span’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:755
+Unknown property ‘-moz-column-width’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:789
+Unknown property ‘orphans’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:1349
+Unknown property ‘-moz-text-align-last’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:1678
+Unknown property ‘widows’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:1998
+Unknown property ‘-moz-osx-font-smoothing’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:2103
+Unknown property ‘-moz-osx-font-smoothing’.  Declaration dropped. feedback.html:1:451
+Error in parsing value for ‘-webkit-mask’.  Declaration dropped. feedback.html:1:2558
+Error in parsing value for ‘-webkit-text-size-adjust’.  Declaration dropped. index-CQhzsE6d.css:1:2443
+Unknown property ‘-moz-osx-font-smoothing’.  Declaration dropped. index-CQhzsE6d.css:1:5037
+Ruleset ignored due to bad selector. index-CQhzsE6d.css:1:93730
+Ruleset ignored due to bad selector. index-CQhzsE6d.css:1:93884
+Website data for plugins: 
+Object { id: 2, name: "KSoft Solution", url: "https://ksoftsolution.com/", wpAdminUsername: "", wpAdminPassword: "", wrmApiKey: "ekQ~9Ha;_wtvDmMQ2,]-2QLyl:JN(ybxU9a$@}bv5HK#|<[-bPBeiq2k_lv`K<+C", wpVersion: "6.8.2", lastBackup: null, lastUpdate: null, lastSync: "2025-08-11T08:33:34.100Z", … }
+website-plugins-CH159gn1.js:10:550
+Has wrmApiKey for plugins: true website-plugins-CH159gn1.js:10:593
+WRM Plugins data: undefined website-plugins-CH159gn1.js:10:660
+Query enabled condition: true website-plugins-CH159gn1.js:10:695
+WebsiteId: 2 website-plugins-CH159gn1.js:10:744
+Website exists: true website-plugins-CH159gn1.js:10:772
+Website data for plugins: 
+Object { id: 2, name: "KSoft Solution", url: "https://ksoftsolution.com/", wpAdminUsername: "", wpAdminPassword: "", wrmApiKey: "ekQ~9Ha;_wtvDmMQ2,]-2QLyl:JN(ybxU9a$@}bv5HK#|<[-bPBeiq2k_lv`K<+C", wpVersion: "6.8.2", lastBackup: null, lastUpdate: null, lastSync: "2025-08-11T08:33:34.100Z", … }
+website-plugins-CH159gn1.js:10:550
+Has wrmApiKey for plugins: true website-plugins-CH159gn1.js:10:593
+WRM Plugins data: undefined website-plugins-CH159gn1.js:10:660
+Query enabled condition: true website-plugins-CH159gn1.js:10:695
+WebsiteId: 2 website-plugins-CH159gn1.js:10:744
+Website exists: true website-plugins-CH159gn1.js:10:772
+Website data for plugins: 
+Object { id: 2, name: "KSoft Solution", url: "https://ksoftsolution.com/", wpAdminUsername: "", wpAdminPassword: "", wrmApiKey: "ekQ~9Ha;_wtvDmMQ2,]-2QLyl:JN(ybxU9a$@}bv5HK#|<[-bPBeiq2k_lv`K<+C", wpVersion: "6.8.2", lastBackup: null, lastUpdate: null, lastSync: "2025-08-11T08:33:34.100Z", … }
+website-plugins-CH159gn1.js:10:550
+Has wrmApiKey for plugins: true website-plugins-CH159gn1.js:10:593
+WRM Plugins data: 
+Object { code: "rest_no_route", message: "No route was found matching the URL and request method.", data: {…} }
+website-plugins-CH159gn1.js:10:660
+Query enabled condition: true website-plugins-CH159gn1.js:10:695
+WebsiteId: 2 website-plugins-CH159gn1.js:10:744
+Website exists: true website-plugins-CH159gn1.js:10:772
+Processed plugins array: 
+Array []
+website-plugins-CH159gn1.js:10:6855
+Processed plugins length: 0 website-plugins-CH159gn1.js:10:6897

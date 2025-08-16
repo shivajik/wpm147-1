@@ -1,0 +1,110 @@
+Cookie warnings 2
+Error in parsing value for ‘-webkit-text-size-adjust’.  Declaration dropped. index-OfL7wvbO.css:1:2443
+Unknown property ‘-moz-osx-font-smoothing’.  Declaration dropped. index-OfL7wvbO.css:1:5037
+Ruleset ignored due to bad selector. index-OfL7wvbO.css:1:73591
+Ruleset ignored due to bad selector. index-OfL7wvbO.css:1:73745
+Missing required Google Analytics key: VITE_GA_MEASUREMENT_ID index-u4A1XX8P.js:517:121923
+=== FINAL UPDATE COUNTS === index-u4A1XX8P.js:512:156045
+Plugin updates: 0 index-u4A1XX8P.js:512:156088
+Theme updates: 0 index-u4A1XX8P.js:512:156128
+WordPress update: 0 index-u4A1XX8P.js:512:156167
+Total updates: 0 index-u4A1XX8P.js:512:156206
+========================== index-u4A1XX8P.js:512:156238
+=== WRM UPDATES DEBUG === index-u4A1XX8P.js:512:153802
+Full updates object: {
+  "count": {
+    "total": 0,
+    "plugins": 0,
+    "themes": 0,
+    "core": 0
+  },
+  "plugins": [],
+  "themes": [],
+  "wordpress": {
+    "update_available": false
+  }
+} index-u4A1XX8P.js:512:153843
+Plugins array length: 0 index-u4A1XX8P.js:512:153904
+Themes array length: 0 index-u4A1XX8P.js:512:153998
+WordPress update available: false index-u4A1XX8P.js:512:154089
+======================== index-u4A1XX8P.js:512:154186
+=== FINAL UPDATE COUNTS === index-u4A1XX8P.js:512:156045
+Plugin updates: 0 index-u4A1XX8P.js:512:156088
+Theme updates: 0 index-u4A1XX8P.js:512:156128
+WordPress update: 0 index-u4A1XX8P.js:512:156167
+Total updates: 0 index-u4A1XX8P.js:512:156206
+========================== index-u4A1XX8P.js:512:156238
+=== WRM UPDATES DEBUG === index-u4A1XX8P.js:512:153802
+Full updates object: {
+  "count": {
+    "total": 0,
+    "plugins": 0,
+    "themes": 0,
+    "core": 0
+  },
+  "plugins": [],
+  "themes": [],
+  "wordpress": {
+    "update_available": false
+  }
+} index-u4A1XX8P.js:512:153843
+Plugins array length: 0 index-u4A1XX8P.js:512:153904
+Themes array length: 0 index-u4A1XX8P.js:512:153998
+WordPress update available: false index-u4A1XX8P.js:512:154089
+======================== index-u4A1XX8P.js:512:154186
+=== FINAL UPDATE COUNTS === index-u4A1XX8P.js:512:156045
+Plugin updates: 0 index-u4A1XX8P.js:512:156088
+Theme updates: 0 index-u4A1XX8P.js:512:156128
+WordPress update: 0 index-u4A1XX8P.js:512:156167
+Total updates: 0 index-u4A1XX8P.js:512:156206
+========================== index-u4A1XX8P.js:512:156238
+=== WRM UPDATES DEBUG === index-u4A1XX8P.js:512:153802
+Full updates object: {
+  "count": {
+    "total": 0,
+    "plugins": 0,
+    "themes": 0,
+    "core": 0
+  },
+  "plugins": [],
+  "themes": [],
+  "wordpress": {
+    "update_available": false
+  }
+} index-u4A1XX8P.js:512:153843
+Plugins array length: 0 index-u4A1XX8P.js:512:153904
+Themes array length: 0 index-u4A1XX8P.js:512:153998
+WordPress update available: false index-u4A1XX8P.js:512:154089
+======================== index-u4A1XX8P.js:512:154186
+=== FINAL UPDATE COUNTS === index-u4A1XX8P.js:512:156045
+Plugin updates: 0 index-u4A1XX8P.js:512:156088
+Theme updates: 0 index-u4A1XX8P.js:512:156128
+WordPress update: 0 index-u4A1XX8P.js:512:156167
+Total updates: 0 index-u4A1XX8P.js:512:156206
+========================== index-u4A1XX8P.js:512:156238
+TypeError: t.map is not a function
+    X$ https://www.aiositecare.com/assets/index-u4A1XX8P.js:512
+    px https://www.aiositecare.com/assets/index-u4A1XX8P.js:38
+    Ih https://www.aiositecare.com/assets/index-u4A1XX8P.js:40
+    O2 https://www.aiositecare.com/assets/index-u4A1XX8P.js:40
+    M2 https://www.aiositecare.com/assets/index-u4A1XX8P.js:40
+    IA https://www.aiositecare.com/assets/index-u4A1XX8P.js:40
+    hu https://www.aiositecare.com/assets/index-u4A1XX8P.js:40
+    Hh https://www.aiositecare.com/assets/index-u4A1XX8P.js:40
+    Y0 https://www.aiositecare.com/assets/index-u4A1XX8P.js:40
+    Sa https://www.aiositecare.com/assets/index-u4A1XX8P.js:38
+    Pr https://www.aiositecare.com/assets/index-u4A1XX8P.js:40
+index-u4A1XX8P.js:40:161
+Uncaught TypeError: t.map is not a function
+    X$ https://www.aiositecare.com/assets/index-u4A1XX8P.js:512
+    px https://www.aiositecare.com/assets/index-u4A1XX8P.js:38
+    Ih https://www.aiositecare.com/assets/index-u4A1XX8P.js:40
+    O2 https://www.aiositecare.com/assets/index-u4A1XX8P.js:40
+    M2 https://www.aiositecare.com/assets/index-u4A1XX8P.js:40
+    IA https://www.aiositecare.com/assets/index-u4A1XX8P.js:40
+    hu https://www.aiositecare.com/assets/index-u4A1XX8P.js:40
+    Hh https://www.aiositecare.com/assets/index-u4A1XX8P.js:40
+    Y0 https://www.aiositecare.com/assets/index-u4A1XX8P.js:40
+    Sa https://www.aiositecare.com/assets/index-u4A1XX8P.js:38
+    Pr https://www.aiositecare.com/assets/index-u4A1XX8P.js:40
+index-u4A1XX8P.js:512:190349

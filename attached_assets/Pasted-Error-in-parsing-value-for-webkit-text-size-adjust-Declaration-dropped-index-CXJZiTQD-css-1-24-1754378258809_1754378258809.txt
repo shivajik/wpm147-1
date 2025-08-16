@@ -1,0 +1,34 @@
+Error in parsing value for ‘-webkit-text-size-adjust’.  Declaration dropped. index-CXJZiTQD.css:1:2443
+Unknown property ‘-moz-osx-font-smoothing’.  Declaration dropped. index-CXJZiTQD.css:1:5037
+Ruleset ignored due to bad selector. index-CXJZiTQD.css:1:75633
+Ruleset ignored due to bad selector. index-CXJZiTQD.css:1:75787
+Partitioned cookie or storage access was provided to “https://vercel.live/_next-live/feedback/feedback.html?dpl=dpl_EXyFeT5SdvXm5hcDsGYhuuTAXvr8” because it is loaded in the third-party context and dynamic state partitioning is enabled. feedback.html:9:10574
+Missing required Google Analytics key: VITE_GA_MEASUREMENT_ID index-CEOkO8ef.js:552:206443
+TypeError: c.filter is not a function
+    LU https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CEOkO8ef.js:552
+    Ix https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CEOkO8ef.js:38
+    Jh https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CEOkO8ef.js:40
+    m2 https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CEOkO8ef.js:40
+    c2 https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CEOkO8ef.js:40
+    CR https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CEOkO8ef.js:40
+    Lu https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CEOkO8ef.js:40
+    dp https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CEOkO8ef.js:40
+    jy https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CEOkO8ef.js:40
+    Ua https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CEOkO8ef.js:38
+    s https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CEOkO8ef.js:40
+index-CEOkO8ef.js:40:161
+Uncaught TypeError: c.filter is not a function
+    LU https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CEOkO8ef.js:552
+    Ix https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CEOkO8ef.js:38
+    Jh https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CEOkO8ef.js:40
+    m2 https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CEOkO8ef.js:40
+    c2 https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CEOkO8ef.js:40
+    CR https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CEOkO8ef.js:40
+    Lu https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CEOkO8ef.js:40
+    dp https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CEOkO8ef.js:40
+    jy https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CEOkO8ef.js:40
+    Ua https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CEOkO8ef.js:38
+    s https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CEOkO8ef.js:40
+index-CEOkO8ef.js:552:90397
+Unknown property ‘-moz-osx-font-smoothing’.  Declaration dropped. feedback.html:1:451
+Error in parsing value for ‘-webkit-mask’.  Declaration dropped. feedback.html:1:2558

@@ -1,0 +1,2017 @@
+# WordPress Remote Manager Dashboard - Replit Application Instructions
+
+## Overview
+This document provides comprehensive instructions for building a WordPress Remote Manager Dashboard application using the specified tech stack. The application will serve as a central hub for managing multiple WordPress sites remotely using the WP Remote Manager plugin.
+
+## Tech Stack
+
+### Frontend
+- **React 18 + TypeScript**: Modern React with full type safety
+- **Vite**: Fast build tool and development server
+- **Tailwind CSS + shadcn/ui**: Utility-first CSS with high-quality components
+- **Wouter**: Lightweight routing library
+- **TanStack Query**: Powerful server state management
+- **React Hook Form + Zod**: Form handling with schema validation
+
+### Backend
+- **Node.js + Express.js**: Server runtime and web framework
+- **TypeScript**: Type-safe backend development
+- **Drizzle ORM + PostgreSQL**: Modern ORM with PostgreSQL database
+- **JWT Authentication**: Secure token-based authentication
+- **bcryptjs**: Password hashing and security
+
+### Database
+- **PostgreSQL**: Replit managed database
+- **Drizzle Migrations**: Database schema management
+
+## Project Structure
+
+```
+wp-remote-manager-dashboard/
+├── src/
+│   ├── components/
+│   │   ├── ui/                 # shadcn/ui components
+│   │   ├── layout/             # Layout components
+│   │   ├── sites/              # Site management components
+│   │   ├── dashboard/          # Dashboard components
+│   │   └── forms/              # Form components
+│   ├── pages/                  # Page components
+│   ├── hooks/                  # Custom React hooks
+│   ├── lib/                    # Utilities and configurations
+│   ├── types/                  # TypeScript type definitions
+│   ├── contexts/               # React contexts
+│   └── styles/                 # Global styles
+├── server/
+│   ├── routes/                 # API routes
+│   ├── middleware/             # Express middleware
+│   ├── models/                 # Database models
+│   ├── services/               # Business logic
+│   ├── utils/                  # Server utilities
+│   └── db/                     # Database configuration
+├── drizzle/                    # Database migrations
+└── public/                     # Static assets
+```
+
+## Phase 1: Project Setup and Configuration
+
+### 1.1 Initialize Replit Project
+
+```bash
+# Create new Node.js project in Replit
+# Install dependencies
+npm install
+
+# Frontend dependencies
+npm install react@18 react-dom@18 @types/react @types/react-dom
+npm install vite @vitejs/plugin-react typescript
+npm install tailwindcss postcss autoprefixer
+npm install wouter @tanstack/react-query
+npm install react-hook-form @hookform/resolvers zod
+npm install lucide-react class-variance-authority clsx tailwind-merge
+
+# Backend dependencies
+npm install express @types/express
+npm install drizzle-orm drizzle-kit pg @types/pg
+npm install jsonwebtoken @types/jsonwebtoken bcryptjs @types/bcryptjs
+npm install cors @types/cors dotenv
+npm install axios date-fns
+
+# Development dependencies
+npm install -D @types/node concurrently nodemon
+```
+
+### 1.2 Configuration Files
+
+**vite.config.ts**
+```typescript
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import path from 'path'
+
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      },
+    },
+  },
+})
+```
+
+**tailwind.config.js**
+```javascript
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  darkMode: ["class"],
+  content: [
+    './pages/**/*.{ts,tsx}',
+    './components/**/*.{ts,tsx}',
+    './app/**/*.{ts,tsx}',
+    './src/**/*.{ts,tsx}',
+  ],
+  theme: {
+    container: {
+      center: true,
+      padding: "2rem",
+      screens: {
+        "2xl": "1400px",
+      },
+    },
+    extend: {
+      colors: {
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        primary: {
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
+        },
+        secondary: {
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
+        },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
+        },
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
+        },
+        accent: {
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
+        },
+        popover: {
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
+        },
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
+        },
+      },
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
+      },
+      keyframes: {
+        "accordion-down": {
+          from: { height: 0 },
+          to: { height: "var(--radix-accordion-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: 0 },
+        },
+      },
+      animation: {
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+      },
+    },
+  },
+  plugins: [require("tailwindcss-animate")],
+}
+```
+
+**package.json scripts**
+```json
+{
+  "scripts": {
+    "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
+    "client:dev": "vite",
+    "server:dev": "nodemon server/index.ts",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "db:generate": "drizzle-kit generate:pg",
+    "db:migrate": "tsx server/db/migrate.ts"
+  }
+}
+```
+
+## Phase 2: Database Schema and Models
+
+### 2.1 Database Schema (Drizzle)
+
+**server/db/schema.ts**
+```typescript
+import { pgTable, uuid, varchar, text, timestamp, boolean, integer, jsonb } from 'drizzle-orm/pg-core';
+import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
+
+// Users table
+export const users = pgTable('users', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  email: varchar('email', { length: 255 }).notNull().unique(),
+  name: varchar('name', { length: 255 }).notNull(),
+  password: varchar('password', { length: 255 }).notNull(),
+  role: varchar('role', { length: 50 }).notNull().default('user'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// WordPress sites table
+export const sites = pgTable('sites', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: uuid('user_id').references(() => users.id).notNull(),
+  name: varchar('name', { length: 255 }).notNull(),
+  url: varchar('url', { length: 500 }).notNull(),
+  apiKey: varchar('api_key', { length: 255 }).notNull(),
+  isActive: boolean('is_active').default(true).notNull(),
+  lastChecked: timestamp('last_checked'),
+  status: varchar('status', { length: 50 }).default('unknown'),
+  healthScore: integer('health_score').default(0),
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Site monitoring logs
+export const monitoringLogs = pgTable('monitoring_logs', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  siteId: uuid('site_id').references(() => sites.id).notNull(),
+  type: varchar('type', { length: 100 }).notNull(), // 'health', 'status', 'update', etc.
+  data: jsonb('data').notNull(),
+  status: varchar('status', { length: 50 }).notNull(),
+  message: text('message'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Zod schemas for validation
+export const insertUserSchema = createInsertSchema(users);
+export const selectUserSchema = createSelectSchema(users);
+export const insertSiteSchema = createInsertSchema(sites);
+export const selectSiteSchema = createSelectSchema(sites);
+export const insertMonitoringLogSchema = createInsertSchema(monitoringLogs);
+export const selectMonitoringLogSchema = createSelectSchema(monitoringLogs);
+
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
+export type Site = typeof sites.$inferSelect;
+export type NewSite = typeof sites.$inferInsert;
+export type MonitoringLog = typeof monitoringLogs.$inferSelect;
+export type NewMonitoringLog = typeof monitoringLogs.$inferInsert;
+```
+
+### 2.2 Database Connection
+
+**server/db/index.ts**
+```typescript
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+import * as schema from './schema';
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+
+export const db = drizzle(pool, { schema });
+```
+
+## Phase 3: Backend API Development
+
+### 3.1 Express Server Setup
+
+**server/index.ts**
+```typescript
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import { authRoutes } from './routes/auth';
+import { sitesRoutes } from './routes/sites';
+import { monitoringRoutes } from './routes/monitoring';
+import { authMiddleware } from './middleware/auth';
+
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 3001;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/sites', authMiddleware, sitesRoutes);
+app.use('/api/monitoring', authMiddleware, monitoringRoutes);
+
+// Health check
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+```
+
+### 3.2 Authentication Middleware
+
+**server/middleware/auth.ts**
+```typescript
+import { Request, Response, NextFunction } from 'express';
+import jwt from 'jsonwebtoken';
+import { db } from '../db';
+import { users } from '../db/schema';
+import { eq } from 'drizzle-orm';
+
+export interface AuthRequest extends Request {
+  user?: {
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+  };
+}
+
+export const authMiddleware = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+
+    if (!token) {
+      return res.status(401).json({ error: 'Access denied. No token provided.' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
+    const user = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, decoded.userId))
+      .limit(1);
+
+    if (!user.length) {
+      return res.status(401).json({ error: 'Invalid token.' });
+    }
+
+    req.user = {
+      id: user[0].id,
+      email: user[0].email,
+      name: user[0].name,
+      role: user[0].role,
+    };
+
+    next();
+  } catch (error) {
+    res.status(401).json({ error: 'Invalid token.' });
+  }
+};
+```
+
+### 3.3 WordPress API Service
+
+**server/services/wordpressApi.ts**
+```typescript
+import axios, { AxiosResponse } from 'axios';
+
+export interface WordPressApiConfig {
+  siteUrl: string;
+  apiKey: string;
+  timeout?: number;
+}
+
+export interface SiteStatus {
+  site_url: string;
+  admin_email: string;
+  wordpress_version: string;
+  php_version: string;
+  mysql_version: string;
+  theme: {
+    name: string;
+    version: string;
+  };
+  plugins: Array<{
+    name: string;
+    version: string;
+    active: boolean;
+  }>;
+  maintenance_mode: boolean;
+  ssl_enabled: boolean;
+  multisite: boolean;
+  disk_usage: any;
+  memory_usage: any;
+  timestamp: string;
+}
+
+export interface SiteHealth {
+  overall_score: number;
+  wordpress: {
+    score: number;
+    status: string;
+    issues: string[];
+  };
+  php: {
+    score: number;
+    status: string;
+    issues: string[];
+  };
+  database: {
+    score: number;
+    status: string;
+    issues: string[];
+  };
+  filesystem: {
+    score: number;
+    status: string;
+    issues: string[];
+  };
+  security: {
+    score: number;
+    status: string;
+    issues: string[];
+  };
+  performance: {
+    score: number;
+    status: string;
+    issues: string[];
+  };
+  last_check: string;
+}
+
+export interface UpdatesInfo {
+  wordpress: {
+    current_version: string;
+    new_version?: string;
+    update_available: boolean;
+  };
+  plugins: Array<{
+    plugin: string;
+    name: string;
+    current_version: string;
+    new_version: string;
+  }>;
+  themes: Array<{
+    theme: string;
+    name: string;
+    current_version: string;
+    new_version: string;
+  }>;
+}
+
+export class WordPressApiService {
+  private config: WordPressApiConfig;
+  private baseUrl: string;
+
+  constructor(config: WordPressApiConfig) {
+    this.config = config;
+    this.baseUrl = `${config.siteUrl.replace(/\/$/, '')}/wp-json/wrm/v1`;
+  }
+
+  private async makeRequest<T>(
+    method: 'GET' | 'POST',
+    endpoint: string,
+    data?: any
+  ): Promise<{ success: boolean; data?: T; error?: string }> {
+    try {
+      const response: AxiosResponse<T> = await axios({
+        method,
+        url: `${this.baseUrl}${endpoint}`,
+        headers: {
+          'X-WRM-API-Key': this.config.apiKey,
+          'Content-Type': 'application/json',
+        },
+        data,
+        timeout: this.config.timeout || 30000,
+      });
+
+      return {
+        success: true,
+        data: response.data,
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.response?.data?.message || error.message || 'Unknown error',
+      };
+    }
+  }
+
+  async getStatus(): Promise<{ success: boolean; data?: SiteStatus; error?: string }> {
+    return this.makeRequest<SiteStatus>('GET', '/status');
+  }
+
+  async getHealth(): Promise<{ success: boolean; data?: SiteHealth; error?: string }> {
+    return this.makeRequest<SiteHealth>('GET', '/health');
+  }
+
+  async getUpdates(): Promise<{ success: boolean; data?: UpdatesInfo; error?: string }> {
+    return this.makeRequest<UpdatesInfo>('GET', '/updates');
+  }
+
+  async performUpdates(
+    type: 'wordpress' | 'plugins' | 'themes',
+    items?: string[]
+  ): Promise<{ success: boolean; data?: any; error?: string }> {
+    return this.makeRequest('POST', `/updates/${type}`, { items });
+  }
+
+  async toggleMaintenance(
+    enable?: boolean
+  ): Promise<{ success: boolean; data?: any; error?: string }> {
+    return this.makeRequest('POST', '/maintenance', { enable });
+  }
+
+  async createBackup(
+    includeUploads = false
+  ): Promise<{ success: boolean; data?: any; error?: string }> {
+    return this.makeRequest('POST', '/backup', { include_uploads: includeUploads });
+  }
+
+  async getLogs(
+    limit = 50,
+    offset = 0
+  ): Promise<{ success: boolean; data?: any[]; error?: string }> {
+    return this.makeRequest('GET', `/logs?limit=${limit}&offset=${offset}`);
+  }
+
+  async testConnection(): Promise<{ success: boolean; error?: string }> {
+    const result = await this.getStatus();
+    return {
+      success: result.success,
+      error: result.error,
+    };
+  }
+}
+```
+
+### 3.4 API Routes
+
+**server/routes/sites.ts**
+```typescript
+import { Router } from 'express';
+import { db } from '../db';
+import { sites, monitoringLogs } from '../db/schema';
+import { eq, and, desc } from 'drizzle-orm';
+import { AuthRequest } from '../middleware/auth';
+import { WordPressApiService } from '../services/wordpressApi';
+import { z } from 'zod';
+
+const router = Router();
+
+// Validation schemas
+const createSiteSchema = z.object({
+  name: z.string().min(1, 'Site name is required'),
+  url: z.string().url('Valid URL is required'),
+  apiKey: z.string().min(1, 'API key is required'),
+});
+
+const updateSiteSchema = z.object({
+  name: z.string().min(1).optional(),
+  url: z.string().url().optional(),
+  apiKey: z.string().min(1).optional(),
+  isActive: z.boolean().optional(),
+});
+
+// Get all sites for user
+router.get('/', async (req: AuthRequest, res) => {
+  try {
+    const userSites = await db
+      .select()
+      .from(sites)
+      .where(eq(sites.userId, req.user!.id))
+      .orderBy(desc(sites.createdAt));
+
+    res.json(userSites);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch sites' });
+  }
+});
+
+// Get single site
+router.get('/:id', async (req: AuthRequest, res) => {
+  try {
+    const site = await db
+      .select()
+      .from(sites)
+      .where(and(eq(sites.id, req.params.id), eq(sites.userId, req.user!.id)))
+      .limit(1);
+
+    if (!site.length) {
+      return res.status(404).json({ error: 'Site not found' });
+    }
+
+    res.json(site[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch site' });
+  }
+});
+
+// Create new site
+router.post('/', async (req: AuthRequest, res) => {
+  try {
+    const validatedData = createSiteSchema.parse(req.body);
+
+    // Test connection before creating
+    const wpApi = new WordPressApiService({
+      siteUrl: validatedData.url,
+      apiKey: validatedData.apiKey,
+    });
+
+    const connectionTest = await wpApi.testConnection();
+    if (!connectionTest.success) {
+      return res.status(400).json({ 
+        error: 'Failed to connect to WordPress site',
+        details: connectionTest.error 
+      });
+    }
+
+    const newSite = await db
+      .insert(sites)
+      .values({
+        ...validatedData,
+        userId: req.user!.id,
+        status: 'active',
+        lastChecked: new Date(),
+      })
+      .returning();
+
+    res.status(201).json(newSite[0]);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: error.errors });
+    }
+    res.status(500).json({ error: 'Failed to create site' });
+  }
+});
+
+// Update site
+router.put('/:id', async (req: AuthRequest, res) => {
+  try {
+    const validatedData = updateSiteSchema.parse(req.body);
+
+    const updatedSite = await db
+      .update(sites)
+      .set({
+        ...validatedData,
+        updatedAt: new Date(),
+      })
+      .where(and(eq(sites.id, req.params.id), eq(sites.userId, req.user!.id)))
+      .returning();
+
+    if (!updatedSite.length) {
+      return res.status(404).json({ error: 'Site not found' });
+    }
+
+    res.json(updatedSite[0]);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: error.errors });
+    }
+    res.status(500).json({ error: 'Failed to update site' });
+  }
+});
+
+// Delete site
+router.delete('/:id', async (req: AuthRequest, res) => {
+  try {
+    const deletedSite = await db
+      .delete(sites)
+      .where(and(eq(sites.id, req.params.id), eq(sites.userId, req.user!.id)))
+      .returning();
+
+    if (!deletedSite.length) {
+      return res.status(404).json({ error: 'Site not found' });
+    }
+
+    res.json({ message: 'Site deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete site' });
+  }
+});
+
+// Test site connection
+router.post('/:id/test', async (req: AuthRequest, res) => {
+  try {
+    const site = await db
+      .select()
+      .from(sites)
+      .where(and(eq(sites.id, req.params.id), eq(sites.userId, req.user!.id)))
+      .limit(1);
+
+    if (!site.length) {
+      return res.status(404).json({ error: 'Site not found' });
+    }
+
+    const wpApi = new WordPressApiService({
+      siteUrl: site[0].url,
+      apiKey: site[0].apiKey,
+    });
+
+    const result = await wpApi.testConnection();
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to test connection' });
+  }
+});
+
+// Get site status
+router.get('/:id/status', async (req: AuthRequest, res) => {
+  try {
+    const site = await db
+      .select()
+      .from(sites)
+      .where(and(eq(sites.id, req.params.id), eq(sites.userId, req.user!.id)))
+      .limit(1);
+
+    if (!site.length) {
+      return res.status(404).json({ error: 'Site not found' });
+    }
+
+    const wpApi = new WordPressApiService({
+      siteUrl: site[0].url,
+      apiKey: site[0].apiKey,
+    });
+
+    const result = await wpApi.getStatus();
+    
+    // Update site status in database
+    if (result.success) {
+      await db
+        .update(sites)
+        .set({
+          status: 'active',
+          lastChecked: new Date(),
+          metadata: result.data,
+        })
+        .where(eq(sites.id, req.params.id));
+    }
+
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get site status' });
+  }
+});
+
+// Get site health
+router.get('/:id/health', async (req: AuthRequest, res) => {
+  try {
+    const site = await db
+      .select()
+      .from(sites)
+      .where(and(eq(sites.id, req.params.id), eq(sites.userId, req.user!.id)))
+      .limit(1);
+
+    if (!site.length) {
+      return res.status(404).json({ error: 'Site not found' });
+    }
+
+    const wpApi = new WordPressApiService({
+      siteUrl: site[0].url,
+      apiKey: site[0].apiKey,
+    });
+
+    const result = await wpApi.getHealth();
+    
+    // Update health score in database
+    if (result.success && result.data) {
+      await db
+        .update(sites)
+        .set({
+          healthScore: result.data.overall_score,
+          lastChecked: new Date(),
+        })
+        .where(eq(sites.id, req.params.id));
+
+      // Log health check
+      await db.insert(monitoringLogs).values({
+        siteId: req.params.id,
+        type: 'health_check',
+        data: result.data,
+        status: 'success',
+        message: `Health score: ${result.data.overall_score}%`,
+      });
+    }
+
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get site health' });
+  }
+});
+
+export { router as sitesRoutes };
+```
+
+## Phase 4: Frontend Development
+
+### 4.1 Main App Component
+
+**src/App.tsx**
+```typescript
+import React from 'react';
+import { Router, Route, Switch } from 'wouter';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { Toaster } from '@/components/ui/toaster';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
+import { Layout } from '@/components/layout/Layout';
+import { LoginPage } from '@/pages/LoginPage';
+import { DashboardPage } from '@/pages/DashboardPage';
+import { SitesPage } from '@/pages/SitesPage';
+import { SiteDetailPage } from '@/pages/SiteDetailPage';
+import { SettingsPage } from '@/pages/SettingsPage';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      retry: 1,
+    },
+  },
+});
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <AuthProvider>
+          <Router>
+            <div className="min-h-screen bg-background">
+              <Switch>
+                <Route path="/login" component={LoginPage} />
+                <Route>
+                  <ProtectedRoute>
+                    <Layout>
+                      <Switch>
+                        <Route path="/" component={DashboardPage} />
+                        <Route path="/sites" component={SitesPage} />
+                        <Route path="/sites/:id" component={SiteDetailPage} />
+                        <Route path="/settings" component={SettingsPage} />
+                        <Route>
+                          <div className="flex items-center justify-center h-96">
+                            <div className="text-center">
+                              <h1 className="text-2xl font-bold text-muted-foreground">
+                                Page Not Found
+                              </h1>
+                              <p className="text-muted-foreground mt-2">
+                                The page you're looking for doesn't exist.
+                              </p>
+                            </div>
+                          </div>
+                        </Route>
+                      </Switch>
+                    </Layout>
+                  </ProtectedRoute>
+                </Route>
+              </Switch>
+            </div>
+          </Router>
+          <Toaster />
+          <ReactQueryDevtools initialIsOpen={false} />
+        </AuthProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  );
+}
+
+export default App;
+```
+
+### 4.2 Authentication Context
+
+**src/contexts/AuthContext.tsx**
+```typescript
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { authApi } from '@/lib/api';
+
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+}
+
+interface AuthContextType {
+  user: User | null;
+  isLoading: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => void;
+  isAuthenticated: boolean;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [token, setToken] = useState<string | null>(
+    localStorage.getItem('auth_token')
+  );
+  const queryClient = useQueryClient();
+
+  const { data: user, isLoading } = useQuery({
+    queryKey: ['auth', 'user'],
+    queryFn: authApi.getUser,
+    enabled: !!token,
+    retry: false,
+  });
+
+  const loginMutation = useMutation({
+    mutationFn: ({ email, password }: { email: string; password: string }) =>
+      authApi.login(email, password),
+    onSuccess: (data) => {
+      setToken(data.token);
+      localStorage.setItem('auth_token', data.token);
+      queryClient.setQueryData(['auth', 'user'], data.user);
+    },
+  });
+
+  const login = async (email: string, password: string) => {
+    await loginMutation.mutateAsync({ email, password });
+  };
+
+  const logout = () => {
+    setToken(null);
+    localStorage.removeItem('auth_token');
+    queryClient.clear();
+  };
+
+  // Set up axios interceptor for token
+  useEffect(() => {
+    if (token) {
+      authApi.setAuthToken(token);
+    }
+  }, [token]);
+
+  const value: AuthContextType = {
+    user: user || null,
+    isLoading,
+    login,
+    logout,
+    isAuthenticated: !!user,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}
+```
+
+### 4.3 API Client
+
+**src/lib/api.ts**
+```typescript
+import axios from 'axios';
+
+const API_BASE_URL = '/api';
+
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Auth API
+export const authApi = {
+  login: async (email: string, password: string) => {
+    const response = await apiClient.post('/auth/login', { email, password });
+    return response.data;
+  },
+
+  register: async (name: string, email: string, password: string) => {
+    const response = await apiClient.post('/auth/register', { name, email, password });
+    return response.data;
+  },
+
+  getUser: async () => {
+    const response = await apiClient.get('/auth/me');
+    return response.data;
+  },
+
+  setAuthToken: (token: string) => {
+    apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  },
+};
+
+// Sites API
+export const sitesApi = {
+  getSites: async () => {
+    const response = await apiClient.get('/sites');
+    return response.data;
+  },
+
+  getSite: async (id: string) => {
+    const response = await apiClient.get(`/sites/${id}`);
+    return response.data;
+  },
+
+  createSite: async (data: { name: string; url: string; apiKey: string }) => {
+    const response = await apiClient.post('/sites', data);
+    return response.data;
+  },
+
+  updateSite: async (id: string, data: Partial<{ name: string; url: string; apiKey: string; isActive: boolean }>) => {
+    const response = await apiClient.put(`/sites/${id}`, data);
+    return response.data;
+  },
+
+  deleteSite: async (id: string) => {
+    const response = await apiClient.delete(`/sites/${id}`);
+    return response.data;
+  },
+
+  testConnection: async (id: string) => {
+    const response = await apiClient.post(`/sites/${id}/test`);
+    return response.data;
+  },
+
+  getSiteStatus: async (id: string) => {
+    const response = await apiClient.get(`/sites/${id}/status`);
+    return response.data;
+  },
+
+  getSiteHealth: async (id: string) => {
+    const response = await apiClient.get(`/sites/${id}/health`);
+    return response.data;
+  },
+
+  getSiteUpdates: async (id: string) => {
+    const response = await apiClient.get(`/sites/${id}/updates`);
+    return response.data;
+  },
+
+  performUpdates: async (id: string, type: string, items?: string[]) => {
+    const response = await apiClient.post(`/sites/${id}/updates/${type}`, { items });
+    return response.data;
+  },
+
+  toggleMaintenance: async (id: string, enable?: boolean) => {
+    const response = await apiClient.post(`/sites/${id}/maintenance`, { enable });
+    return response.data;
+  },
+
+  createBackup: async (id: string, includeUploads = false) => {
+    const response = await apiClient.post(`/sites/${id}/backup`, { include_uploads: includeUploads });
+    return response.data;
+  },
+};
+
+// Monitoring API
+export const monitoringApi = {
+  getLogs: async (siteId?: string, limit = 50, offset = 0) => {
+    const params = new URLSearchParams({
+      limit: limit.toString(),
+      offset: offset.toString(),
+    });
+    if (siteId) params.append('siteId', siteId);
+    
+    const response = await apiClient.get(`/monitoring/logs?${params}`);
+    return response.data;
+  },
+
+  getDashboardStats: async () => {
+    const response = await apiClient.get('/monitoring/dashboard');
+    return response.data;
+  },
+};
+```
+
+### 4.4 Dashboard Components
+
+**src/components/dashboard/StatsCards.tsx**
+```typescript
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Globe, 
+  Shield, 
+  AlertTriangle, 
+  CheckCircle,
+  TrendingUp,
+  Server
+} from 'lucide-react';
+
+interface StatsCardsProps {
+  stats: {
+    totalSites: number;
+    activeSites: number;
+    sitesWithIssues: number;
+    averageHealthScore: number;
+    sitesNeedingUpdates: number;
+    maintenanceMode: number;
+  };
+}
+
+export function StatsCards({ stats }: StatsCardsProps) {
+  const cards = [
+    {
+      title: 'Total Sites',
+      value: stats.totalSites,
+      icon: Globe,
+      description: 'Sites under management',
+      color: 'text-blue-600',
+    },
+    {
+      title: 'Active Sites',
+      value: stats.activeSites,
+      icon: CheckCircle,
+      description: 'Sites currently online',
+      color: 'text-green-600',
+    },
+    {
+      title: 'Sites with Issues',
+      value: stats.sitesWithIssues,
+      icon: AlertTriangle,
+      description: 'Sites requiring attention',
+      color: 'text-red-600',
+    },
+    {
+      title: 'Average Health Score',
+      value: `${stats.averageHealthScore}%`,
+      icon: TrendingUp,
+      description: 'Overall site health',
+      color: 'text-purple-600',
+    },
+    {
+      title: 'Updates Available',
+      value: stats.sitesNeedingUpdates,
+      icon: Shield,
+      description: 'Sites with pending updates',
+      color: 'text-orange-600',
+    },
+    {
+      title: 'Maintenance Mode',
+      value: stats.maintenanceMode,
+      icon: Server,
+      description: 'Sites in maintenance',
+      color: 'text-gray-600',
+    },
+  ];
+
+  return (
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {cards.map((card) => {
+        const Icon = card.icon;
+        return (
+          <Card key={card.title}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                {card.title}
+              </CardTitle>
+              <Icon className={`h-4 w-4 ${card.color}`} />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{card.value}</div>
+              <p className="text-xs text-muted-foreground">
+                {card.description}
+              </p>
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
+  );
+}
+```
+
+**src/components/sites/SiteCard.tsx**
+```typescript
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { 
+  Globe, 
+  Shield, 
+  AlertTriangle, 
+  CheckCircle,
+  Settings,
+  ExternalLink,
+  Activity
+} from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+
+interface Site {
+  id: string;
+  name: string;
+  url: string;
+  status: string;
+  healthScore: number;
+  lastChecked: string;
+  isActive: boolean;
+}
+
+interface SiteCardProps {
+  site: Site;
+  onViewDetails: (id: string) => void;
+  onManage: (id: string) => void;
+}
+
+export function SiteCard({ site, onViewDetails, onManage }: SiteCardProps) {
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'bg-green-100 text-green-800';
+      case 'warning':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'error':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getHealthScoreColor = (score: number) => {
+    if (score >= 80) return 'text-green-600';
+    if (score >= 60) return 'text-yellow-600';
+    return 'text-red-600';
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'active':
+        return <CheckCircle className="h-4 w-4" />;
+      case 'warning':
+        return <AlertTriangle className="h-4 w-4" />;
+      case 'error':
+        return <AlertTriangle className="h-4 w-4" />;
+      default:
+        return <Activity className="h-4 w-4" />;
+    }
+  };
+
+  return (
+    <Card className="hover:shadow-md transition-shadow">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Globe className="h-5 w-5" />
+            {site.name}
+          </CardTitle>
+          <Badge className={getStatusColor(site.status)}>
+            {getStatusIcon(site.status)}
+            <span className="ml-1 capitalize">{site.status}</span>
+          </Badge>
+        </div>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <ExternalLink className="h-3 w-3" />
+          <a 
+            href={site.url} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="hover:text-primary truncate"
+          >
+            {site.url}
+          </a>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">Health Score</span>
+            <span className={`text-sm font-bold ${getHealthScoreColor(site.healthScore)}`}>
+              {site.healthScore}%
+            </span>
+          </div>
+          
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div 
+              className={`h-2 rounded-full transition-all ${
+                site.healthScore >= 80 ? 'bg-green-500' :
+                site.healthScore >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+              }`}
+              style={{ width: `${site.healthScore}%` }}
+            />
+          </div>
+
+          <div className="text-xs text-muted-foreground">
+            Last checked: {formatDistanceToNow(new Date(site.lastChecked), { addSuffix: true })}
+          </div>
+
+          <div className="flex gap-2 pt-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => onViewDetails(site.id)}
+              className="flex-1"
+            >
+              <Activity className="h-3 w-3 mr-1" />
+              Details
+            </Button>
+            <Button 
+              variant="default" 
+              size="sm" 
+              onClick={() => onManage(site.id)}
+              className="flex-1"
+            >
+              <Settings className="h-3 w-3 mr-1" />
+              Manage
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+## Phase 5: Advanced Features
+
+### 5.1 Real-time Monitoring Hook
+
+**src/hooks/useRealTimeMonitoring.ts**
+```typescript
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useRef } from 'react';
+import { sitesApi } from '@/lib/api';
+
+export function useRealTimeMonitoring(siteId: string, enabled = true) {
+  const queryClient = useQueryClient();
+  const intervalRef = useRef<NodeJS.Timeout>();
+
+  const { data: siteHealth, isLoading, error } = useQuery({
+    queryKey: ['sites', siteId, 'health'],
+    queryFn: () => sitesApi.getSiteHealth(siteId),
+    enabled: enabled && !!siteId,
+    refetchInterval: 5 * 60 * 1000, // 5 minutes
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+
+  const { data: siteStatus } = useQuery({
+    queryKey: ['sites', siteId, 'status'],
+    queryFn: () => sitesApi.getSiteStatus(siteId),
+    enabled: enabled && !!siteId,
+    refetchInterval: 10 * 60 * 1000, // 10 minutes
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Manual refresh function
+  const refreshData = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['sites', siteId, 'health'] }),
+      queryClient.invalidateQueries({ queryKey: ['sites', siteId, 'status'] }),
+    ]);
+  };
+
+  // Cleanup interval on unmount
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, []);
+
+  return {
+    siteHealth,
+    siteStatus,
+    isLoading,
+    error,
+    refreshData,
+  };
+}
+```
+
+### 5.2 Bulk Operations Component
+
+**src/components/sites/BulkOperations.tsx**
+```typescript
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
+import { 
+  ChevronDown, 
+  Shield, 
+  RefreshCw, 
+  Settings,
+  Download,
+  AlertTriangle
+} from 'lucide-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { sitesApi } from '@/lib/api';
+import { useToast } from '@/hooks/use-toast';
+
+interface BulkOperationsProps {
+  selectedSites: string[];
+  onClearSelection: () => void;
+}
+
+export function BulkOperations({ selectedSites, onClearSelection }: BulkOperationsProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const bulkUpdateMutation = useMutation({
+    mutationFn: async ({ type, sites }: { type: string; sites: string[] }) => {
+      const results = await Promise.allSettled(
+        sites.map(siteId => sitesApi.performUpdates(siteId, type))
+      );
+      return results;
+    },
+    onSuccess: (results) => {
+      const successful = results.filter(r => r.status === 'fulfilled').length;
+      const failed = results.length - successful;
+      
+      toast({
+        title: 'Bulk Update Complete',
+        description: `${successful} sites updated successfully${failed > 0 ? `, ${failed} failed` : ''}`,
+        variant: successful === results.length ? 'default' : 'destructive',
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ['sites'] });
+      onClearSelection();
+    },
+  });
+
+  const bulkMaintenanceMutation = useMutation({
+    mutationFn: async ({ enable, sites }: { enable: boolean; sites: string[] }) => {
+      const results = await Promise.allSettled(
+        sites.map(siteId => sitesApi.toggleMaintenance(siteId, enable))
+      );
+      return results;
+    },
+    onSuccess: (results, variables) => {
+      const successful = results.filter(r => r.status === 'fulfilled').length;
+      const action = variables.enable ? 'enabled' : 'disabled';
+      
+      toast({
+        title: 'Bulk Maintenance Mode',
+        description: `Maintenance mode ${action} for ${successful} sites`,
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ['sites'] });
+      onClearSelection();
+    },
+  });
+
+  const handleBulkOperation = async (operation: string) => {
+    setIsLoading(true);
+    
+    try {
+      switch (operation) {
+        case 'update-wordpress':
+          await bulkUpdateMutation.mutateAsync({ type: 'wordpress', sites: selectedSites });
+          break;
+        case 'update-plugins':
+          await bulkUpdateMutation.mutateAsync({ type: 'plugins', sites: selectedSites });
+          break;
+        case 'update-themes':
+          await bulkUpdateMutation.mutateAsync({ type: 'themes', sites: selectedSites });
+          break;
+        case 'enable-maintenance':
+          await bulkMaintenanceMutation.mutateAsync({ enable: true, sites: selectedSites });
+          break;
+        case 'disable-maintenance':
+          await bulkMaintenanceMutation.mutateAsync({ enable: false, sites: selectedSites });
+          break;
+        case 'health-check':
+          // Trigger health checks for all selected sites
+          await Promise.all(
+            selectedSites.map(siteId => 
+              queryClient.invalidateQueries({ queryKey: ['sites', siteId, 'health'] })
+            )
+          );
+          toast({
+            title: 'Health Check Initiated',
+            description: `Health checks started for ${selectedSites.length} sites`,
+          });
+          break;
+      }
+    } catch (error) {
+      toast({
+        title: 'Bulk Operation Failed',
+        description: 'An error occurred during the bulk operation',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (selectedSites.length === 0) return null;
+
+  return (
+    <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg border">
+      <Badge variant="secondary">
+        {selectedSites.length} site{selectedSites.length !== 1 ? 's' : ''} selected
+      </Badge>
+      
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" disabled={isLoading}>
+            {isLoading ? (
+              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Settings className="h-4 w-4 mr-2" />
+            )}
+            Bulk Actions
+            <ChevronDown className="h-4 w-4 ml-2" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          <DropdownMenuItem onClick={() => handleBulkOperation('update-wordpress')}>
+            <Shield className="h-4 w-4 mr-2" />
+            Update WordPress Core
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleBulkOperation('update-plugins')}>
+            <Shield className="h-4 w-4 mr-2" />
+            Update All Plugins
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleBulkOperation('update-themes')}>
+            <Shield className="h-4 w-4 mr-2" />
+            Update All Themes
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleBulkOperation('health-check')}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Run Health Checks
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleBulkOperation('enable-maintenance')}>
+            <AlertTriangle className="h-4 w-4 mr-2" />
+            Enable Maintenance Mode
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleBulkOperation('disable-maintenance')}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Disable Maintenance Mode
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      
+      <Button variant="ghost" size="sm" onClick={onClearSelection}>
+        Clear Selection
+      </Button>
+    </div>
+  );
+}
+```
+
+## Phase 6: Deployment and Environment Setup
+
+### 6.1 Environment Variables
+
+**Create `.env` file:**
+```env
+# Database
+DATABASE_URL=postgresql://username:password@localhost:5432/wp_remote_manager
+
+# JWT
+JWT_SECRET=your-super-secret-jwt-key-here
+
+# Server
+PORT=3001
+NODE_ENV=development
+
+# CORS
+CORS_ORIGIN=http://localhost:5173
+```
+
+### 6.2 Replit Configuration
+
+**replit.nix**
+```nix
+{ pkgs }: {
+  deps = [
+    pkgs.nodejs-18_x
+    pkgs.postgresql
+    pkgs.nodePackages.typescript
+    pkgs.nodePackages.ts-node
+  ];
+}
+```
+
+**.replit**
+```toml
+modules = ["nodejs-18"]
+
+[nix]
+channel = "stable-22_11"
+
+[deployment]
+run = ["npm", "run", "build"]
+deploymentTarget = "cloudrun"
+
+[[ports]]
+localPort = 3001
+externalPort = 80
+
+[[ports]]
+localPort = 5173
+externalPort = 3000
+```
+
+### 6.3 Database Migration Script
+
+**server/db/migrate.ts**
+```typescript
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { migrate } from 'drizzle-orm/node-postgres/migrator';
+import { Pool } from 'pg';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+
+const db = drizzle(pool);
+
+async function main() {
+  console.log('Running migrations...');
+  await migrate(db, { migrationsFolder: './drizzle' });
+  console.log('Migrations completed!');
+  process.exit(0);
+}
+
+main().catch((err) => {
+  console.error('Migration failed:', err);
+  process.exit(1);
+});
+```
+
+## Phase 7: Testing and Quality Assurance
+
+### 7.1 API Testing
+
+**Create test files for API endpoints:**
+
+**tests/api/sites.test.ts**
+```typescript
+import request from 'supertest';
+import { app } from '../../server';
+import { db } from '../../server/db';
+import { users, sites } from '../../server/db/schema';
+
+describe('Sites API', () => {
+  let authToken: string;
+  let userId: string;
+
+  beforeAll(async () => {
+    // Create test user and get auth token
+    const testUser = await db.insert(users).values({
+      email: 'test@example.com',
+      name: 'Test User',
+      password: 'hashedpassword',
+    }).returning();
+    
+    userId = testUser[0].id;
+    
+    const loginResponse = await request(app)
+      .post('/api/auth/login')
+      .send({
+        email: 'test@example.com',
+        password: 'password123',
+      });
+    
+    authToken = loginResponse.body.token;
+  });
+
+  afterAll(async () => {
+    // Cleanup test data
+    await db.delete(sites).where(eq(sites.userId, userId));
+    await db.delete(users).where(eq(users.id, userId));
+  });
+
+  describe('POST /api/sites', () => {
+    it('should create a new site', async () => {
+      const siteData = {
+        name: 'Test Site',
+        url: 'https://example.com',
+        apiKey: 'test-api-key',
+      };
+
+      const response = await request(app)
+        .post('/api/sites')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send(siteData)
+        .expect(201);
+
+      expect(response.body).toMatchObject({
+        name: siteData.name,
+        url: siteData.url,
+        userId: userId,
+      });
+    });
+
+    it('should validate required fields', async () => {
+      const response = await request(app)
+        .post('/api/sites')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({})
+        .expect(400);
+
+      expect(response.body.error).toBeDefined();
+    });
+  });
+
+  describe('GET /api/sites', () => {
+    it('should return user sites', async () => {
+      const response = await request(app)
+        .get('/api/sites')
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200);
+
+      expect(Array.isArray(response.body)).toBe(true);
+    });
+  });
+});
+```
+
+### 7.2 Component Testing
+
+**src/components/__tests__/SiteCard.test.tsx**
+```typescript
+import { render, screen, fireEvent } from '@testing-library/react';
+import { SiteCard } from '../sites/SiteCard';
+
+const mockSite = {
+  id: '1',
+  name: 'Test Site',
+  url: 'https://example.com',
+  status: 'active',
+  healthScore: 85,
+  lastChecked: new Date().toISOString(),
+  isActive: true,
+};
+
+describe('SiteCard', () => {
+  const mockOnViewDetails = jest.fn();
+  const mockOnManage = jest.fn();
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('renders site information correctly', () => {
+    render(
+      <SiteCard
+        site={mockSite}
+        onViewDetails={mockOnViewDetails}
+        onManage={mockOnManage}
+      />
+    );
+
+    expect(screen.getByText('Test Site')).toBeInTheDocument();
+    expect(screen.getByText('https://example.com')).toBeInTheDocument();
+    expect(screen.getByText('85%')).toBeInTheDocument();
+    expect(screen.getByText('Active')).toBeInTheDocument();
+  });
+
+  it('calls onViewDetails when Details button is clicked', () => {
+    render(
+      <SiteCard
+        site={mockSite}
+        onViewDetails={mockOnViewDetails}
+        onManage={mockOnManage}
+      />
+    );
+
+    fireEvent.click(screen.getByText('Details'));
+    expect(mockOnViewDetails).toHaveBeenCalledWith('1');
+  });
+
+  it('calls onManage when Manage button is clicked', () => {
+    render(
+      <SiteCard
+        site={mockSite}
+        onViewDetails={mockOnViewDetails}
+        onManage={mockOnManage}
+      />
+    );
+
+    fireEvent.click(screen.getByText('Manage'));
+    expect(mockOnManage).toHaveBeenCalledWith('1');
+  });
+});
+```
+
+## Phase 8: Performance Optimization
+
+### 8.1 React Query Configuration
+
+**src/lib/queryClient.ts**
+```typescript
+import { QueryClient } from '@tanstack/react-query';
+
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      cacheTime: 10 * 60 * 1000, // 10 minutes
+      retry: (failureCount, error: any) => {
+        // Don't retry on 4xx errors
+        if (error?.response?.status >= 400 && error?.response?.status < 500) {
+          return false;
+        }
+        return failureCount < 3;
+      },
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: true,
+    },
+    mutations: {
+      retry: 1,
+    },
+  },
+});
+```
+
+### 8.2 Database Optimization
+
+**server/db/indexes.sql**
+```sql
+-- Add indexes for better query performance
+CREATE INDEX IF NOT EXISTS idx_sites_user_id ON sites(user_id);
+CREATE INDEX IF NOT EXISTS idx_sites_status ON sites(status);
+CREATE INDEX IF NOT EXISTS idx_sites_last_checked ON sites(last_checked);
+CREATE INDEX IF NOT EXISTS idx_monitoring_logs_site_id ON monitoring_logs(site_id);
+CREATE INDEX IF NOT EXISTS idx_monitoring_logs_created_at ON monitoring_logs(created_at);
+CREATE INDEX IF NOT EXISTS idx_monitoring_logs_type ON monitoring_logs(type);
+```
+
+## Phase 9: Security Implementation
+
+### 9.1 Rate Limiting
+
+**server/middleware/rateLimit.ts**
+```typescript
+import rateLimit from 'express-rate-limit';
+
+export const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: {
+    error: 'Too many requests from this IP, please try again later.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+export const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Limit each IP to 5 login requests per windowMs
+  message: {
+    error: 'Too many login attempts from this IP, please try again later.',
+  },
+  skipSuccessfulRequests: true,
+});
+```
+
+### 9.2 Input Validation
+
+**server/middleware/validation.ts**
+```typescript
+import { Request, Response, NextFunction } from 'express';
+import { z } from 'zod';
+
+export const validateBody = (schema: z.ZodSchema) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    try {
+      schema.parse(req.body);
+      next();
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: error.errors,
+        });
+      }
+      next(error);
+    }
+  };
+};
+
+export const validateParams = (schema: z.ZodSchema) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    try {
+      schema.parse(req.params);
+      next();
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          error: 'Invalid parameters',
+          details: error.errors,
+        });
+      }
+      next(error);
+    }
+  };
+};
+```
+
+## Phase 10: Monitoring and Logging
+
+### 10.1 Application Logging
+
+**server/utils/logger.ts**
+```typescript
+import winston from 'winston';
+
+const logger = winston.createLogger({
+  level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.errors({ stack: true }),
+    winston.format.json()
+  ),
+  defaultMeta: { service: 'wp-remote-manager' },
+  transports: [
+    new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
+    new winston.transports.File({ filename: 'logs/combined.log' }),
+  ],
+});
+
+if (process.env.NODE_ENV !== 'production') {
+  logger.add(new winston.transports.Console({
+    format: winston.format.simple()
+  }));
+}
+
+export { logger };
+```
+
+### 10.2 Error Handling
+
+**server/middleware/errorHandler.ts**
+```typescript
+import { Request, Response, NextFunction } from 'express';
+import { logger } from '../utils/logger';
+
+export const errorHandler = (
+  error: Error,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  logger.error('Unhandled error:', {
+    error: error.message,
+    stack: error.stack,
+    url: req.url,
+    method: req.method,
+    ip: req.ip,
+  });
+
+  if (res.headersSent) {
+    return next(error);
+  }
+
+  const statusCode = (error as any).statusCode || 500;
+  const message = process.env.NODE_ENV === 'production' 
+    ? 'Internal server error' 
+    : error.message;
+
+  res.status(statusCode).json({
+    error: message,
+    ...(process.env.NODE_ENV !== 'production' && { stack: error.stack }),
+  });
+};
+```
+
+## Getting Started
+
+1. **Clone and Setup**:
+   ```bash
+   git clone <repository>
+   cd wp-remote-manager-dashboard
+   npm install
+   ```
+
+2. **Environment Configuration**:
+   - Copy `.env.example` to `.env`
+   - Configure database connection
+   - Set JWT secret
+
+3. **Database Setup**:
+   ```bash
+   npm run db:generate
+   npm run db:migrate
+   ```
+
+4. **Development**:
+   ```bash
+   npm run dev
+   ```
+
+5. **Production Build**:
+   ```bash
+   npm run build
+   ```
+
+This comprehensive application provides a modern, scalable solution for managing multiple WordPress sites remotely using your specified tech stack. The architecture is modular, secure, and optimized for performance with real-time monitoring capabilities.

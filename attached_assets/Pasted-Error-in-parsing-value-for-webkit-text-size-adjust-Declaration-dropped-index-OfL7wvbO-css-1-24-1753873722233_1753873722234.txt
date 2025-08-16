@@ -1,0 +1,127 @@
+Error in parsing value for ‘-webkit-text-size-adjust’.  Declaration dropped. index-OfL7wvbO.css:1:2443
+Unknown property ‘-moz-osx-font-smoothing’.  Declaration dropped. index-OfL7wvbO.css:1:5037
+Ruleset ignored due to bad selector. index-OfL7wvbO.css:1:73591
+Ruleset ignored due to bad selector. index-OfL7wvbO.css:1:73745
+Missing required Google Analytics key: VITE_GA_MEASUREMENT_ID index-_niGB0cs.js:517:122322
+=== FINAL UPDATE COUNTS === index-_niGB0cs.js:512:156749
+Plugin updates: 0 index-_niGB0cs.js:512:156792
+Theme updates: 0 index-_niGB0cs.js:512:156832
+WordPress update: 0 index-_niGB0cs.js:512:156871
+Total updates: 0 index-_niGB0cs.js:512:156910
+========================== index-_niGB0cs.js:512:156942
+=== FINAL UPDATE COUNTS === index-_niGB0cs.js:512:156749
+Plugin updates: 0 index-_niGB0cs.js:512:156792
+Theme updates: 0 index-_niGB0cs.js:512:156832
+WordPress update: 0 index-_niGB0cs.js:512:156871
+Total updates: 0 index-_niGB0cs.js:512:156910
+========================== index-_niGB0cs.js:512:156942
+=== FINAL UPDATE COUNTS === index-_niGB0cs.js:512:156749
+Plugin updates: 0 index-_niGB0cs.js:512:156792
+Theme updates: 0 index-_niGB0cs.js:512:156832
+WordPress update: 0 index-_niGB0cs.js:512:156871
+Total updates: 0 index-_niGB0cs.js:512:156910
+========================== index-_niGB0cs.js:512:156942
+=== FINAL UPDATE COUNTS === index-_niGB0cs.js:512:156749
+Plugin updates: 0 index-_niGB0cs.js:512:156792
+Theme updates: 0 index-_niGB0cs.js:512:156832
+WordPress update: 0 index-_niGB0cs.js:512:156871
+Total updates: 0 index-_niGB0cs.js:512:156910
+========================== index-_niGB0cs.js:512:156942
+=== WRM UPDATES DEBUG === index-_niGB0cs.js:512:154203
+Full updates object: {
+  "count": {
+    "total": 0,
+    "plugins": 0,
+    "themes": 0,
+    "core": 0
+  },
+  "plugins": [],
+  "themes": [],
+  "wordpress": {
+    "update_available": false
+  }
+} index-_niGB0cs.js:512:154244
+Plugins array length: 0 index-_niGB0cs.js:512:154305
+Themes array length: 0 index-_niGB0cs.js:512:154399
+WordPress update available: false index-_niGB0cs.js:512:154490
+======================== index-_niGB0cs.js:512:154587
+=== FINAL UPDATE COUNTS === index-_niGB0cs.js:512:156749
+Plugin updates: 0 index-_niGB0cs.js:512:156792
+Theme updates: 0 index-_niGB0cs.js:512:156832
+WordPress update: 0 index-_niGB0cs.js:512:156871
+Total updates: 0 index-_niGB0cs.js:512:156910
+========================== index-_niGB0cs.js:512:156942
+=== WRM UPDATES DEBUG === index-_niGB0cs.js:512:154203
+Full updates object: {
+  "count": {
+    "total": 0,
+    "plugins": 0,
+    "themes": 0,
+    "core": 0
+  },
+  "plugins": [],
+  "themes": [],
+  "wordpress": {
+    "update_available": false
+  }
+} index-_niGB0cs.js:512:154244
+Plugins array length: 0 index-_niGB0cs.js:512:154305
+Themes array length: 0 index-_niGB0cs.js:512:154399
+WordPress update available: false index-_niGB0cs.js:512:154490
+======================== index-_niGB0cs.js:512:154587
+=== FINAL UPDATE COUNTS === index-_niGB0cs.js:512:156749
+Plugin updates: 0 index-_niGB0cs.js:512:156792
+Theme updates: 0 index-_niGB0cs.js:512:156832
+WordPress update: 0 index-_niGB0cs.js:512:156871
+Total updates: 0 index-_niGB0cs.js:512:156910
+========================== index-_niGB0cs.js:512:156942
+=== WRM UPDATES DEBUG === index-_niGB0cs.js:512:154203
+Full updates object: {
+  "count": {
+    "total": 0,
+    "plugins": 0,
+    "themes": 0,
+    "core": 0
+  },
+  "plugins": [],
+  "themes": [],
+  "wordpress": {
+    "update_available": false
+  }
+} index-_niGB0cs.js:512:154244
+Plugins array length: 0 index-_niGB0cs.js:512:154305
+Themes array length: 0 index-_niGB0cs.js:512:154399
+WordPress update available: false index-_niGB0cs.js:512:154490
+======================== index-_niGB0cs.js:512:154587
+=== FINAL UPDATE COUNTS === index-_niGB0cs.js:512:156749
+Plugin updates: 0 index-_niGB0cs.js:512:156792
+Theme updates: 0 index-_niGB0cs.js:512:156832
+WordPress update: 0 index-_niGB0cs.js:512:156871
+Total updates: 0 index-_niGB0cs.js:512:156910
+========================== index-_niGB0cs.js:512:156942
+TypeError: t.map is not a function
+    J$ https://www.aiositecare.com/assets/index-_niGB0cs.js:512
+    xx https://www.aiositecare.com/assets/index-_niGB0cs.js:38
+    Oh https://www.aiositecare.com/assets/index-_niGB0cs.js:40
+    L2 https://www.aiositecare.com/assets/index-_niGB0cs.js:40
+    I2 https://www.aiositecare.com/assets/index-_niGB0cs.js:40
+    DA https://www.aiositecare.com/assets/index-_niGB0cs.js:40
+    pu https://www.aiositecare.com/assets/index-_niGB0cs.js:40
+    qh https://www.aiositecare.com/assets/index-_niGB0cs.js:40
+    X0 https://www.aiositecare.com/assets/index-_niGB0cs.js:40
+    Sa https://www.aiositecare.com/assets/index-_niGB0cs.js:38
+    Pr https://www.aiositecare.com/assets/index-_niGB0cs.js:40
+index-_niGB0cs.js:40:161
+Uncaught TypeError: t.map is not a function
+    J$ https://www.aiositecare.com/assets/index-_niGB0cs.js:512
+    xx https://www.aiositecare.com/assets/index-_niGB0cs.js:38
+    Oh https://www.aiositecare.com/assets/index-_niGB0cs.js:40
+    L2 https://www.aiositecare.com/assets/index-_niGB0cs.js:40
+    I2 https://www.aiositecare.com/assets/index-_niGB0cs.js:40
+    DA https://www.aiositecare.com/assets/index-_niGB0cs.js:40
+    pu https://www.aiositecare.com/assets/index-_niGB0cs.js:40
+    qh https://www.aiositecare.com/assets/index-_niGB0cs.js:40
+    X0 https://www.aiositecare.com/assets/index-_niGB0cs.js:40
+    Sa https://www.aiositecare.com/assets/index-_niGB0cs.js:38
+    Pr https://www.aiositecare.com/assets/index-_niGB0cs.js:40
+index-_niGB0cs.js:512:191290

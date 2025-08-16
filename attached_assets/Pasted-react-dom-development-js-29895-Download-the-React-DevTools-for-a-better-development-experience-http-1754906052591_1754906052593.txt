@@ -1,0 +1,125 @@
+react-dom.development.js:29895 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+App.tsx:139  Missing required Google Analytics key: VITE_GA_MEASUREMENT_ID
+(anonymous) @ App.tsx:139
+App.tsx:139  Missing required Google Analytics key: VITE_GA_MEASUREMENT_ID
+(anonymous) @ App.tsx:139
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================

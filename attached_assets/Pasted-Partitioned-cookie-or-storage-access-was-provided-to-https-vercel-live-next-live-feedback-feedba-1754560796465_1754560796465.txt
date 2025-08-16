@@ -1,0 +1,145 @@
+Partitioned cookie or storage access was provided to “https://vercel.live/_next-live/feedback/feedback.html?dpl=dpl_5yLhq6G2CTQkh132SwXY8By8Ba9X” because it is loaded in the third-party context and dynamic state partitioning is enabled. feedback.html:9:10574
+Missing required Google Analytics key: VITE_GA_MEASUREMENT_ID index-BIEyddhs.js:604:2515
+=== FINAL UPDATE COUNTS === index-BIEyddhs.js:567:136598
+Plugin updates: 0 index-BIEyddhs.js:567:136641
+Theme updates: 0 index-BIEyddhs.js:567:136681
+WordPress update: 0 index-BIEyddhs.js:567:136720
+Total updates: 0 index-BIEyddhs.js:567:136759
+========================== index-BIEyddhs.js:567:136791
+=== FINAL UPDATE COUNTS === index-BIEyddhs.js:567:136598
+Plugin updates: 0 index-BIEyddhs.js:567:136641
+Theme updates: 0 index-BIEyddhs.js:567:136681
+WordPress update: 0 index-BIEyddhs.js:567:136720
+Total updates: 0 index-BIEyddhs.js:567:136759
+========================== index-BIEyddhs.js:567:136791
+=== FINAL UPDATE COUNTS === index-BIEyddhs.js:567:136598
+Plugin updates: 0 index-BIEyddhs.js:567:136641
+Theme updates: 0 index-BIEyddhs.js:567:136681
+WordPress update: 0 index-BIEyddhs.js:567:136720
+Total updates: 0 index-BIEyddhs.js:567:136759
+========================== index-BIEyddhs.js:567:136791
+=== FINAL UPDATE COUNTS === index-BIEyddhs.js:567:136598
+Plugin updates: 0 index-BIEyddhs.js:567:136641
+Theme updates: 0 index-BIEyddhs.js:567:136681
+WordPress update: 0 index-BIEyddhs.js:567:136720
+Total updates: 0 index-BIEyddhs.js:567:136759
+========================== index-BIEyddhs.js:567:136791
+=== FINAL UPDATE COUNTS === index-BIEyddhs.js:567:136598
+Plugin updates: 0 index-BIEyddhs.js:567:136641
+Theme updates: 0 index-BIEyddhs.js:567:136681
+WordPress update: 0 index-BIEyddhs.js:567:136720
+Total updates: 0 index-BIEyddhs.js:567:136759
+========================== index-BIEyddhs.js:567:136791
+=== FINAL UPDATE COUNTS === index-BIEyddhs.js:567:136598
+Plugin updates: 0 index-BIEyddhs.js:567:136641
+Theme updates: 0 index-BIEyddhs.js:567:136681
+WordPress update: 0 index-BIEyddhs.js:567:136720
+Total updates: 0 index-BIEyddhs.js:567:136759
+========================== index-BIEyddhs.js:567:136791
+=== FINAL UPDATE COUNTS === index-BIEyddhs.js:567:136598
+Plugin updates: 0 index-BIEyddhs.js:567:136641
+Theme updates: 0 index-BIEyddhs.js:567:136681
+WordPress update: 0 index-BIEyddhs.js:567:136720
+Total updates: 0 index-BIEyddhs.js:567:136759
+========================== index-BIEyddhs.js:567:136791
+=== WRM UPDATES DEBUG === index-BIEyddhs.js:567:134050
+Full updates object: {
+  "wordpress": {
+    "current_version": "6.8.2",
+    "update_available": false,
+    "new_version": null
+  },
+  "plugins": [
+    {
+      "plugin": "snapshot-backups/snapshot-backups.php",
+      "name": "wpmudev_install-3760011",
+      "current_version": "4.35.0",
+      "new_version": "4.35.1"
+    }
+  ],
+  "themes": []
+} index-BIEyddhs.js:567:134091
+Plugins array length: 1 index-BIEyddhs.js:567:134152
+Themes array length: 0 index-BIEyddhs.js:567:134246
+WordPress update available: false index-BIEyddhs.js:567:134337
+======================== index-BIEyddhs.js:567:134434
+=== FINAL UPDATE COUNTS === index-BIEyddhs.js:567:136598
+Plugin updates: 1 index-BIEyddhs.js:567:136641
+Theme updates: 0 index-BIEyddhs.js:567:136681
+WordPress update: 0 index-BIEyddhs.js:567:136720
+Total updates: 1 index-BIEyddhs.js:567:136759
+========================== index-BIEyddhs.js:567:136791
+=== WRM UPDATES DEBUG === index-BIEyddhs.js:567:134050
+Full updates object: {
+  "wordpress": {
+    "current_version": "6.8.2",
+    "update_available": false,
+    "new_version": null
+  },
+  "plugins": [
+    {
+      "plugin": "snapshot-backups/snapshot-backups.php",
+      "name": "wpmudev_install-3760011",
+      "current_version": "4.35.0",
+      "new_version": "4.35.1"
+    }
+  ],
+  "themes": []
+} index-BIEyddhs.js:567:134091
+Plugins array length: 1 index-BIEyddhs.js:567:134152
+Themes array length: 0 index-BIEyddhs.js:567:134246
+WordPress update available: false index-BIEyddhs.js:567:134337
+======================== index-BIEyddhs.js:567:134434
+=== FINAL UPDATE COUNTS === index-BIEyddhs.js:567:136598
+Plugin updates: 1 index-BIEyddhs.js:567:136641
+Theme updates: 0 index-BIEyddhs.js:567:136681
+WordPress update: 0 index-BIEyddhs.js:567:136720
+Total updates: 1 index-BIEyddhs.js:567:136759
+========================== index-BIEyddhs.js:567:136791
+Debug info: 
+Object { reportId: "19", report: false, reportData: false, isLoadingData: false, dataError: null }
+index-BIEyddhs.js:572:253799
+Debug info: 
+Object { reportId: "19", report: true, reportData: false, isLoadingData: true, dataError: null }
+index-BIEyddhs.js:572:253799
+Debug info: 
+Object { reportId: "19", report: true, reportData: true, isLoadingData: false, dataError: null }
+index-BIEyddhs.js:572:253799
+Debug info: 
+Object { reportId: "19", report: true, reportData: true, isLoadingData: false, dataError: null }
+index-BIEyddhs.js:572:253799
+TypeError: can't access property "percentage", e.uptime is undefined
+    S7 https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-BIEyddhs.js:572
+    Qp https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-BIEyddhs.js:38
+    k2 https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-BIEyddhs.js:40
+    w2 https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-BIEyddhs.js:40
+    DR https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-BIEyddhs.js:40
+    qu https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-BIEyddhs.js:40
+    jx https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-BIEyddhs.js:40
+    Iv https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-BIEyddhs.js:40
+    Ka https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-BIEyddhs.js:38
+    Qs https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-BIEyddhs.js:40
+index-BIEyddhs.js:40:161
+    cx https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-BIEyddhs.js:40
+    callback https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-BIEyddhs.js:40
+    xv https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-BIEyddhs.js:38
+    Av https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-BIEyddhs.js:40
+    v2 https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-BIEyddhs.js:40
+    RR https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-BIEyddhs.js:40
+    LR https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-BIEyddhs.js:40
+    Ja https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-BIEyddhs.js:40
+    Iv https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-BIEyddhs.js:40
+    Ka https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-BIEyddhs.js:38
+    Qs https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-BIEyddhs.js:40
+Uncaught TypeError: can't access property "percentage", e.uptime is undefined
+    S7 https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-BIEyddhs.js:572
+    Qp https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-BIEyddhs.js:38
+    k2 https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-BIEyddhs.js:40
+    w2 https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-BIEyddhs.js:40
+    DR https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-BIEyddhs.js:40
+    qu https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-BIEyddhs.js:40
+    jx https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-BIEyddhs.js:40
+    Iv https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-BIEyddhs.js:40
+    Ka https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-BIEyddhs.js:38
+    Qs https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-BIEyddhs.js:40
+index-BIEyddhs.js:572:239254

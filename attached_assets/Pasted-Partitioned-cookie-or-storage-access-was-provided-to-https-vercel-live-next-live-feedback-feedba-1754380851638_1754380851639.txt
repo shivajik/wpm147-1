@@ -1,0 +1,60 @@
+Partitioned cookie or storage access was provided to “https://vercel.live/_next-live/feedback/feedback.html?dpl=dpl_EXyFeT5SdvXm5hcDsGYhuuTAXvr8” because it is loaded in the third-party context and dynamic state partitioning is enabled. feedback.html:9:10574
+TypeError: S.some is not a function
+    refetchInterval https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:552
+    yp https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:48
+    setOptions https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:48
+    gb https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:48
+    <anonymous> https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:48
+    ay https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:38
+    useState https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:9
+    QM https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:48
+    je https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:48
+    LU https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:552
+    Ix https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:38
+    f2 https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:40
+    d2 https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:40
+    CR https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:40
+    Fu https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:40
+    up https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:40
+    l2 https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:40
+    N https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:25
+    C https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:25
+index-KvHDf0u9.js:40:161
+Uncaught TypeError: S.some is not a function
+    refetchInterval https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:552
+    yp https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:48
+    setOptions https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:48
+    gb https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:48
+    <anonymous> https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:48
+    ay https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:38
+    useState https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:9
+    QM https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:48
+    je https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:48
+    LU https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:552
+    Ix https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:38
+    f2 https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:40
+    d2 https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:40
+    CR https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:40
+    Fu https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:40
+    up https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:40
+    l2 https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:40
+    N https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:25
+    C https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-KvHDf0u9.js:25
+index-KvHDf0u9.js:552:63058
+Unknown property ‘-moz-osx-font-smoothing’.  Declaration dropped. feedback.html:1:451
+Error in parsing value for ‘-webkit-mask’.  Declaration dropped. feedback.html:1:2558
+Unknown property ‘-moz-columns’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:510
+Unknown property ‘-moz-column-count’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:533
+Unknown property ‘-moz-column-fill’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:555
+Unknown property ‘-moz-column-gap’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:634
+Unknown property ‘-moz-column-rule’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:676
+Unknown property ‘-moz-column-span’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:755
+Unknown property ‘-moz-column-width’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:789
+Unknown property ‘orphans’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:1349
+Unknown property ‘-moz-text-align-last’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:1678
+Unknown property ‘widows’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:1998
+Unknown property ‘-moz-osx-font-smoothing’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:2103
+Error in parsing value for ‘-webkit-text-size-adjust’.  Declaration dropped. index-CXJZiTQD.css:1:2443
+Unknown property ‘-moz-osx-font-smoothing’.  Declaration dropped. index-CXJZiTQD.css:1:5037
+Ruleset ignored due to bad selector. index-CXJZiTQD.css:1:75633
+Ruleset ignored due to bad selector. index-CXJZiTQD.css:1:75787

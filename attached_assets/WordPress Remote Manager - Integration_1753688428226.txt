@@ -1,0 +1,188 @@
+# WordPress Remote Manager - Integration Guide
+
+## Overview
+
+This WordPress Remote Manager dashboard application fetches data from your WordPress site using the WP Remote Manager plugin. The application provides real-time monitoring and management capabilities for your WordPress installation.
+
+## Prerequisites
+
+1. **WordPress Remote Manager Plugin**: Installed and activated on your WordPress site
+2. **API Key**: Generated from the plugin settings in your WordPress admin
+3. **Site URL**: Your WordPress site's URL
+
+## Configuration
+
+### Environment Variables
+
+The application requires two environment variables to connect to your WordPress site:
+
+```
+WP_SITE_URL=https://yoursite.com
+WP_REMOTE_API_KEY=your_api_key_here
+```
+
+These are automatically configured in Replit Secrets and loaded as environment variables.
+
+## API Endpoints
+
+The dashboard fetches data from the following WordPress plugin endpoints:
+
+### 1. Site Status (`/wp-json/wrm/v1/status`)
+- **Purpose**: Get basic site information and server stats
+- **Data**: WordPress version, PHP version, memory usage, disk usage, SSL status
+- **Refresh**: Every 30 seconds (cached)
+
+### 2. Health Check (`/wp-json/wrm/v1/health`)
+- **Purpose**: Get detailed health scores and status information
+- **Data**: WordPress, plugins, themes, security, and performance scores
+- **Features**: Color-coded health indicators, issue detection
+
+### 3. Updates (`/wp-json/wrm/v1/updates`)
+- **Purpose**: Monitor available WordPress, plugin, and theme updates
+- **Data**: Available updates with version information
+- **Features**: Update count badges, version comparison
+
+### 4. Plugins Management (`/wp-json/wrm/v1/plugins`)
+- **Purpose**: List all installed plugins with detailed information
+- **Data**: Plugin metadata, versions, authors, update status
+- **Features**: Active/inactive status, update indicators
+
+### 5. Themes Management (`/wp-json/wrm/v1/themes`)
+- **Purpose**: List all installed themes with detailed information
+- **Data**: Theme metadata, versions, authors, screenshots
+- **Features**: Active theme highlighting, update indicators
+
+### 6. Users Management (`/wp-json/wrm/v1/users`)
+- **Purpose**: List WordPress users with profile information
+- **Data**: User roles, email addresses, post counts, profile data
+- **Features**: Role-based filtering, user activity metrics
+
+### 7. Maintenance Mode (`/wp-json/wrm/v1/maintenance`)
+- **Purpose**: Toggle WordPress maintenance mode
+- **Method**: POST request with enable/disable parameter
+- **Features**: One-click maintenance mode control
+
+## Data Flow Architecture
+
+### Frontend (React Dashboard)
+- **Query Library**: TanStack Query for efficient data fetching
+- **Caching**: 30-second cache duration for optimal performance
+- **Error Handling**: Graceful fallbacks when endpoints are unavailable
+- **Real-time Updates**: Automatic refresh and live data updates
+
+### Backend (Express Server)
+- **API Proxy**: Secure server-side requests to WordPress
+- **Rate Limiting**: 2-second minimum interval between requests
+- **Caching Layer**: In-memory caching to reduce API calls
+- **Error Recovery**: Intelligent fallback for missing endpoints
+
+### Security Features
+- **API Key Protection**: Credentials stored server-side only
+- **CORS Handling**: Proper cross-origin request management
+- **Input Validation**: Zod schema validation for all data
+- **Error Sanitization**: Safe error messages without sensitive data
+
+## Plugin Compatibility
+
+### Current Plugin Features
+The dashboard is designed to work with both basic and extended plugin versions:
+
+- **Basic Version**: Site status, health check, maintenance mode
+- **Extended Version**: Full plugins, themes, and users management
+- **Backward Compatibility**: Graceful degradation when features are unavailable
+
+### Fallback System
+When extended endpoints are not available, the dashboard:
+1. Shows upgrade prompts for missing features
+2. Falls back to basic plugin data where possible
+3. Displays informative messages about feature availability
+
+## Performance Optimization
+
+### Caching Strategy
+- **Client-side**: TanStack Query with stale-while-revalidate
+- **Server-side**: In-memory cache with 30-second TTL
+- **Request Deduplication**: Prevents duplicate API calls
+
+### Rate Limiting
+- **Minimum Interval**: 2 seconds between WordPress API requests
+- **Request Queuing**: Automatic request spacing
+- **Error Backoff**: Exponential backoff on API errors
+
+## Monitoring and Debugging
+
+### Request Logging
+All API requests are logged with:
+- Request method and endpoint
+- Response status and timing
+- Error details (sanitized)
+
+### Error Handling
+- **Network Errors**: Automatic retry with exponential backoff
+- **API Errors**: Graceful degradation with user-friendly messages
+- **Plugin Errors**: Fallback to available functionality
+
+## Usage Instructions
+
+### Dashboard Navigation
+1. **Site Overview**: Monitor basic site health and stats
+2. **Health Check**: View detailed health scores and issues
+3. **Updates**: Track available WordPress, plugin, and theme updates
+4. **Plugins**: Manage installed plugins and check for updates
+5. **Themes**: View theme information and manage installations
+6. **Users**: Monitor user accounts and activity (requires extended plugin)
+
+### Maintenance Operations
+- **Toggle Maintenance Mode**: One-click site maintenance control
+- **Monitor Updates**: Track all available updates in one place
+- **Health Monitoring**: Real-time site health assessment
+
+## Troubleshooting
+
+### Common Issues
+
+#### Authentication Errors (401)
+- **Cause**: Invalid or missing API key
+- **Solution**: Verify WP_REMOTE_API_KEY in environment variables
+- **Check**: Ensure API key is active in WordPress plugin settings
+
+#### Connection Errors (500/503)
+- **Cause**: WordPress site unreachable or plugin inactive
+- **Solution**: Verify WP_SITE_URL and plugin activation
+- **Check**: Test WordPress site accessibility
+
+#### Missing Features
+- **Cause**: Basic plugin version installed
+- **Solution**: Upgrade to extended plugin for full features
+- **Check**: Verify plugin version in WordPress admin
+
+### Error Recovery
+The application automatically handles:
+- Temporary network issues
+- Rate limiting responses
+- Plugin endpoint unavailability
+- WordPress maintenance mode
+
+## Development Notes
+
+### Adding New Endpoints
+1. Update `shared/schema.ts` with new TypeScript interfaces
+2. Add server endpoint in `server/routes.ts`
+3. Implement storage method in `server/storage.ts`
+4. Create frontend components and queries
+
+### Extending Functionality
+- All new features should follow the established patterns
+- Maintain backward compatibility with basic plugin versions
+- Implement proper error handling and fallbacks
+- Update this documentation for new features
+
+## Security Considerations
+
+- API keys are never exposed to the frontend
+- All WordPress requests go through the secure backend proxy
+- Input validation using Zod schemas
+- Rate limiting protects against API abuse
+- Error messages don't leak sensitive information
+
+This integration provides a comprehensive, secure, and performant interface to your WordPress site through the Remote Manager plugin.

@@ -1,0 +1,151 @@
+Partitioned cookie or storage access was provided to “https://vercel.live/_next-live/feedback/feedback.html?dpl=dpl_5yLhq6G2CTQkh132SwXY8By8Ba9X” because it is loaded in the third-party context and dynamic state partitioning is enabled. feedback.html:9:10574
+Missing required Google Analytics key: VITE_GA_MEASUREMENT_ID index-B-hn07rk.js:610:6708
+=== FINAL UPDATE COUNTS === index-B-hn07rk.js:558:181215
+Plugin updates: 0 index-B-hn07rk.js:558:181258
+Theme updates: 0 index-B-hn07rk.js:558:181298
+WordPress update: 0 index-B-hn07rk.js:558:181337
+Total updates: 0 index-B-hn07rk.js:558:181376
+========================== index-B-hn07rk.js:558:181408
+=== FINAL UPDATE COUNTS === index-B-hn07rk.js:558:181215
+Plugin updates: 0 index-B-hn07rk.js:558:181258
+Theme updates: 0 index-B-hn07rk.js:558:181298
+WordPress update: 0 index-B-hn07rk.js:558:181337
+Total updates: 0 index-B-hn07rk.js:558:181376
+========================== index-B-hn07rk.js:558:181408
+=== FINAL UPDATE COUNTS === index-B-hn07rk.js:558:181215
+Plugin updates: 0 index-B-hn07rk.js:558:181258
+Theme updates: 0 index-B-hn07rk.js:558:181298
+WordPress update: 0 index-B-hn07rk.js:558:181337
+Total updates: 0 index-B-hn07rk.js:558:181376
+========================== index-B-hn07rk.js:558:181408
+=== FINAL UPDATE COUNTS === index-B-hn07rk.js:558:181215
+Plugin updates: 0 index-B-hn07rk.js:558:181258
+Theme updates: 0 index-B-hn07rk.js:558:181298
+WordPress update: 0 index-B-hn07rk.js:558:181337
+Total updates: 0 index-B-hn07rk.js:558:181376
+========================== index-B-hn07rk.js:558:181408
+=== FINAL UPDATE COUNTS === index-B-hn07rk.js:558:181215
+Plugin updates: 0 index-B-hn07rk.js:558:181258
+Theme updates: 0 index-B-hn07rk.js:558:181298
+WordPress update: 0 index-B-hn07rk.js:558:181337
+Total updates: 0 index-B-hn07rk.js:558:181376
+========================== index-B-hn07rk.js:558:181408
+=== FINAL UPDATE COUNTS === index-B-hn07rk.js:558:181215
+Plugin updates: 0 index-B-hn07rk.js:558:181258
+Theme updates: 0 index-B-hn07rk.js:558:181298
+WordPress update: 0 index-B-hn07rk.js:558:181337
+Total updates: 0 index-B-hn07rk.js:558:181376
+========================== index-B-hn07rk.js:558:181408
+=== FINAL UPDATE COUNTS === index-B-hn07rk.js:558:181215
+Plugin updates: 0 index-B-hn07rk.js:558:181258
+Theme updates: 0 index-B-hn07rk.js:558:181298
+WordPress update: 0 index-B-hn07rk.js:558:181337
+Total updates: 0 index-B-hn07rk.js:558:181376
+========================== index-B-hn07rk.js:558:181408
+=== FINAL UPDATE COUNTS === index-B-hn07rk.js:558:181215
+Plugin updates: 0 index-B-hn07rk.js:558:181258
+Theme updates: 0 index-B-hn07rk.js:558:181298
+WordPress update: 0 index-B-hn07rk.js:558:181337
+Total updates: 0 index-B-hn07rk.js:558:181376
+========================== index-B-hn07rk.js:558:181408
+=== WRM UPDATES DEBUG === index-B-hn07rk.js:558:178658
+Full updates object: {
+  "wordpress": [],
+  "plugins": [
+    {
+      "plugin": "Elementor",
+      "plugin_file": "elementor/elementor.php",
+      "current_version": "3.31.1",
+      "new_version": "3.31.2",
+      "package": "https://downloads.wordpress.org/plugin/elementor.3.31.2.zip",
+      "slug": "elementor",
+      "tested": "6.8.2",
+      "compatibility": []
+    }
+  ],
+  "themes": [],
+  "total_count": 1
+} index-B-hn07rk.js:558:178699
+Plugins array length: 1 index-B-hn07rk.js:558:178760
+Themes array length: 0 index-B-hn07rk.js:558:178854
+WordPress update available: false index-B-hn07rk.js:558:178945
+======================== index-B-hn07rk.js:558:179042
+=== FINAL UPDATE COUNTS === index-B-hn07rk.js:558:181215
+Plugin updates: 1 index-B-hn07rk.js:558:181258
+Theme updates: 0 index-B-hn07rk.js:558:181298
+WordPress update: 0 index-B-hn07rk.js:558:181337
+Total updates: 1 index-B-hn07rk.js:558:181376
+========================== index-B-hn07rk.js:558:181408
+=== WRM UPDATES DEBUG === index-B-hn07rk.js:558:178658
+Full updates object: {
+  "wordpress": [],
+  "plugins": [
+    {
+      "plugin": "Elementor",
+      "plugin_file": "elementor/elementor.php",
+      "current_version": "3.31.1",
+      "new_version": "3.31.2",
+      "package": "https://downloads.wordpress.org/plugin/elementor.3.31.2.zip",
+      "slug": "elementor",
+      "tested": "6.8.2",
+      "compatibility": []
+    }
+  ],
+  "themes": [],
+  "total_count": 1
+} index-B-hn07rk.js:558:178699
+Plugins array length: 1 index-B-hn07rk.js:558:178760
+Themes array length: 0 index-B-hn07rk.js:558:178854
+WordPress update available: false index-B-hn07rk.js:558:178945
+======================== index-B-hn07rk.js:558:179042
+=== FINAL UPDATE COUNTS === index-B-hn07rk.js:558:181215
+Plugin updates: 1 index-B-hn07rk.js:558:181258
+Theme updates: 0 index-B-hn07rk.js:558:181298
+WordPress update: 0 index-B-hn07rk.js:558:181337
+Total updates: 1 index-B-hn07rk.js:558:181376
+========================== index-B-hn07rk.js:558:181408
+TypeError: can't access property "charAt", B.name is undefined
+    children https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-B-hn07rk.js:558
+    UV https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-B-hn07rk.js:558
+    Ap https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-B-hn07rk.js:39
+    Gf https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-B-hn07rk.js:41
+    oS https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-B-hn07rk.js:41
+    aS https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-B-hn07rk.js:41
+    jA https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-B-hn07rk.js:41
+    Iu https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-B-hn07rk.js:41
+    ix https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-B-hn07rk.js:41
+    pv https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-B-hn07rk.js:41
+    Pa https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-B-hn07rk.js:39
+    Ws https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-B-hn07rk.js:41
+index-B-hn07rk.js:41:161
+Uncaught TypeError: can't access property "charAt", B.name is undefined
+    children https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-B-hn07rk.js:558
+    UV https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-B-hn07rk.js:558
+    Ap https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-B-hn07rk.js:39
+    Gf https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-B-hn07rk.js:41
+    oS https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-B-hn07rk.js:41
+    aS https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-B-hn07rk.js:41
+    jA https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-B-hn07rk.js:41
+    Iu https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-B-hn07rk.js:41
+    ix https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-B-hn07rk.js:41
+    pv https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-B-hn07rk.js:41
+    Pa https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-B-hn07rk.js:39
+    Ws https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-B-hn07rk.js:41
+index-B-hn07rk.js:558:188719
+Unknown property ‘-moz-osx-font-smoothing’.  Declaration dropped. feedback.html:1:451
+Error in parsing value for ‘-webkit-mask’.  Declaration dropped. feedback.html:1:2558
+Unknown property ‘-moz-columns’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:510
+Unknown property ‘-moz-column-count’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:533
+Unknown property ‘-moz-column-fill’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:555
+Unknown property ‘-moz-column-gap’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:634
+Unknown property ‘-moz-column-rule’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:676
+Unknown property ‘-moz-column-span’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:755
+Unknown property ‘-moz-column-width’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:789
+Unknown property ‘orphans’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:1349
+Unknown property ‘-moz-text-align-last’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:1678
+Unknown property ‘widows’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:1998
+Unknown property ‘-moz-osx-font-smoothing’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:2103
+Error in parsing value for ‘-webkit-text-size-adjust’.  Declaration dropped. index-BEczXDPK.css:1:2443
+Unknown property ‘-moz-osx-font-smoothing’.  Declaration dropped. index-BEczXDPK.css:1:5037
+Ruleset ignored due to bad selector. index-BEczXDPK.css:1:91762
+Ruleset ignored due to bad selector. index-BEczXDPK.css:1:91916

@@ -1,0 +1,655 @@
+# AI Coding Agent Instructions: WP Remote Manager Plugin Data Retrieval
+
+## Overview
+This document provides comprehensive instructions for AI coding agents (like those on Replit) to interact with the WP Remote Manager WordPress plugin to retrieve site data, perform maintenance tasks, and monitor WordPress installations remotely.
+
+## Prerequisites
+
+### 1. WordPress Site Setup
+- WordPress site with WP Remote Manager plugin installed and activated
+- Plugin configured with API key generated
+- Optional: IP whitelisting configured for additional security
+
+### 2. Required Information
+You'll need the following from the WordPress site administrator:
+- **Site URL**: The WordPress site's base URL (e.g., `https://example.com`)
+- **API Key**: Generated from the plugin's settings page
+- **IP Address**: Your server's IP (if IP whitelisting is enabled)
+
+## Authentication
+
+### API Key Authentication
+All requests must include the API key in the request headers:
+
+```http
+X-WRM-API-Key: your-api-key-here
+```
+
+Alternative authentication methods:
+```http
+Authorization: Bearer your-api-key-here
+```
+
+Or as a query parameter (not recommended for production):
+```
+?api_key=your-api-key-here
+```
+
+## Base API Endpoint
+
+All API endpoints follow this pattern:
+```
+https://your-wordpress-site.com/wp-json/wrm/v1/{endpoint}
+```
+
+## Available Endpoints
+
+### 1. Site Status (`GET /status`)
+Retrieves comprehensive site information and status.
+
+**Python Example:**
+```python
+import requests
+import json
+
+def get_site_status(site_url, api_key):
+    """Retrieve comprehensive site status and information."""
+    
+    endpoint = f"{site_url}/wp-json/wrm/v1/status"
+    headers = {
+        'X-WRM-API-Key': api_key,
+        'Content-Type': 'application/json'
+    }
+    
+    try:
+        response = requests.get(endpoint, headers=headers, timeout=30)
+        response.raise_for_status()
+        
+        data = response.json()
+        return {
+            'success': True,
+            'data': data,
+            'status_code': response.status_code
+        }
+    except requests.exceptions.RequestException as e:
+        return {
+            'success': False,
+            'error': str(e),
+            'status_code': getattr(e.response, 'status_code', None)
+        }
+
+# Usage
+site_url = "https://example.com"
+api_key = "your-api-key-here"
+
+result = get_site_status(site_url, api_key)
+if result['success']:
+    site_data = result['data']
+    print(f"WordPress Version: {site_data['wordpress_version']}")
+    print(f"PHP Version: {site_data['php_version']}")
+    print(f"Theme: {site_data['theme']['name']} v{site_data['theme']['version']}")
+    print(f"SSL Enabled: {site_data['ssl_enabled']}")
+    print(f"Maintenance Mode: {site_data['maintenance_mode']}")
+else:
+    print(f"Error: {result['error']}")
+```
+
+**JavaScript/Node.js Example:**
+```javascript
+const axios = require('axios');
+
+async function getSiteStatus(siteUrl, apiKey) {
+    try {
+        const response = await axios.get(`${siteUrl}/wp-json/wrm/v1/status`, {
+            headers: {
+                'X-WRM-API-Key': apiKey,
+                'Content-Type': 'application/json'
+            },
+            timeout: 30000
+        });
+        
+        return {
+            success: true,
+            data: response.data,
+            statusCode: response.status
+        };
+    } catch (error) {
+        return {
+            success: false,
+            error: error.message,
+            statusCode: error.response?.status
+        };
+    }
+}
+
+// Usage
+const siteUrl = "https://example.com";
+const apiKey = "your-api-key-here";
+
+getSiteStatus(siteUrl, apiKey)
+    .then(result => {
+        if (result.success) {
+            console.log('Site Status:', result.data);
+        } else {
+            console.error('Error:', result.error);
+        }
+    });
+```
+
+### 2. Available Updates (`GET /updates`)
+Check for available WordPress core, plugin, and theme updates.
+
+**Python Example:**
+```python
+def get_available_updates(site_url, api_key):
+    """Check for available updates."""
+    
+    endpoint = f"{site_url}/wp-json/wrm/v1/updates"
+    headers = {'X-WRM-API-Key': api_key}
+    
+    try:
+        response = requests.get(endpoint, headers=headers, timeout=30)
+        response.raise_for_status()
+        
+        updates = response.json()
+        
+        # Process update information
+        wordpress_updates = updates.get('wordpress', {})
+        plugin_updates = updates.get('plugins', [])
+        theme_updates = updates.get('themes', [])
+        
+        return {
+            'success': True,
+            'wordpress_update_available': wordpress_updates.get('update_available', False),
+            'plugin_updates_count': len(plugin_updates),
+            'theme_updates_count': len(theme_updates),
+            'updates': updates
+        }
+    except requests.exceptions.RequestException as e:
+        return {'success': False, 'error': str(e)}
+
+# Usage
+updates_result = get_available_updates(site_url, api_key)
+if updates_result['success']:
+    if updates_result['wordpress_update_available']:
+        print("WordPress update available!")
+    print(f"Plugin updates available: {updates_result['plugin_updates_count']}")
+    print(f"Theme updates available: {updates_result['theme_updates_count']}")
+```
+
+### 3. Perform Updates (`POST /updates/{type}`)
+Execute updates for WordPress core, plugins, or themes.
+
+**Python Example:**
+```python
+def perform_updates(site_url, api_key, update_type, items=None):
+    """
+    Perform updates for specified type.
+    
+    Args:
+        update_type: 'wordpress', 'plugins', or 'themes'
+        items: List of specific items to update (optional)
+    """
+    
+    endpoint = f"{site_url}/wp-json/wrm/v1/updates/{update_type}"
+    headers = {
+        'X-WRM-API-Key': api_key,
+        'Content-Type': 'application/json'
+    }
+    
+    payload = {}
+    if items:
+        payload['items'] = items
+    
+    try:
+        response = requests.post(endpoint, headers=headers, json=payload, timeout=120)
+        response.raise_for_status()
+        
+        return {
+            'success': True,
+            'results': response.json()
+        }
+    except requests.exceptions.RequestException as e:
+        return {'success': False, 'error': str(e)}
+
+# Usage Examples
+# Update all plugins
+plugin_result = perform_updates(site_url, api_key, 'plugins')
+
+# Update specific plugins
+specific_plugins = ['plugin-folder/plugin-file.php']
+plugin_result = perform_updates(site_url, api_key, 'plugins', specific_plugins)
+
+# Update WordPress core
+wp_result = perform_updates(site_url, api_key, 'wordpress')
+```
+
+### 4. Site Health (`GET /health`)
+Retrieve comprehensive site health information with scoring.
+
+**Python Example:**
+```python
+def get_site_health(site_url, api_key):
+    """Retrieve comprehensive site health data."""
+    
+    endpoint = f"{site_url}/wp-json/wrm/v1/health"
+    headers = {'X-WRM-API-Key': api_key}
+    
+    try:
+        response = requests.get(endpoint, headers=headers, timeout=30)
+        response.raise_for_status()
+        
+        health_data = response.json()
+        
+        # Extract key health metrics
+        overall_score = health_data.get('overall_score', 0)
+        
+        health_summary = {
+            'overall_score': overall_score,
+            'status': 'good' if overall_score >= 80 else 'warning' if overall_score >= 60 else 'critical',
+            'categories': {}
+        }
+        
+        # Process each health category
+        for category, data in health_data.items():
+            if isinstance(data, dict) and 'score' in data:
+                health_summary['categories'][category] = {
+                    'score': data['score'],
+                    'status': data.get('status', 'unknown'),
+                    'issues': data.get('issues', [])
+                }
+        
+        return {
+            'success': True,
+            'health_summary': health_summary,
+            'full_data': health_data
+        }
+    except requests.exceptions.RequestException as e:
+        return {'success': False, 'error': str(e)}
+
+# Usage
+health_result = get_site_health(site_url, api_key)
+if health_result['success']:
+    summary = health_result['health_summary']
+    print(f"Overall Health Score: {summary['overall_score']}% ({summary['status']})")
+    
+    for category, info in summary['categories'].items():
+        print(f"{category.title()}: {info['score']}% - {info['status']}")
+        if info['issues']:
+            for issue in info['issues']:
+                print(f"  - {issue}")
+```
+
+### 5. Maintenance Mode (`POST /maintenance`)
+Toggle maintenance mode on or off.
+
+**Python Example:**
+```python
+def toggle_maintenance_mode(site_url, api_key, enable=None):
+    """
+    Toggle maintenance mode.
+    
+    Args:
+        enable: True to enable, False to disable, None to toggle
+    """
+    
+    endpoint = f"{site_url}/wp-json/wrm/v1/maintenance"
+    headers = {
+        'X-WRM-API-Key': api_key,
+        'Content-Type': 'application/json'
+    }
+    
+    payload = {}
+    if enable is not None:
+        payload['enable'] = enable
+    
+    try:
+        response = requests.post(endpoint, headers=headers, json=payload, timeout=30)
+        response.raise_for_status()
+        
+        result = response.json()
+        return {
+            'success': True,
+            'maintenance_mode': result['maintenance_mode'],
+            'message': result['message']
+        }
+    except requests.exceptions.RequestException as e:
+        return {'success': False, 'error': str(e)}
+
+# Usage Examples
+# Enable maintenance mode
+enable_result = toggle_maintenance_mode(site_url, api_key, True)
+
+# Disable maintenance mode
+disable_result = toggle_maintenance_mode(site_url, api_key, False)
+
+# Toggle current state
+toggle_result = toggle_maintenance_mode(site_url, api_key)
+```
+
+### 6. Create Backup (`POST /backup`)
+Create a site backup.
+
+**Python Example:**
+```python
+def create_backup(site_url, api_key, include_uploads=False):
+    """Create a site backup."""
+    
+    endpoint = f"{site_url}/wp-json/wrm/v1/backup"
+    headers = {
+        'X-WRM-API-Key': api_key,
+        'Content-Type': 'application/json'
+    }
+    
+    payload = {'include_uploads': include_uploads}
+    
+    try:
+        response = requests.post(endpoint, headers=headers, json=payload, timeout=300)
+        response.raise_for_status()
+        
+        result = response.json()
+        return {
+            'success': result['success'],
+            'message': result['message'],
+            'backup_info': result if result['success'] else None
+        }
+    except requests.exceptions.RequestException as e:
+        return {'success': False, 'error': str(e)}
+
+# Usage
+backup_result = create_backup(site_url, api_key, include_uploads=False)
+if backup_result['success']:
+    print(f"Backup created: {backup_result['backup_info']['filename']}")
+    print(f"Size: {backup_result['backup_info']['size']}")
+```
+
+### 7. Activity Logs (`GET /logs`)
+Retrieve activity logs with optional filtering.
+
+**Python Example:**
+```python
+def get_activity_logs(site_url, api_key, limit=50, offset=0):
+    """Retrieve activity logs."""
+    
+    endpoint = f"{site_url}/wp-json/wrm/v1/logs"
+    headers = {'X-WRM-API-Key': api_key}
+    params = {'limit': limit, 'offset': offset}
+    
+    try:
+        response = requests.get(endpoint, headers=headers, params=params, timeout=30)
+        response.raise_for_status()
+        
+        logs = response.json()
+        return {
+            'success': True,
+            'logs': logs,
+            'count': len(logs)
+        }
+    except requests.exceptions.RequestException as e:
+        return {'success': False, 'error': str(e)}
+
+# Usage
+logs_result = get_activity_logs(site_url, api_key, limit=20)
+if logs_result['success']:
+    for log in logs_result['logs']:
+        print(f"{log['created_at']}: {log['action']} - {log['status']}")
+```
+
+## Complete Site Monitoring Class
+
+Here's a comprehensive Python class that combines all functionality:
+
+```python
+import requests
+import json
+from datetime import datetime
+from typing import Dict, List, Optional, Union
+
+class WordPressRemoteManager:
+    """Complete WordPress Remote Manager API client."""
+    
+    def __init__(self, site_url: str, api_key: str, timeout: int = 30):
+        self.site_url = site_url.rstrip('/')
+        self.api_key = api_key
+        self.timeout = timeout
+        self.base_url = f"{self.site_url}/wp-json/wrm/v1"
+        
+    def _make_request(self, method: str, endpoint: str, data: Optional[Dict] = None) -> Dict:
+        """Make authenticated API request."""
+        url = f"{self.base_url}/{endpoint.lstrip('/')}"
+        headers = {
+            'X-WRM-API-Key': self.api_key,
+            'Content-Type': 'application/json'
+        }
+        
+        try:
+            if method.upper() == 'GET':
+                response = requests.get(url, headers=headers, timeout=self.timeout)
+            elif method.upper() == 'POST':
+                response = requests.post(url, headers=headers, json=data, timeout=self.timeout)
+            else:
+                raise ValueError(f"Unsupported HTTP method: {method}")
+            
+            response.raise_for_status()
+            return {
+                'success': True,
+                'data': response.json(),
+                'status_code': response.status_code
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                'success': False,
+                'error': str(e),
+                'status_code': getattr(e.response, 'status_code', None)
+            }
+    
+    def get_status(self) -> Dict:
+        """Get comprehensive site status."""
+        return self._make_request('GET', '/status')
+    
+    def get_updates(self) -> Dict:
+        """Get available updates."""
+        return self._make_request('GET', '/updates')
+    
+    def perform_updates(self, update_type: str, items: Optional[List[str]] = None) -> Dict:
+        """Perform updates for specified type."""
+        data = {'items': items} if items else {}
+        return self._make_request('POST', f'/updates/{update_type}', data)
+    
+    def get_health(self) -> Dict:
+        """Get site health information."""
+        return self._make_request('GET', '/health')
+    
+    def toggle_maintenance(self, enable: Optional[bool] = None) -> Dict:
+        """Toggle maintenance mode."""
+        data = {'enable': enable} if enable is not None else {}
+        return self._make_request('POST', '/maintenance', data)
+    
+    def create_backup(self, include_uploads: bool = False) -> Dict:
+        """Create site backup."""
+        data = {'include_uploads': include_uploads}
+        return self._make_request('POST', '/backup', data)
+    
+    def get_logs(self, limit: int = 50, offset: int = 0) -> Dict:
+        """Get activity logs."""
+        return self._make_request('GET', f'/logs?limit={limit}&offset={offset}')
+    
+    def monitor_site(self) -> Dict:
+        """Comprehensive site monitoring report."""
+        report = {
+            'timestamp': datetime.now().isoformat(),
+            'site_url': self.site_url
+        }
+        
+        # Get status
+        status_result = self.get_status()
+        if status_result['success']:
+            report['status'] = status_result['data']
+        else:
+            report['status_error'] = status_result['error']
+        
+        # Get health
+        health_result = self.get_health()
+        if health_result['success']:
+            report['health'] = health_result['data']
+        else:
+            report['health_error'] = health_result['error']
+        
+        # Get updates
+        updates_result = self.get_updates()
+        if updates_result['success']:
+            report['updates'] = updates_result['data']
+        else:
+            report['updates_error'] = updates_result['error']
+        
+        return report
+
+# Usage Example
+if __name__ == "__main__":
+    # Initialize the manager
+    manager = WordPressRemoteManager(
+        site_url="https://example.com",
+        api_key="your-api-key-here"
+    )
+    
+    # Get comprehensive monitoring report
+    report = manager.monitor_site()
+    
+    # Print summary
+    if 'status' in report:
+        print(f"WordPress Version: {report['status']['wordpress_version']}")
+        print(f"Maintenance Mode: {report['status']['maintenance_mode']}")
+    
+    if 'health' in report:
+        print(f"Overall Health Score: {report['health']['overall_score']}%")
+    
+    if 'updates' in report:
+        wp_update = report['updates'].get('wordpress', {})
+        if wp_update.get('update_available'):
+            print(f"WordPress update available: {wp_update['new_version']}")
+        
+        plugin_updates = report['updates'].get('plugins', [])
+        if plugin_updates:
+            print(f"{len(plugin_updates)} plugin updates available")
+```
+
+## Error Handling
+
+### Common HTTP Status Codes
+- `200`: Success
+- `401`: Unauthorized (invalid API key)
+- `403`: Forbidden (IP not whitelisted)
+- `429`: Too Many Requests (rate limit exceeded)
+- `500`: Internal Server Error
+
+### Error Handling Best Practices
+```python
+def handle_api_response(response_dict):
+    """Handle API response with proper error checking."""
+    
+    if not response_dict['success']:
+        error_msg = response_dict.get('error', 'Unknown error')
+        status_code = response_dict.get('status_code')
+        
+        if status_code == 401:
+            print("Authentication failed. Check your API key.")
+        elif status_code == 403:
+            print("Access forbidden. Check IP whitelisting settings.")
+        elif status_code == 429:
+            print("Rate limit exceeded. Wait before making more requests.")
+        else:
+            print(f"API Error: {error_msg}")
+        
+        return False
+    
+    return True
+```
+
+## Rate Limiting
+
+The plugin implements rate limiting (60 requests per minute per IP). For AI agents making frequent requests:
+
+```python
+import time
+
+def rate_limited_request(func, *args, **kwargs):
+    """Make rate-limited API request."""
+    result = func(*args, **kwargs)
+    
+    if not result['success'] and result.get('status_code') == 429:
+        print("Rate limit hit, waiting 60 seconds...")
+        time.sleep(60)
+        return func(*args, **kwargs)
+    
+    return result
+```
+
+## Security Considerations
+
+1. **Store API keys securely**: Use environment variables or secure configuration files
+2. **Use HTTPS**: Always use HTTPS for API requests
+3. **Validate responses**: Always check response status and validate data
+4. **Handle timeouts**: Set appropriate timeout values for requests
+5. **Log activities**: Keep logs of API interactions for debugging
+
+## Environment Variables Setup
+
+Create a `.env` file for secure configuration:
+
+```env
+WP_SITE_URL=https://your-wordpress-site.com
+WP_API_KEY=your-secure-api-key-here
+WP_TIMEOUT=30
+```
+
+Load in Python:
+```python
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+site_url = os.getenv('WP_SITE_URL')
+api_key = os.getenv('WP_API_KEY')
+timeout = int(os.getenv('WP_TIMEOUT', 30))
+```
+
+## Monitoring Automation Example
+
+```python
+import schedule
+import time
+
+def automated_monitoring():
+    """Automated site monitoring function."""
+    manager = WordPressRemoteManager(site_url, api_key)
+    
+    # Get site health
+    health_result = manager.get_health()
+    if health_result['success']:
+        score = health_result['data']['overall_score']
+        if score < 70:
+            print(f"WARNING: Site health score is low: {score}%")
+            # Send alert notification here
+    
+    # Check for updates
+    updates_result = manager.get_updates()
+    if updates_result['success']:
+        updates = updates_result['data']
+        if updates['wordpress'].get('update_available'):
+            print("WordPress update available!")
+        
+        plugin_count = len(updates.get('plugins', []))
+        if plugin_count > 0:
+            print(f"{plugin_count} plugin updates available")
+
+# Schedule monitoring every hour
+schedule.every().hour.do(automated_monitoring)
+
+# Keep the script running
+while True:
+    schedule.run_pending()
+    time.sleep(60)
+```
+
+This comprehensive guide provides everything an AI coding agent needs to interact with the WP Remote Manager plugin effectively, including authentication, all API endpoints, error handling, and automation examples.

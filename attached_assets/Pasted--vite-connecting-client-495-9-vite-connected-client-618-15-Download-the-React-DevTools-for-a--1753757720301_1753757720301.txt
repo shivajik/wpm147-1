@@ -1,0 +1,118 @@
+[vite] connecting... client:495:9
+[vite] connected. client:618:15
+Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools chunk-RPCDYKBN.js:21551:25
+Missing required Google Analytics key: VITE_GA_MEASUREMENT_ID 2 App.tsx:199:15
+=== DEBUGGING UPDATE COUNTS === comprehensive-dashboard.tsx:69:11
+Updates data: undefined comprehensive-dashboard.tsx:70:11
+Plugins data: undefined comprehensive-dashboard.tsx:71:11
+Plugins array check: false comprehensive-dashboard.tsx:72:11
+Plugins length: not array comprehensive-dashboard.tsx:73:11
+Update counts calculated: 
+Object { pluginUpdatesCount: 0, themeUpdatesCount: 1, wordpressUpdatesCount: 0, total: 1 }
+comprehensive-dashboard.tsx:77:11
+=== END DEBUG === comprehensive-dashboard.tsx:83:11
+=== DEBUGGING UPDATE COUNTS === comprehensive-dashboard.tsx:69:11
+Updates data: undefined comprehensive-dashboard.tsx:70:11
+Plugins data: undefined comprehensive-dashboard.tsx:71:11
+Plugins array check: false comprehensive-dashboard.tsx:72:11
+Plugins length: not array comprehensive-dashboard.tsx:73:11
+Update counts calculated: 
+Object { pluginUpdatesCount: 0, themeUpdatesCount: 1, wordpressUpdatesCount: 0, total: 1 }
+comprehensive-dashboard.tsx:77:11
+=== END DEBUG === comprehensive-dashboard.tsx:83:11
+=== DEBUGGING UPDATE COUNTS === comprehensive-dashboard.tsx:69:11
+Updates data: 
+Object { wordpress: {…}, plugins: (9) […], themes: (1) […] }
+comprehensive-dashboard.tsx:70:11
+Plugins data: 
+Array(21) [ {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, … ]
+comprehensive-dashboard.tsx:71:11
+Plugins array check: true comprehensive-dashboard.tsx:72:11
+Plugins length: 21 comprehensive-dashboard.tsx:73:11
+Plugins with updates: 
+Array []
+comprehensive-dashboard.tsx:75:13
+Update counts calculated: 
+Object { pluginUpdatesCount: 0, themeUpdatesCount: 1, wordpressUpdatesCount: 0, total: 1 }
+comprehensive-dashboard.tsx:77:11
+=== END DEBUG === comprehensive-dashboard.tsx:83:11
+=== DEBUGGING UPDATE COUNTS === comprehensive-dashboard.tsx:69:11
+Updates data: 
+Object { wordpress: {…}, plugins: (9) […], themes: (1) […] }
+comprehensive-dashboard.tsx:70:11
+Plugins data: 
+Array(21) [ {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, … ]
+comprehensive-dashboard.tsx:71:11
+Plugins array check: true comprehensive-dashboard.tsx:72:11
+Plugins length: 21 comprehensive-dashboard.tsx:73:11
+Plugins with updates: 
+Array []
+comprehensive-dashboard.tsx:75:13
+Update counts calculated: 
+Object { pluginUpdatesCount: 0, themeUpdatesCount: 1, wordpressUpdatesCount: 0, total: 1 }
+comprehensive-dashboard.tsx:77:11
+=== END DEBUG === comprehensive-dashboard.tsx:83:11
+=== DEBUGGING UPDATE COUNTS === comprehensive-dashboard.tsx:69:11
+Updates data: 
+Object { wordpress: {…}, plugins: (9) […], themes: (1) […] }
+comprehensive-dashboard.tsx:70:11
+Plugins data: 
+Array(21) [ {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, … ]
+comprehensive-dashboard.tsx:71:11
+Plugins array check: true comprehensive-dashboard.tsx:72:11
+Plugins length: 21 comprehensive-dashboard.tsx:73:11
+Plugins with updates: 
+Array []
+comprehensive-dashboard.tsx:75:13
+Update counts calculated: 
+Object { pluginUpdatesCount: 0, themeUpdatesCount: 1, wordpressUpdatesCount: 0, total: 1 }
+comprehensive-dashboard.tsx:77:11
+=== END DEBUG === comprehensive-dashboard.tsx:83:11
+=== DEBUGGING UPDATE COUNTS === comprehensive-dashboard.tsx:69:11
+Updates data: 
+Object { wordpress: {…}, plugins: (9) […], themes: (1) […] }
+comprehensive-dashboard.tsx:70:11
+Plugins data: 
+Array(21) [ {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, … ]
+comprehensive-dashboard.tsx:71:11
+Plugins array check: true comprehensive-dashboard.tsx:72:11
+Plugins length: 21 comprehensive-dashboard.tsx:73:11
+Plugins with updates: 
+Array []
+comprehensive-dashboard.tsx:75:13
+Update counts calculated: 
+Object { pluginUpdatesCount: 0, themeUpdatesCount: 1, wordpressUpdatesCount: 0, total: 1 }
+comprehensive-dashboard.tsx:77:11
+=== END DEBUG === comprehensive-dashboard.tsx:83:11
+=== DEBUGGING UPDATE COUNTS === comprehensive-dashboard.tsx:69:11
+Updates data: 
+Object { wordpress: {…}, plugins: (9) […], themes: (1) […] }
+comprehensive-dashboard.tsx:70:11
+Plugins data: 
+Array(21) [ {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, … ]
+comprehensive-dashboard.tsx:71:11
+Plugins array check: true comprehensive-dashboard.tsx:72:11
+Plugins length: 21 comprehensive-dashboard.tsx:73:11
+Plugins with updates: 
+Array []
+comprehensive-dashboard.tsx:75:13
+Update counts calculated: 
+Object { pluginUpdatesCount: 0, themeUpdatesCount: 1, wordpressUpdatesCount: 0, total: 1 }
+comprehensive-dashboard.tsx:77:11
+=== END DEBUG === comprehensive-dashboard.tsx:83:11
+=== DEBUGGING UPDATE COUNTS === comprehensive-dashboard.tsx:69:11
+Updates data: 
+Object { wordpress: {…}, plugins: (9) […], themes: (1) […] }
+comprehensive-dashboard.tsx:70:11
+Plugins data: 
+Array(21) [ {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, … ]
+comprehensive-dashboard.tsx:71:11
+Plugins array check: true comprehensive-dashboard.tsx:72:11
+Plugins length: 21 comprehensive-dashboard.tsx:73:11
+Plugins with updates: 
+Array []
+comprehensive-dashboard.tsx:75:13
+Update counts calculated: 
+Object { pluginUpdatesCount: 0, themeUpdatesCount: 1, wordpressUpdatesCount: 0, total: 1 }
+comprehensive-dashboard.tsx:77:11
+=== END DEBUG === comprehensive-dashboard.tsx:83:11

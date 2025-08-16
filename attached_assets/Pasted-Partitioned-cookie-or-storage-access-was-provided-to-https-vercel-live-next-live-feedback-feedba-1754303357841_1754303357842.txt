@@ -1,0 +1,124 @@
+Partitioned cookie or storage access was provided to “https://vercel.live/_next-live/feedback/feedback.html?dpl=dpl_EXyFeT5SdvXm5hcDsGYhuuTAXvr8” because it is loaded in the third-party context and dynamic state partitioning is enabled. feedback.html:9:10574
+Missing required Google Analytics key: VITE_GA_MEASUREMENT_ID index-CGJgQzVP.js:532:138070
+No theme data found for website: KSoft Solution index-CGJgQzVP.js:527:126738
+No theme data found for website: AS College index-CGJgQzVP.js:527:126738
+No theme data found for website: Varun Seeds index-CGJgQzVP.js:527:126738
+No theme data found for website: KSoft Solution index-CGJgQzVP.js:527:126738
+No theme data found for website: AS College index-CGJgQzVP.js:527:126738
+No theme data found for website: Varun Seeds index-CGJgQzVP.js:527:126738
+A resource is blocked by OpaqueResponseBlocking, please check browser console for details. image-10b5e1.jpeg
+=== FINAL UPDATE COUNTS === index-CGJgQzVP.js:527:159767
+Plugin updates: 0 index-CGJgQzVP.js:527:159810
+Theme updates: 0 index-CGJgQzVP.js:527:159850
+WordPress update: 0 index-CGJgQzVP.js:527:159889
+Total updates: 0 index-CGJgQzVP.js:527:159928
+========================== index-CGJgQzVP.js:527:159960
+=== FINAL UPDATE COUNTS === index-CGJgQzVP.js:527:159767
+Plugin updates: 0 index-CGJgQzVP.js:527:159810
+Theme updates: 0 index-CGJgQzVP.js:527:159850
+WordPress update: 0 index-CGJgQzVP.js:527:159889
+Total updates: 0 index-CGJgQzVP.js:527:159928
+========================== index-CGJgQzVP.js:527:159960
+=== FINAL UPDATE COUNTS === index-CGJgQzVP.js:527:159767
+Plugin updates: 0 index-CGJgQzVP.js:527:159810
+Theme updates: 0 index-CGJgQzVP.js:527:159850
+WordPress update: 0 index-CGJgQzVP.js:527:159889
+Total updates: 0 index-CGJgQzVP.js:527:159928
+========================== index-CGJgQzVP.js:527:159960
+=== WRM UPDATES DEBUG === index-CGJgQzVP.js:527:157184
+Full updates object: {
+  "wordpress": {
+    "current_version": "6.8.2",
+    "update_available": false,
+    "new_version": null
+  },
+  "plugins": [
+    {
+      "plugin": "snapshot-backups/snapshot-backups.php",
+      "name": "wpmudev_install-3760011",
+      "current_version": "4.35.0",
+      "new_version": "4.35.1"
+    }
+  ],
+  "themes": []
+} index-CGJgQzVP.js:527:157225
+Plugins array length: 1 index-CGJgQzVP.js:527:157286
+Themes array length: 0 index-CGJgQzVP.js:527:157380
+WordPress update available: false index-CGJgQzVP.js:527:157471
+======================== index-CGJgQzVP.js:527:157568
+=== FINAL UPDATE COUNTS === index-CGJgQzVP.js:527:159767
+Plugin updates: 1 index-CGJgQzVP.js:527:159810
+Theme updates: 0 index-CGJgQzVP.js:527:159850
+WordPress update: 0 index-CGJgQzVP.js:527:159889
+Total updates: 1 index-CGJgQzVP.js:527:159928
+========================== index-CGJgQzVP.js:527:159960
+=== WRM UPDATES DEBUG === index-CGJgQzVP.js:527:157184
+Full updates object: {
+  "wordpress": {
+    "current_version": "6.8.2",
+    "update_available": false,
+    "new_version": null
+  },
+  "plugins": [
+    {
+      "plugin": "snapshot-backups/snapshot-backups.php",
+      "name": "wpmudev_install-3760011",
+      "current_version": "4.35.0",
+      "new_version": "4.35.1"
+    }
+  ],
+  "themes": []
+} index-CGJgQzVP.js:527:157225
+Plugins array length: 1 index-CGJgQzVP.js:527:157286
+Themes array length: 0 index-CGJgQzVP.js:527:157380
+WordPress update available: false index-CGJgQzVP.js:527:157471
+======================== index-CGJgQzVP.js:527:157568
+=== FINAL UPDATE COUNTS === index-CGJgQzVP.js:527:159767
+Plugin updates: 1 index-CGJgQzVP.js:527:159810
+Theme updates: 0 index-CGJgQzVP.js:527:159850
+WordPress update: 0 index-CGJgQzVP.js:527:159889
+Total updates: 1 index-CGJgQzVP.js:527:159928
+========================== index-CGJgQzVP.js:527:159960
+TypeError: p.map is not a function
+    q7 https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CGJgQzVP.js:532
+    vx https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CGJgQzVP.js:38
+    zh https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CGJgQzVP.js:40
+    q2 https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CGJgQzVP.js:40
+    U2 https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CGJgQzVP.js:40
+    B5 https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CGJgQzVP.js:40
+    ku https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CGJgQzVP.js:40
+    Zh https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CGJgQzVP.js:40
+    ny https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CGJgQzVP.js:40
+    Oa https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CGJgQzVP.js:38
+    Tr https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CGJgQzVP.js:40
+index-CGJgQzVP.js:40:161
+Uncaught TypeError: p.map is not a function
+    q7 https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CGJgQzVP.js:532
+    vx https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CGJgQzVP.js:38
+    zh https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CGJgQzVP.js:40
+    q2 https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CGJgQzVP.js:40
+    U2 https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CGJgQzVP.js:40
+    B5 https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CGJgQzVP.js:40
+    ku https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CGJgQzVP.js:40
+    Zh https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CGJgQzVP.js:40
+    ny https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CGJgQzVP.js:40
+    Oa https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CGJgQzVP.js:38
+    Tr https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-CGJgQzVP.js:40
+index-CGJgQzVP.js:532:92234
+Unknown property ‘-moz-columns’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:510
+Unknown property ‘-moz-column-count’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:533
+Unknown property ‘-moz-column-fill’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:555
+Unknown property ‘-moz-column-gap’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:634
+Unknown property ‘-moz-column-rule’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:676
+Unknown property ‘-moz-column-span’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:755
+Unknown property ‘-moz-column-width’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:789
+Unknown property ‘orphans’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:1349
+Unknown property ‘-moz-text-align-last’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:1678
+Unknown property ‘widows’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:1998
+Unknown property ‘-moz-osx-font-smoothing’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:2103
+Unknown property ‘-moz-osx-font-smoothing’.  Declaration dropped. feedback.html:1:451
+Error in parsing value for ‘-webkit-mask’.  Declaration dropped. feedback.html:1:2558
+Error in parsing value for ‘-webkit-text-size-adjust’.  Declaration dropped. index-Cpfy5FxQ.css:1:2443
+Unknown property ‘-moz-osx-font-smoothing’.  Declaration dropped. index-Cpfy5FxQ.css:1:5037
+Ruleset ignored due to bad selector. index-Cpfy5FxQ.css:1:73623
+Ruleset ignored due to bad selector. index-Cpfy5FxQ.css:1:73777

@@ -1,0 +1,93 @@
+Missing required Google Analytics key: VITE_GA_MEASUREMENT_ID index-BJ_wnBpO.js:517:121923
+No theme data found for website: AS College 2 index-BJ_wnBpO.js:512:126398
+A resource is blocked by OpaqueResponseBlocking, please check browser console for details. image-10b5e1.jpeg
+=== FINAL UPDATE COUNTS === index-BJ_wnBpO.js:512:155350
+Plugin updates: 0 index-BJ_wnBpO.js:512:155393
+Theme updates: 0 index-BJ_wnBpO.js:512:155433
+WordPress update: 0 index-BJ_wnBpO.js:512:155472
+Total updates: 0 index-BJ_wnBpO.js:512:155511
+========================== index-BJ_wnBpO.js:512:155543
+=== FINAL UPDATE COUNTS === index-BJ_wnBpO.js:512:155350
+Plugin updates: 0 index-BJ_wnBpO.js:512:155393
+Theme updates: 0 index-BJ_wnBpO.js:512:155433
+WordPress update: 0 index-BJ_wnBpO.js:512:155472
+Total updates: 0 index-BJ_wnBpO.js:512:155511
+========================== index-BJ_wnBpO.js:512:155543
+=== WRM UPDATES DEBUG === index-BJ_wnBpO.js:512:153680
+Full updates object: {
+  "count": {
+    "total": 0,
+    "plugins": 0,
+    "themes": 0,
+    "core": 0
+  },
+  "plugins": [],
+  "themes": [],
+  "wordpress": {
+    "update_available": false
+  }
+} index-BJ_wnBpO.js:512:153721
+Plugins array length: 0 index-BJ_wnBpO.js:512:153782
+Themes array length: 0 index-BJ_wnBpO.js:512:153863
+WordPress update available: false index-BJ_wnBpO.js:512:153941
+======================== index-BJ_wnBpO.js:512:154038
+=== FINAL UPDATE COUNTS === index-BJ_wnBpO.js:512:155350
+Plugin updates: 0 index-BJ_wnBpO.js:512:155393
+Theme updates: 0 index-BJ_wnBpO.js:512:155433
+WordPress update: 0 index-BJ_wnBpO.js:512:155472
+Total updates: 0 index-BJ_wnBpO.js:512:155511
+========================== index-BJ_wnBpO.js:512:155543
+=== WRM UPDATES DEBUG === index-BJ_wnBpO.js:512:153680
+Full updates object: {
+  "count": {
+    "total": 0,
+    "plugins": 0,
+    "themes": 0,
+    "core": 0
+  },
+  "plugins": [],
+  "themes": [],
+  "wordpress": {
+    "update_available": false
+  }
+} index-BJ_wnBpO.js:512:153721
+Plugins array length: 0 index-BJ_wnBpO.js:512:153782
+Themes array length: 0 index-BJ_wnBpO.js:512:153863
+WordPress update available: false index-BJ_wnBpO.js:512:153941
+======================== index-BJ_wnBpO.js:512:154038
+=== FINAL UPDATE COUNTS === index-BJ_wnBpO.js:512:155350
+Plugin updates: 0 index-BJ_wnBpO.js:512:155393
+Theme updates: 0 index-BJ_wnBpO.js:512:155433
+WordPress update: 0 index-BJ_wnBpO.js:512:155472
+Total updates: 0 index-BJ_wnBpO.js:512:155511
+========================== index-BJ_wnBpO.js:512:155543
+TypeError: t.map is not a function
+    X$ https://www.aiositecare.com/assets/index-BJ_wnBpO.js:512
+    px https://www.aiositecare.com/assets/index-BJ_wnBpO.js:38
+    Ih https://www.aiositecare.com/assets/index-BJ_wnBpO.js:40
+    O2 https://www.aiositecare.com/assets/index-BJ_wnBpO.js:40
+    M2 https://www.aiositecare.com/assets/index-BJ_wnBpO.js:40
+    IA https://www.aiositecare.com/assets/index-BJ_wnBpO.js:40
+    hu https://www.aiositecare.com/assets/index-BJ_wnBpO.js:40
+    Hh https://www.aiositecare.com/assets/index-BJ_wnBpO.js:40
+    Y0 https://www.aiositecare.com/assets/index-BJ_wnBpO.js:40
+    Sa https://www.aiositecare.com/assets/index-BJ_wnBpO.js:38
+    Pr https://www.aiositecare.com/assets/index-BJ_wnBpO.js:40
+index-BJ_wnBpO.js:40:161
+Uncaught TypeError: t.map is not a function
+    X$ https://www.aiositecare.com/assets/index-BJ_wnBpO.js:512
+    px https://www.aiositecare.com/assets/index-BJ_wnBpO.js:38
+    Ih https://www.aiositecare.com/assets/index-BJ_wnBpO.js:40
+    O2 https://www.aiositecare.com/assets/index-BJ_wnBpO.js:40
+    M2 https://www.aiositecare.com/assets/index-BJ_wnBpO.js:40
+    IA https://www.aiositecare.com/assets/index-BJ_wnBpO.js:40
+    hu https://www.aiositecare.com/assets/index-BJ_wnBpO.js:40
+    Hh https://www.aiositecare.com/assets/index-BJ_wnBpO.js:40
+    Y0 https://www.aiositecare.com/assets/index-BJ_wnBpO.js:40
+    Sa https://www.aiositecare.com/assets/index-BJ_wnBpO.js:38
+    Pr https://www.aiositecare.com/assets/index-BJ_wnBpO.js:40
+index-BJ_wnBpO.js:512:189653
+Error in parsing value for ‘-webkit-text-size-adjust’.  Declaration dropped. index-OfL7wvbO.css:1:2443
+Unknown property ‘-moz-osx-font-smoothing’.  Declaration dropped. index-OfL7wvbO.css:1:5037
+Ruleset ignored due to bad selector. index-OfL7wvbO.css:1:73591
+Ruleset ignored due to bad selector. index-OfL7wvbO.css:1:73745

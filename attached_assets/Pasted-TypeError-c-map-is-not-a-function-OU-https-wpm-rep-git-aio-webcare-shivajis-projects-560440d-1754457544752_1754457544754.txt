@@ -1,0 +1,29 @@
+TypeError: c.map is not a function
+    OU https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-D2hRhg0q.js:547
+    Ox https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-D2hRhg0q.js:38
+    Xh https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-D2hRhg0q.js:40
+    f2 https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-D2hRhg0q.js:40
+    c2 https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-D2hRhg0q.js:40
+    TR https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-D2hRhg0q.js:40
+    Ou https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-D2hRhg0q.js:40
+    cp https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-D2hRhg0q.js:40
+    j0 https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-D2hRhg0q.js:40
+    Va https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-D2hRhg0q.js:38
+    Ls https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-D2hRhg0q.js:40
+index-D2hRhg0q.js:40:161
+Uncaught TypeError: c.map is not a function
+    OU https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-D2hRhg0q.js:547
+    Ox https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-D2hRhg0q.js:38
+    Xh https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-D2hRhg0q.js:40
+    f2 https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-D2hRhg0q.js:40
+    c2 https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-D2hRhg0q.js:40
+    TR https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-D2hRhg0q.js:40
+    Ou https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-D2hRhg0q.js:40
+    cp https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-D2hRhg0q.js:40
+    j0 https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-D2hRhg0q.js:40
+    Va https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-D2hRhg0q.js:38
+    Ls https://wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app/assets/index-D2hRhg0q.js:40
+index-D2hRhg0q.js:547:82339
+
+​
+

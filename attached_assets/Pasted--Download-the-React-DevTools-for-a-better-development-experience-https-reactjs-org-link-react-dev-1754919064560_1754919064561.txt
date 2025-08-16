@@ -1,0 +1,135 @@
+ Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+  Missing required Google Analytics key: VITE_GA_MEASUREMENT_ID
+(anonymous) @ App.tsx?v=F6JEMRWwmTu1dPJjX0X7p:467
+  Missing required Google Analytics key: VITE_GA_MEASUREMENT_ID
+(anonymous) @ App.tsx?v=F6JEMRWwmTu1dPJjX0X7p:467
+ === FINAL UPDATE COUNTS ===
+ Plugin updates: 0
+ Theme updates: 0
+ WordPress update: 0
+ Total updates: 0
+ ==========================
+ === FINAL UPDATE COUNTS ===
+ Plugin updates: 0
+ Theme updates: 0
+ WordPress update: 0
+ Total updates: 0
+ ==========================
+ === FINAL UPDATE COUNTS ===
+ Plugin updates: 0
+ Theme updates: 0
+ WordPress update: 0
+ Total updates: 0
+updates-card.tsx:488 ==========================
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================
+/api/websites/2/wrm/status:1   Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+/api/websites/2/wrm-users:1   Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================
+status:1   Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+queryClient.ts:89   GET https://d67381f5-04b0-4cf0-a683-a8853f5a7e01-00-3jb3zoc51op8e.sisko.replit.dev/api/websites/2/wrm/status 500 (Internal Server Error)
+(anonymous) @ queryClient.ts:89
+fetchFn @ query.ts:429
+run @ retryer.ts:153
+(anonymous) @ retryer.ts:199
+Promise.then
+(anonymous) @ retryer.ts:195
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================
+updates-card.tsx:483 === FINAL UPDATE COUNTS ===
+updates-card.tsx:484 Plugin updates: 0
+updates-card.tsx:485 Theme updates: 0
+updates-card.tsx:486 WordPress update: 0
+updates-card.tsx:487 Total updates: 0
+updates-card.tsx:488 ==========================

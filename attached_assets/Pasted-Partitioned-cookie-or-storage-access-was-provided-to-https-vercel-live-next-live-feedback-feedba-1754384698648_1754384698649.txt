@@ -1,0 +1,81 @@
+Partitioned cookie or storage access was provided to “https://vercel.live/_next-live/feedback/feedback.html?dpl=dpl_EXyFeT5SdvXm5hcDsGYhuuTAXvr8” because it is loaded in the third-party context and dynamic state partitioning is enabled. feedback.html:9:10574
+Missing required Google Analytics key: VITE_GA_MEASUREMENT_ID index-1CpEiTG_.js:552:209677
+=== FINAL UPDATE COUNTS === index-1CpEiTG_.js:547:134622
+Plugin updates: 0 index-1CpEiTG_.js:547:134665
+Theme updates: 0 index-1CpEiTG_.js:547:134705
+WordPress update: 0 index-1CpEiTG_.js:547:134744
+Total updates: 0 index-1CpEiTG_.js:547:134783
+========================== index-1CpEiTG_.js:547:134815
+=== FINAL UPDATE COUNTS === index-1CpEiTG_.js:547:134622
+Plugin updates: 0 index-1CpEiTG_.js:547:134665
+Theme updates: 0 index-1CpEiTG_.js:547:134705
+WordPress update: 0 index-1CpEiTG_.js:547:134744
+Total updates: 0 index-1CpEiTG_.js:547:134783
+========================== index-1CpEiTG_.js:547:134815
+=== FINAL UPDATE COUNTS === index-1CpEiTG_.js:547:134622
+Plugin updates: 0 index-1CpEiTG_.js:547:134665
+Theme updates: 0 index-1CpEiTG_.js:547:134705
+WordPress update: 0 index-1CpEiTG_.js:547:134744
+Total updates: 0 index-1CpEiTG_.js:547:134783
+========================== index-1CpEiTG_.js:547:134815
+=== FINAL UPDATE COUNTS === index-1CpEiTG_.js:547:134622
+Plugin updates: 0 index-1CpEiTG_.js:547:134665
+Theme updates: 0 index-1CpEiTG_.js:547:134705
+WordPress update: 0 index-1CpEiTG_.js:547:134744
+Total updates: 0 index-1CpEiTG_.js:547:134783
+========================== index-1CpEiTG_.js:547:134815
+=== FINAL UPDATE COUNTS === index-1CpEiTG_.js:547:134622
+Plugin updates: 0 index-1CpEiTG_.js:547:134665
+Theme updates: 0 index-1CpEiTG_.js:547:134705
+WordPress update: 0 index-1CpEiTG_.js:547:134744
+Total updates: 0 index-1CpEiTG_.js:547:134783
+========================== index-1CpEiTG_.js:547:134815
+=== FINAL UPDATE COUNTS === index-1CpEiTG_.js:547:134622
+Plugin updates: 0 index-1CpEiTG_.js:547:134665
+Theme updates: 0 index-1CpEiTG_.js:547:134705
+WordPress update: 0 index-1CpEiTG_.js:547:134744
+Total updates: 0 index-1CpEiTG_.js:547:134783
+========================== index-1CpEiTG_.js:547:134815
+=== FINAL UPDATE COUNTS === index-1CpEiTG_.js:547:134622
+Plugin updates: 0 index-1CpEiTG_.js:547:134665
+Theme updates: 0 index-1CpEiTG_.js:547:134705
+WordPress update: 0 index-1CpEiTG_.js:547:134744
+Total updates: 0 index-1CpEiTG_.js:547:134783
+========================== index-1CpEiTG_.js:547:134815
+=== WRM UPDATES DEBUG === index-1CpEiTG_.js:547:132084
+Full updates object: {
+  "wordpress": {
+    "current_version": "6.1.1",
+    "update_available": false,
+    "new_version": null
+  },
+  "plugins": [],
+  "themes": []
+} index-1CpEiTG_.js:547:132125
+Plugins array length: 0 index-1CpEiTG_.js:547:132186
+Themes array length: 0 index-1CpEiTG_.js:547:132280
+WordPress update available: false index-1CpEiTG_.js:547:132371
+======================== index-1CpEiTG_.js:547:132468
+=== FINAL UPDATE COUNTS === index-1CpEiTG_.js:547:134622
+Plugin updates: 0 index-1CpEiTG_.js:547:134665
+Theme updates: 0 index-1CpEiTG_.js:547:134705
+WordPress update: 0 index-1CpEiTG_.js:547:134744
+Total updates: 0 index-1CpEiTG_.js:547:134783
+========================== index-1CpEiTG_.js:547:134815
+Unknown property ‘-moz-osx-font-smoothing’.  Declaration dropped. feedback.html:1:451
+Error in parsing value for ‘-webkit-mask’.  Declaration dropped. feedback.html:1:2558
+Unknown property ‘-moz-columns’.  Declaration dropped. wpm-v37v8euq0-shivajis-projects-560440d4.vercel.app:1:510
+Unknown property ‘-moz-column-count’.  Declaration dropped. wpm-v37v8euq0-shivajis-projects-560440d4.vercel.app:1:533
+Unknown property ‘-moz-column-fill’.  Declaration dropped. wpm-v37v8euq0-shivajis-projects-560440d4.vercel.app:1:555
+Unknown property ‘-moz-column-gap’.  Declaration dropped. wpm-v37v8euq0-shivajis-projects-560440d4.vercel.app:1:634
+Unknown property ‘-moz-column-rule’.  Declaration dropped. wpm-v37v8euq0-shivajis-projects-560440d4.vercel.app:1:676
+Unknown property ‘-moz-column-span’.  Declaration dropped. wpm-v37v8euq0-shivajis-projects-560440d4.vercel.app:1:755
+Unknown property ‘-moz-column-width’.  Declaration dropped. wpm-v37v8euq0-shivajis-projects-560440d4.vercel.app:1:789
+Unknown property ‘orphans’.  Declaration dropped. wpm-v37v8euq0-shivajis-projects-560440d4.vercel.app:1:1349
+Unknown property ‘-moz-text-align-last’.  Declaration dropped. wpm-v37v8euq0-shivajis-projects-560440d4.vercel.app:1:1678
+Unknown property ‘widows’.  Declaration dropped. wpm-v37v8euq0-shivajis-projects-560440d4.vercel.app:1:1998
+Unknown property ‘-moz-osx-font-smoothing’.  Declaration dropped. wpm-v37v8euq0-shivajis-projects-560440d4.vercel.app:1:2103
+Error in parsing value for ‘-webkit-text-size-adjust’.  Declaration dropped. index-JTDisS0T.css:1:2443
+Unknown property ‘-moz-osx-font-smoothing’.  Declaration dropped. index-JTDisS0T.css:1:5037
+Ruleset ignored due to bad selector. index-JTDisS0T.css:1:74479
+Ruleset ignored due to bad selector. index-JTDisS0T.css:1:74633

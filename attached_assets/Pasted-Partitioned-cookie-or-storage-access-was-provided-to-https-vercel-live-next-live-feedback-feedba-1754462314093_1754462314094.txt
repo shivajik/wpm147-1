@@ -1,0 +1,205 @@
+Partitioned cookie or storage access was provided to “https://vercel.live/_next-live/feedback/feedback.html?dpl=dpl_EXyFeT5SdvXm5hcDsGYhuuTAXvr8” because it is loaded in the third-party context and dynamic state partitioning is enabled. feedback.html:9:10574
+Missing required Google Analytics key: VITE_GA_MEASUREMENT_ID index-BcEbTmoT.js:547:183691
+=== FINAL UPDATE COUNTS === index-BcEbTmoT.js:542:134731
+Plugin updates: 0 index-BcEbTmoT.js:542:134774
+Theme updates: 0 index-BcEbTmoT.js:542:134814
+WordPress update: 0 index-BcEbTmoT.js:542:134853
+Total updates: 0 index-BcEbTmoT.js:542:134892
+========================== index-BcEbTmoT.js:542:134924
+=== FINAL UPDATE COUNTS === index-BcEbTmoT.js:542:134731
+Plugin updates: 0 index-BcEbTmoT.js:542:134774
+Theme updates: 0 index-BcEbTmoT.js:542:134814
+WordPress update: 0 index-BcEbTmoT.js:542:134853
+Total updates: 0 index-BcEbTmoT.js:542:134892
+========================== index-BcEbTmoT.js:542:134924
+=== FINAL UPDATE COUNTS === index-BcEbTmoT.js:542:134731
+Plugin updates: 0 index-BcEbTmoT.js:542:134774
+Theme updates: 0 index-BcEbTmoT.js:542:134814
+WordPress update: 0 index-BcEbTmoT.js:542:134853
+Total updates: 0 index-BcEbTmoT.js:542:134892
+========================== index-BcEbTmoT.js:542:134924
+=== FINAL UPDATE COUNTS === index-BcEbTmoT.js:542:134731
+Plugin updates: 0 index-BcEbTmoT.js:542:134774
+Theme updates: 0 index-BcEbTmoT.js:542:134814
+WordPress update: 0 index-BcEbTmoT.js:542:134853
+Total updates: 0 index-BcEbTmoT.js:542:134892
+========================== index-BcEbTmoT.js:542:134924
+=== FINAL UPDATE COUNTS === index-BcEbTmoT.js:542:134731
+Plugin updates: 0 index-BcEbTmoT.js:542:134774
+Theme updates: 0 index-BcEbTmoT.js:542:134814
+WordPress update: 0 index-BcEbTmoT.js:542:134853
+Total updates: 0 index-BcEbTmoT.js:542:134892
+========================== index-BcEbTmoT.js:542:134924
+=== WRM UPDATES DEBUG === index-BcEbTmoT.js:542:132183
+Full updates object: {
+  "wordpress": {
+    "current_version": "6.8.2",
+    "update_available": false,
+    "new_version": null
+  },
+  "plugins": [
+    {
+      "plugin": "defender-security/wp-defender.php",
+      "name": "defender-security",
+      "current_version": "5.4.0",
+      "new_version": "5.4.1"
+    },
+    {
+      "plugin": "really-simple-ssl/rlrsssl-really-simple-ssl.php",
+      "name": "really-simple-ssl",
+      "current_version": "9.4.2",
+      "new_version": "9.4.3"
+    },
+    {
+      "plugin": "snapshot-backups/snapshot-backups.php",
+      "name": "wpmudev_install-3760011",
+      "current_version": "4.35.0",
+      "new_version": "4.35.1"
+    }
+  ],
+  "themes": []
+} index-BcEbTmoT.js:542:132224
+Plugins array length: 3 index-BcEbTmoT.js:542:132285
+Themes array length: 0 index-BcEbTmoT.js:542:132379
+WordPress update available: false index-BcEbTmoT.js:542:132470
+======================== index-BcEbTmoT.js:542:132567
+=== FINAL UPDATE COUNTS === index-BcEbTmoT.js:542:134731
+Plugin updates: 3 index-BcEbTmoT.js:542:134774
+Theme updates: 0 index-BcEbTmoT.js:542:134814
+WordPress update: 0 index-BcEbTmoT.js:542:134853
+Total updates: 3 index-BcEbTmoT.js:542:134892
+========================== index-BcEbTmoT.js:542:134924
+=== WRM UPDATES DEBUG === index-BcEbTmoT.js:542:132183
+Full updates object: {
+  "wordpress": {
+    "current_version": "6.8.2",
+    "update_available": false,
+    "new_version": null
+  },
+  "plugins": [
+    {
+      "plugin": "defender-security/wp-defender.php",
+      "name": "defender-security",
+      "current_version": "5.4.0",
+      "new_version": "5.4.1"
+    },
+    {
+      "plugin": "really-simple-ssl/rlrsssl-really-simple-ssl.php",
+      "name": "really-simple-ssl",
+      "current_version": "9.4.2",
+      "new_version": "9.4.3"
+    },
+    {
+      "plugin": "snapshot-backups/snapshot-backups.php",
+      "name": "wpmudev_install-3760011",
+      "current_version": "4.35.0",
+      "new_version": "4.35.1"
+    }
+  ],
+  "themes": []
+} index-BcEbTmoT.js:542:132224
+Plugins array length: 3 index-BcEbTmoT.js:542:132285
+Themes array length: 0 index-BcEbTmoT.js:542:132379
+WordPress update available: false index-BcEbTmoT.js:542:132470
+======================== index-BcEbTmoT.js:542:132567
+=== FINAL UPDATE COUNTS === index-BcEbTmoT.js:542:134731
+Plugin updates: 3 index-BcEbTmoT.js:542:134774
+Theme updates: 0 index-BcEbTmoT.js:542:134814
+WordPress update: 0 index-BcEbTmoT.js:542:134853
+Total updates: 3 index-BcEbTmoT.js:542:134892
+========================== index-BcEbTmoT.js:542:134924
+=== WRM UPDATES DEBUG === index-BcEbTmoT.js:542:132183
+Full updates object: {
+  "wordpress": {
+    "current_version": "6.8.2",
+    "update_available": false,
+    "new_version": null
+  },
+  "plugins": [
+    {
+      "plugin": "defender-security/wp-defender.php",
+      "name": "defender-security",
+      "current_version": "5.4.0",
+      "new_version": "5.4.1"
+    },
+    {
+      "plugin": "really-simple-ssl/rlrsssl-really-simple-ssl.php",
+      "name": "really-simple-ssl",
+      "current_version": "9.4.2",
+      "new_version": "9.4.3"
+    },
+    {
+      "plugin": "snapshot-backups/snapshot-backups.php",
+      "name": "wpmudev_install-3760011",
+      "current_version": "4.35.0",
+      "new_version": "4.35.1"
+    }
+  ],
+  "themes": []
+} index-BcEbTmoT.js:542:132224
+Plugins array length: 3 index-BcEbTmoT.js:542:132285
+Themes array length: 0 index-BcEbTmoT.js:542:132379
+WordPress update available: false index-BcEbTmoT.js:542:132470
+======================== index-BcEbTmoT.js:542:132567
+=== FINAL UPDATE COUNTS === index-BcEbTmoT.js:542:134731
+Plugin updates: 3 index-BcEbTmoT.js:542:134774
+Theme updates: 0 index-BcEbTmoT.js:542:134814
+WordPress update: 0 index-BcEbTmoT.js:542:134853
+Total updates: 3 index-BcEbTmoT.js:542:134892
+========================== index-BcEbTmoT.js:542:134924
+=== WRM UPDATES DEBUG === index-BcEbTmoT.js:542:132183
+Full updates object: {
+  "wordpress": {
+    "current_version": "6.8.2",
+    "update_available": false,
+    "new_version": null
+  },
+  "plugins": [
+    {
+      "plugin": "defender-security/wp-defender.php",
+      "name": "defender-security",
+      "current_version": "5.4.0",
+      "new_version": "5.4.1"
+    },
+    {
+      "plugin": "really-simple-ssl/rlrsssl-really-simple-ssl.php",
+      "name": "really-simple-ssl",
+      "current_version": "9.4.2",
+      "new_version": "9.4.3"
+    },
+    {
+      "plugin": "snapshot-backups/snapshot-backups.php",
+      "name": "wpmudev_install-3760011",
+      "current_version": "4.35.0",
+      "new_version": "4.35.1"
+    }
+  ],
+  "themes": []
+} index-BcEbTmoT.js:542:132224
+Plugins array length: 3 index-BcEbTmoT.js:542:132285
+Themes array length: 0 index-BcEbTmoT.js:542:132379
+WordPress update available: false index-BcEbTmoT.js:542:132470
+======================== index-BcEbTmoT.js:542:132567
+=== FINAL UPDATE COUNTS === index-BcEbTmoT.js:542:134731
+Plugin updates: 3 index-BcEbTmoT.js:542:134774
+Theme updates: 0 index-BcEbTmoT.js:542:134814
+WordPress update: 0 index-BcEbTmoT.js:542:134853
+Total updates: 3 index-BcEbTmoT.js:542:134892
+========================== index-BcEbTmoT.js:542:134924
+Unknown property ‘-moz-columns’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:510
+Unknown property ‘-moz-column-count’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:533
+Unknown property ‘-moz-column-fill’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:555
+Unknown property ‘-moz-column-gap’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:634
+Unknown property ‘-moz-column-rule’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:676
+Unknown property ‘-moz-column-span’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:755
+Unknown property ‘-moz-column-width’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:789
+Unknown property ‘orphans’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:1349
+Unknown property ‘-moz-text-align-last’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:1678
+Unknown property ‘widows’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:1998
+Unknown property ‘-moz-osx-font-smoothing’.  Declaration dropped. wpm-rep-git-aio-webcare-shivajis-projects-560440d4.vercel.app:1:2103
+Unknown property ‘-moz-osx-font-smoothing’.  Declaration dropped. feedback.html:1:451
+Error in parsing value for ‘-webkit-mask’.  Declaration dropped. feedback.html:1:2558
+Error in parsing value for ‘-webkit-text-size-adjust’.  Declaration dropped. index-CD-l0GEy.css:1:2443
+Unknown property ‘-moz-osx-font-smoothing’.  Declaration dropped. index-CD-l0GEy.css:1:5037
+Ruleset ignored due to bad selector. index-CD-l0GEy.css:1:73912
+Ruleset ignored due to bad selector. index-CD-l0GEy.css:1:74066
