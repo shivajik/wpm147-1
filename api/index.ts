@@ -5692,23 +5692,109 @@ export default async function handler(req: any, res: any) {
           } catch (wpError) {
             console.error('[WordPress Data] WordPress API error:', wpError);
             
-            // Return error response with details
-            return res.status(500).json({ 
-              message: 'Failed to fetch WordPress data',
-              error: wpError instanceof Error ? wpError.message : 'Unknown error',
-              details: 'Please check your WordPress connection and API key'
+            // Return structured error data instead of throwing 500 error
+            return res.status(200).json({
+              systemInfo: {
+                wordpress_version: 'Connection Failed',
+                php_version: 'Connection Failed',
+                mysql_version: 'Connection Failed',
+                server_software: 'Connection Failed',
+                memory_limit: 'Connection Failed',
+                memory_usage: 'Connection Failed',
+                max_execution_time: 'Connection Failed',
+                upload_max_filesize: 'Connection Failed',
+                disk_usage: {
+                  used: 'Connection Failed',
+                  available: 'Connection Failed',
+                  total: 'Connection Failed'
+                },
+                ssl_status: 'Connection Failed',
+                plugins_count: 0,
+                themes_count: 0,
+                users_count: 0,
+                posts_count: 0,
+                pages_count: 0,
+                connectionStatus: 'Error',
+                statusMessage: wpError instanceof Error ? wpError.message : 'WordPress connection failed'
+              },
+              posts: [],
+              pages: [],
+              users: [],
+              media: [],
+              healthData: {
+                overall_score: 0,
+                wordpress_score: 0,
+                plugins_score: 0,
+                themes_score: 0,
+                security_score: 0,
+                performance_score: 0,
+                issues: {
+                  critical: [{ 
+                    message: 'WordPress connection failed', 
+                    solution: 'Please check your WordPress site and API key configuration' 
+                  }],
+                  warnings: [],
+                  notices: []
+                }
+              },
+              plugins: [],
+              themes: [],
+              updates: {},
+              lastSync: new Date().toISOString(),
+              pluginData: [],
+              themeData: [],
+              userData: [],
+              updateData: {},
+              error: wpError instanceof Error ? wpError.message : 'Unknown error'
             });
           }
         }
         
-        // Return empty data structure if no API key configured
+        // Return proper data structure with clear status indicators if no API key configured
         return res.status(200).json({
-          systemInfo: null,
+          systemInfo: {
+            wordpress_version: 'Not Connected',
+            php_version: 'Not Connected',
+            mysql_version: 'Not Connected',
+            server_software: 'Unknown',
+            memory_limit: 'Unknown',
+            memory_usage: 'Unknown',
+            max_execution_time: 'Unknown',
+            upload_max_filesize: 'Unknown',
+            disk_usage: {
+              used: 'Unknown',
+              available: 'Unknown',
+              total: 'Unknown'
+            },
+            ssl_status: 'Unknown',
+            plugins_count: 0,
+            themes_count: 0,
+            users_count: 0,
+            posts_count: 0,
+            pages_count: 0,
+            connectionStatus: 'No API Key',
+            statusMessage: 'WordPress Remote Manager API key not configured'
+          },
           posts: [],
           pages: [],
           users: [],
           media: [],
-          healthData: null,
+          healthData: {
+            overall_score: 0,
+            wordpress_score: 0,
+            plugins_score: 0,
+            themes_score: 0,
+            security_score: 0,
+            performance_score: 0,
+            issues: {
+              critical: [{ 
+                message: 'WordPress Remote Manager not connected', 
+                solution: 'Please configure the WRM API key in website settings' 
+              }],
+              warnings: [],
+              notices: []
+            }
+          },
           plugins: [],
           themes: [],
           updates: {},
