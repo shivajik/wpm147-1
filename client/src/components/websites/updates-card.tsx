@@ -797,7 +797,7 @@ export default function UpdatesCard({ websiteId }: UpdatesCardProps) {
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => updatePluginMutation.mutate(plugin.plugin || plugin.slug || plugin.name)}
+                onClick={() => updatePluginMutation.mutate( plugin.plugin_file || plugin.plugin || plugin.slug || plugin.name)}
                 disabled={updatePluginMutation.isPending}
                 className="ml-2"
               >
