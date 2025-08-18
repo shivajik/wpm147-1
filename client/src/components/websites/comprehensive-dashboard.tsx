@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,17 @@ interface ComprehensiveDashboardProps {
 }
 
 export default function ComprehensiveDashboard({ websiteId }: ComprehensiveDashboardProps) {
+  const [, setLocation] = useLocation();
+
+  // Navigation handlers
+  const navigateToSecurity = () => {
+    setLocation(`/websites/${websiteId}/security`);
+  };
+
+  const navigateToPerformance = () => {
+    setLocation(`/websites/${websiteId}/performance`);
+  };
+
   // Fetch website data
   const { data: website } = useQuery({
     queryKey: [`/api/websites/${websiteId}`],
@@ -356,7 +368,7 @@ export default function ComprehensiveDashboard({ websiteId }: ComprehensiveDashb
                       <span>{(securityScan as any).threatsDetected || 0} Threats Detected</span>
                     </div>
                   </div>
-                  <Button variant="outline" className="w-full">
+                  <Button variant="outline" className="w-full" onClick={navigateToSecurity} data-testid="button-view-security-details">
                     <Shield className="h-4 w-4 mr-2" />
                     View Security Details
                   </Button>
@@ -370,7 +382,7 @@ export default function ComprehensiveDashboard({ websiteId }: ComprehensiveDashb
                   <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
                     Run a security scan to view your website's security status
                   </p>
-                  <Button variant="outline">
+                  <Button variant="outline" onClick={navigateToSecurity} data-testid="button-run-security-scan">
                     <Shield className="h-4 w-4 mr-2" />
                     Run Security Scan
                   </Button>
@@ -414,7 +426,7 @@ export default function ComprehensiveDashboard({ websiteId }: ComprehensiveDashb
                       <span className="font-medium">{performanceScan[0].yslowScore || 'N/A'}</span>
                     </div>
                   </div>
-                  <Button variant="outline" className="w-full">
+                  <Button variant="outline" className="w-full" onClick={navigateToPerformance} data-testid="button-view-performance-details">
                     <Zap className="h-4 w-4 mr-2" />
                     View Performance Details
                   </Button>
@@ -428,7 +440,7 @@ export default function ComprehensiveDashboard({ websiteId }: ComprehensiveDashb
                   <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
                     Run a performance scan to analyze your website's speed
                   </p>
-                  <Button variant="outline">
+                  <Button variant="outline" onClick={navigateToPerformance} data-testid="button-run-performance-test">
                     <Zap className="h-4 w-4 mr-2" />
                     Run Performance Test
                   </Button>
@@ -475,7 +487,7 @@ export default function ComprehensiveDashboard({ websiteId }: ComprehensiveDashb
                     </p>
                   </div>
                 )}
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full" data-testid="button-create-backup-now">
                   <Database className="h-4 w-4 mr-2" />
                   Create Backup Now
                 </Button>
