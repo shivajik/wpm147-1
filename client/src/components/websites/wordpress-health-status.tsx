@@ -90,11 +90,111 @@ interface WordPressData {
 }
 
 export function WordPressHealthStatus({ websiteId }: WordPressHealthStatusProps) {
-  const { data: wpData, isLoading, refetch } = useQuery<WordPressData>({
+  const { data: rawWpData, isLoading, refetch } = useQuery<WordPressData>({
     queryKey: ['/api/websites', websiteId, 'wordpress-data'],
     enabled: !!websiteId,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
+
+  // Helper to normalize data from both local and production
+  function normalizeWordPressData(data: any): WordPressData | null {
+    if (!data) return null;
+    // --- SYSTEM INFO ---
+    let systemInfo = data.systemInfo;
+    if (systemInfo && systemInfo.site_info) {
+      // Production format
+      const s = systemInfo.site_info;
+      const diskUsed = s.disk_usage?.used || 
+                      (s.disk_usage?.total && s.disk_usage?.free ? 
+                       `${(parseInt(s.disk_usage.total.replace(/[^\d]/g, '')) - 
+                          parseInt(s.disk_usage.free.replace(/[^\d]/g, '')))} GB` : '');
+                      
+      systemInfo = {
+        wordpress_version: s.wordpress_version,
+        php_version: s.php_version,
+        mysql_version: s.mysql_version,
+        memory_limit: s.memory_limit,
+        max_execution_time: s.max_execution_time || '30', // Default to 30s if not provided
+        upload_max_filesize: s.upload_max_filesize || '64M', // Default to 64M if not provided
+        disk_space_used: diskUsed,
+        disk_space_available: s.disk_usage?.available || s.disk_usage?.free || '',
+        disk_usage: { // Add disk_usage object for both formats
+          used: diskUsed,
+          available: s.disk_usage?.available || s.disk_usage?.free || '',
+          total: s.disk_usage?.total || ''
+        },
+        server_software: s.server_software || 'Unknown',
+        site_url: s.url || '',
+        admin_email: s.admin_email || '',
+      };
+    } else if (systemInfo) {
+      // Localhost format
+      systemInfo = {
+        ...systemInfo,
+        disk_usage: systemInfo.disk_usage || {
+          used: systemInfo.disk_space_used || '',
+          available: systemInfo.disk_space_available || '',
+          total: ''
+        }
+      };
+    }
+    // --- PLUGIN DATA ---
+    let pluginData = data.pluginData;
+    if (pluginData && pluginData.plugins) {
+      pluginData = pluginData.plugins.map((p: any) => ({
+        name: p.name,
+        version: p.version,
+        active: p.active,
+        update_available: p.update_available,
+        // fallback for local/production
+        plugin: p.plugin || p.path,
+        author: p.author,
+        plugin_uri: p.plugin_uri,
+        description: p.description,
+      }));
+    }
+    // --- THEME DATA ---
+    let themeData = data.themeData;
+    if (Array.isArray(themeData)) {
+      themeData = themeData.map((t: any) => ({
+        name: t.name,
+        version: t.version,
+        status: t.active !== undefined ? (t.active ? 'active' : 'inactive') : (t.status || ''),
+        update_available: t.update_available,
+        author: t.author,
+        theme_uri: t.theme_uri,
+        description: t.description,
+        template: t.template,
+        stylesheet: t.stylesheet,
+        screenshot: t.screenshot,
+      }));
+    }
+    // --- UPDATE DATA ---
+    let updateData = data.updateData;
+    if (updateData && updateData.updates) {
+      // Production format
+      updateData = {
+        wordpress: { update_available: (updateData.updates.wordpress && updateData.updates.wordpress.length > 0) },
+        plugins: updateData.updates.plugins || [],
+        themes: updateData.updates.themes || [],
+        count: {
+          total: updateData.updates.total_count || 0,
+          plugins: (updateData.updates.plugins && updateData.updates.plugins.length) || 0,
+          themes: (updateData.updates.themes && updateData.updates.themes.length) || 0,
+          core: (updateData.updates.wordpress && updateData.updates.wordpress.length) || 0,
+        },
+      };
+    }
+    // --- Compose normalized object ---
+    return {
+      systemInfo: systemInfo || null,
+      updateData: updateData || { wordpress: { update_available: false }, plugins: [], themes: [], count: { total: 0, plugins: 0, themes: 0, core: 0 } },
+      pluginData: pluginData || [],
+      themeData: themeData || [],
+    } as WordPressData;
+  }
+
+  const wpData = normalizeWordPressData(rawWpData);
 
   // Fetch latest security scan data
   const { data: securityScan } = useQuery<SecurityScanData>({
