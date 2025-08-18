@@ -238,7 +238,9 @@ export default function ComprehensiveDashboard({ websiteId }: ComprehensiveDashb
                         (wpData as any)?.systemInfo?.wordpress_version || 
                         (wpData as any)?.wordpress_version || 
                         (status as any)?.wordpress_version || 
-                        'N/A'
+                        ((status as any)?.connection_status === "Not Connected" ? "Not Connected" :
+                         (status as any)?.connection_status === "Connection Failed" ? "Connection Failed" : 
+                         "Pending")
                       }</p>
                     </div>
                     <div>
@@ -247,7 +249,9 @@ export default function ComprehensiveDashboard({ websiteId }: ComprehensiveDashb
                         (wpData as any)?.systemInfo?.php_version || 
                         (wpData as any)?.php_version || 
                         (status as any)?.php_version || 
-                        'N/A'
+                        ((status as any)?.connection_status === "Not Connected" ? "Not Connected" :
+                         (status as any)?.connection_status === "Connection Failed" ? "Connection Failed" : 
+                         "Pending")
                       }</p>
                     </div>
                     <div>
@@ -268,7 +272,9 @@ export default function ComprehensiveDashboard({ websiteId }: ComprehensiveDashb
                           return (wpData as any)?.systemInfo?.database_type || 
                                  (wpData as any)?.database_type || 
                                  (status as any)?.database_type || 
-                                 'N/A';
+                                 ((status as any)?.connection_status === "Not Connected" ? "Not Connected" :
+                                  (status as any)?.connection_status === "Connection Failed" ? "Connection Failed" : 
+                                  "Pending");
                         })()}
                       </p>
                     </div>
@@ -280,7 +286,9 @@ export default function ComprehensiveDashboard({ websiteId }: ComprehensiveDashb
                         (wpData as any)?.systemInfo?.memory_limit || 
                         (wpData as any)?.memory_limit || 
                         (status as any)?.memory_limit || 
-                        'N/A'
+                        ((status as any)?.connection_status === "Not Connected" ? "Not Connected" :
+                         (status as any)?.connection_status === "Connection Failed" ? "Connection Failed" : 
+                         "Pending")
                       }</p>
                     </div>
                     <div>
