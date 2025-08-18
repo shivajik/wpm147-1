@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,17 @@ interface ComprehensiveDashboardProps {
 }
 
 export default function ComprehensiveDashboard({ websiteId }: ComprehensiveDashboardProps) {
+  const [, setLocation] = useLocation();
+
+  // Navigation handlers
+  const navigateToSecurity = () => {
+    setLocation(`/websites/${websiteId}/security`);
+  };
+
+  const navigateToPerformance = () => {
+    setLocation(`/websites/${websiteId}/performance`);
+  };
+
   // Fetch website data
   const { data: website } = useQuery({
     queryKey: [`/api/websites/${websiteId}`],
@@ -222,17 +234,33 @@ export default function ComprehensiveDashboard({ websiteId }: ComprehensiveDashb
                   <div className="space-y-3">
                     <div>
                       <p className="text-sm text-gray-600">WordPress Version</p>
-                      <p className="font-medium">{(wpData as any)?.systemInfo?.wordpress_version || (status as any)?.wordpress_version || 'N/A'}</p>
+                      <p className="font-medium">{
+                        (wpData as any)?.systemInfo?.wordpress_version || 
+                        (wpData as any)?.wordpress_version || 
+                        (status as any)?.wordpress_version || 
+                        ((status as any)?.connection_status === "Not Connected" ? "Not Connected" :
+                         (status as any)?.connection_status === "Connection Failed" ? "Connection Failed" : 
+                         "Pending")
+                      }</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">PHP Version</p>
-                      <p className="font-medium">{(wpData as any)?.systemInfo?.php_version || (status as any)?.php_version || 'N/A'}</p>
+                      <p className="font-medium">{
+                        (wpData as any)?.systemInfo?.php_version || 
+                        (wpData as any)?.php_version || 
+                        (status as any)?.php_version || 
+                        ((status as any)?.connection_status === "Not Connected" ? "Not Connected" :
+                         (status as any)?.connection_status === "Connection Failed" ? "Connection Failed" : 
+                         "Pending")
+                      }</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Database</p>
                       <p className="font-medium">
                         {(() => {
-                          const version = (wpData as any)?.systemInfo?.mysql_version || (status as any)?.mysql_version;
+                          const version = (wpData as any)?.systemInfo?.mysql_version || 
+                                         (wpData as any)?.mysql_version || 
+                                         (status as any)?.mysql_version;
                           if (version) {
                             // Extract just the major.minor version (e.g., "8.0" from "8.0.42-0ubuntu0.24.04.2")
                             const cleanVersion = version.match(/^(\d+\.\d+)/)?.[1] || version;
@@ -241,37 +269,41 @@ export default function ComprehensiveDashboard({ websiteId }: ComprehensiveDashb
                             }
                             return `MySQL ${cleanVersion}`;
                           }
-                          return (wpData as any)?.systemInfo?.database_type || (status as any)?.database_type || 'N/A';
+                          return (wpData as any)?.systemInfo?.database_type || 
+                                 (wpData as any)?.database_type || 
+                                 (status as any)?.database_type || 
+                                 ((status as any)?.connection_status === "Not Connected" ? "Not Connected" :
+                                  (status as any)?.connection_status === "Connection Failed" ? "Connection Failed" : 
+                                  "Pending");
                         })()}
                       </p>
                     </div>
                   </div>
                   <div className="space-y-3">
                     <div>
-                      <p className="text-sm text-gray-600">Server</p>
-                      <p className="font-medium">
-                        {(() => {
-                          const server = (wpData as any)?.systemInfo?.server_software || (status as any)?.server_info;
-                          if (!server || server === 'Unknown') {
-                            return 'N/A';
-                          }
-                          // Clean up server string to show just the main server name
-                          if (server.toLowerCase().includes('apache')) {
-                            return 'Apache';
-                          } else if (server.toLowerCase().includes('nginx')) {
-                            return 'Nginx';
-                          } else if (server.toLowerCase().includes('litespeed')) {
-                            return 'LiteSpeed';
-                          }
-                          return server;
-                        })()}
-                      </p>
+                      <p className="text-sm text-gray-600">Memory Limit</p>
+                      <p className="font-medium">{
+                        (wpData as any)?.systemInfo?.memory_limit || 
+                        (wpData as any)?.memory_limit || 
+                        (status as any)?.memory_limit || 
+                        ((status as any)?.connection_status === "Not Connected" ? "Not Connected" :
+                         (status as any)?.connection_status === "Connection Failed" ? "Connection Failed" : 
+                         "Pending")
+                      }</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">SSL Status</p>
                       <div className="flex items-center gap-2">
-                        <Badge variant={(wpData as any)?.systemInfo?.ssl_status || (wpData as any)?.systemInfo?.ssl_enabled || (status as any)?.ssl_enabled ? 'default' : 'destructive'}>
-                          {(wpData as any)?.systemInfo?.ssl_status || (wpData as any)?.systemInfo?.ssl_enabled || (status as any)?.ssl_enabled ? 'Enabled' : 'Disabled'}
+                        <Badge variant={
+                          (wpData as any)?.systemInfo?.ssl_status || 
+                          (wpData as any)?.systemInfo?.ssl_enabled || 
+                          (wpData as any)?.ssl_enabled || 
+                          (status as any)?.ssl_enabled ? 'default' : 'destructive'
+                        }>
+                          {(wpData as any)?.systemInfo?.ssl_status || 
+                           (wpData as any)?.systemInfo?.ssl_enabled || 
+                           (wpData as any)?.ssl_enabled || 
+                           (status as any)?.ssl_enabled ? 'Enabled' : 'Disabled'}
                         </Badge>
                       </div>
                     </div>
@@ -344,7 +376,7 @@ export default function ComprehensiveDashboard({ websiteId }: ComprehensiveDashb
                       <span>{(securityScan as any).threatsDetected || 0} Threats Detected</span>
                     </div>
                   </div>
-                  <Button variant="outline" className="w-full">
+                  <Button variant="outline" className="w-full" onClick={navigateToSecurity} data-testid="button-view-security-details">
                     <Shield className="h-4 w-4 mr-2" />
                     View Security Details
                   </Button>
@@ -358,7 +390,7 @@ export default function ComprehensiveDashboard({ websiteId }: ComprehensiveDashb
                   <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
                     Run a security scan to view your website's security status
                   </p>
-                  <Button variant="outline">
+                  <Button variant="outline" onClick={navigateToSecurity} data-testid="button-run-security-scan">
                     <Shield className="h-4 w-4 mr-2" />
                     Run Security Scan
                   </Button>
@@ -402,7 +434,7 @@ export default function ComprehensiveDashboard({ websiteId }: ComprehensiveDashb
                       <span className="font-medium">{performanceScan[0].yslowScore || 'N/A'}</span>
                     </div>
                   </div>
-                  <Button variant="outline" className="w-full">
+                  <Button variant="outline" className="w-full" onClick={navigateToPerformance} data-testid="button-view-performance-details">
                     <Zap className="h-4 w-4 mr-2" />
                     View Performance Details
                   </Button>
@@ -416,7 +448,7 @@ export default function ComprehensiveDashboard({ websiteId }: ComprehensiveDashb
                   <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
                     Run a performance scan to analyze your website's speed
                   </p>
-                  <Button variant="outline">
+                  <Button variant="outline" onClick={navigateToPerformance} data-testid="button-run-performance-test">
                     <Zap className="h-4 w-4 mr-2" />
                     Run Performance Test
                   </Button>
@@ -463,7 +495,7 @@ export default function ComprehensiveDashboard({ websiteId }: ComprehensiveDashb
                     </p>
                   </div>
                 )}
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full" data-testid="button-create-backup-now">
                   <Database className="h-4 w-4 mr-2" />
                   Create Backup Now
                 </Button>

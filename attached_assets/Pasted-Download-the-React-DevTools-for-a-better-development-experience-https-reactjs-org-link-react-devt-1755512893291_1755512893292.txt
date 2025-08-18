@@ -1,0 +1,1198 @@
+Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools index-CamWgTAJ.js:204:9159
+WebsiteDetail - Raw websiteId from URL params: 15 2 index-CamWgTAJ.js:783:89923
+Missing required Google Analytics key: VITE_GA_MEASUREMENT_ID 2 index-CamWgTAJ.js:831:15785
+WebsiteDetail - Raw websiteId from URL params: 15 2 index-CamWgTAJ.js:783:89923
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 0 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 0 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 0 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 0 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 0 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 0 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 0 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 0 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 0 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 0 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 0 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 0 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 0 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 0 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 0 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 0 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+WebsiteDetail - Raw websiteId from URL params: 15 2 index-CamWgTAJ.js:783:89923
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 0 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 0 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 0 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 0 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 0 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 0 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 0 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 0 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 0 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 0 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 0 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 0 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 0 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 0 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 0 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 0 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 0 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 0 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 0 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 0 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== WRM UPDATES DEBUG === index-CamWgTAJ.js:763:282408
+Full updates object: {
+  "wordpress": [],
+  "plugins": [],
+  "themes": [
+    {
+      "theme": "Twenty Twenty-Five",
+      "slug": "twentytwentyfive",
+      "current_version": "1.0",
+      "new_version": "1.3",
+      "package": "https://downloads.wordpress.org/theme/twentytwentyfive.1.3.zip"
+    }
+  ],
+  "total_count": 1
+} index-CamWgTAJ.js:763:282449
+Plugins array length: 0 index-CamWgTAJ.js:763:282510
+Themes array length: 1 index-CamWgTAJ.js:763:282604
+WordPress update available: false index-CamWgTAJ.js:763:282695
+======================== index-CamWgTAJ.js:763:282794
+safeMap: Error during mapping: TypeError: ot.includes is not a function
+    Ge https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:763
+    S https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:763
+    Km https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:763
+    eie https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:763
+    Rm https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:144
+    B1 https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:160
+    m3 https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:162
+    Ny https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:179
+    q3 https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:175
+    BB https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:175
+    RN https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:175
+    U3 https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:175
+    Oc https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:92
+    gi https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:175
+index-CamWgTAJ.js:763:276121
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 0 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 0 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== WRM UPDATES DEBUG === index-CamWgTAJ.js:763:282408
+Full updates object: {
+  "wordpress": [],
+  "plugins": [],
+  "themes": [
+    {
+      "theme": "Twenty Twenty-Five",
+      "slug": "twentytwentyfive",
+      "current_version": "1.0",
+      "new_version": "1.3",
+      "package": "https://downloads.wordpress.org/theme/twentytwentyfive.1.3.zip"
+    }
+  ],
+  "total_count": 1
+} index-CamWgTAJ.js:763:282449
+Plugins array length: 0 index-CamWgTAJ.js:763:282510
+Themes array length: 1 index-CamWgTAJ.js:763:282604
+WordPress update available: false index-CamWgTAJ.js:763:282695
+======================== index-CamWgTAJ.js:763:282794
+safeMap: Error during mapping: TypeError: ot.includes is not a function
+    Ge https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:763
+    S https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:763
+    Km https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:763
+    eie https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:763
+    Rm https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:144
+    B1 https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:160
+    m3 https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:162
+    Ny https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:179
+    q3 https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:175
+    BB https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:175
+    RN https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:175
+    U3 https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:175
+    Oc https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:92
+    gi https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:175
+index-CamWgTAJ.js:763:276121
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 0 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 0 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+WebsiteDetail - Raw websiteId from URL params: 15 2 index-CamWgTAJ.js:783:89923
+=== WRM UPDATES DEBUG === index-CamWgTAJ.js:763:282408
+Full updates object: {
+  "wordpress": [],
+  "plugins": [],
+  "themes": [
+    {
+      "theme": "Twenty Twenty-Five",
+      "slug": "twentytwentyfive",
+      "current_version": "1.0",
+      "new_version": "1.3",
+      "package": "https://downloads.wordpress.org/theme/twentytwentyfive.1.3.zip"
+    }
+  ],
+  "total_count": 1
+} index-CamWgTAJ.js:763:282449
+Plugins array length: 0 index-CamWgTAJ.js:763:282510
+Themes array length: 1 index-CamWgTAJ.js:763:282604
+WordPress update available: false index-CamWgTAJ.js:763:282695
+======================== index-CamWgTAJ.js:763:282794
+safeMap: Error during mapping: TypeError: ot.includes is not a function
+    Ge https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:763
+    S https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:763
+    Km https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:763
+    eie https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:763
+    Rm https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:144
+    B1 https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:160
+    m3 https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:162
+    Ny https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:179
+    q3 https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:175
+    BB https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:175
+    RN https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:175
+    U3 https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:175
+    Oc https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:92
+    gi https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:175
+index-CamWgTAJ.js:763:276121
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 0 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 0 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== WRM UPDATES DEBUG === index-CamWgTAJ.js:763:282408
+Full updates object: {
+  "wordpress": [],
+  "plugins": [],
+  "themes": [
+    {
+      "theme": "Twenty Twenty-Five",
+      "slug": "twentytwentyfive",
+      "current_version": "1.0",
+      "new_version": "1.3",
+      "package": "https://downloads.wordpress.org/theme/twentytwentyfive.1.3.zip"
+    }
+  ],
+  "total_count": 1
+} index-CamWgTAJ.js:763:282449
+Plugins array length: 0 index-CamWgTAJ.js:763:282510
+Themes array length: 1 index-CamWgTAJ.js:763:282604
+WordPress update available: false index-CamWgTAJ.js:763:282695
+======================== index-CamWgTAJ.js:763:282794
+safeMap: Error during mapping: TypeError: ot.includes is not a function
+    Ge https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:763
+    S https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:763
+    Km https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:763
+    eie https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:763
+    Rm https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:144
+    B1 https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:160
+    m3 https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:162
+    Ny https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:179
+    q3 https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:175
+    BB https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:175
+    RN https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:175
+    U3 https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:175
+    Oc https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:92
+    gi https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:175
+index-CamWgTAJ.js:763:276121
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 0 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 0 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== WRM UPDATES DEBUG === index-CamWgTAJ.js:763:282408
+Full updates object: {
+  "wordpress": [],
+  "plugins": [],
+  "themes": [
+    {
+      "theme": "Twenty Twenty-Five",
+      "slug": "twentytwentyfive",
+      "current_version": "1.0",
+      "new_version": "1.3",
+      "package": "https://downloads.wordpress.org/theme/twentytwentyfive.1.3.zip"
+    }
+  ],
+  "total_count": 1
+} index-CamWgTAJ.js:763:282449
+Plugins array length: 0 index-CamWgTAJ.js:763:282510
+Themes array length: 1 index-CamWgTAJ.js:763:282604
+WordPress update available: false index-CamWgTAJ.js:763:282695
+======================== index-CamWgTAJ.js:763:282794
+safeMap: Error during mapping: TypeError: ot.includes is not a function
+    Ge https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:763
+    S https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:763
+    Km https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:763
+    eie https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:763
+    Rm https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:144
+    B1 https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:160
+    m3 https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:162
+    Ny https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:179
+    q3 https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:175
+    BB https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:175
+    RN https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:175
+    U3 https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:175
+    Oc https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:92
+    gi https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:175
+index-CamWgTAJ.js:763:276121
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 0 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 0 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== WRM UPDATES DEBUG === index-CamWgTAJ.js:763:282408
+Full updates object: {
+  "wordpress": [],
+  "plugins": [],
+  "themes": [
+    {
+      "theme": "Twenty Twenty-Five",
+      "slug": "twentytwentyfive",
+      "current_version": "1.0",
+      "new_version": "1.3",
+      "package": "https://downloads.wordpress.org/theme/twentytwentyfive.1.3.zip"
+    }
+  ],
+  "total_count": 1
+} index-CamWgTAJ.js:763:282449
+Plugins array length: 0 index-CamWgTAJ.js:763:282510
+Themes array length: 1 index-CamWgTAJ.js:763:282604
+WordPress update available: false index-CamWgTAJ.js:763:282695
+======================== index-CamWgTAJ.js:763:282794
+safeMap: Error during mapping: TypeError: ot.includes is not a function
+    Ge https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:763
+    S https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:763
+    Km https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:763
+    eie https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:763
+    Rm https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:144
+    B1 https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:160
+    m3 https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:162
+    Ny https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:179
+    q3 https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:175
+    BB https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:175
+    RN https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:175
+    U3 https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:175
+    Oc https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:92
+    gi https://wpm-147-git-main-shivajis-projects-560440d4.vercel.app/assets/index-CamWgTAJ.js:175
+index-CamWgTAJ.js:763:276121
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 0 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 0 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+WebsiteDetail - Raw websiteId from URL params: 13 4 index-CamWgTAJ.js:783:89923
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 0 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 0 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 0 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 0 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 0 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 0 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 0 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 0 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 0 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 0 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 0 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 0 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 0 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 0 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 0 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 0 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+WebsiteDetail - Raw websiteId from URL params: 13 2 index-CamWgTAJ.js:783:89923
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 0 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 0 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 0 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 0 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 0 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 0 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 0 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 0 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== WRM UPDATES DEBUG === index-CamWgTAJ.js:763:282408
+Full updates object: {
+  "wordpress": [],
+  "plugins": [
+    {
+      "plugin": "All-in-One WP Migration and Backup",
+      "plugin_file": "all-in-one-wp-migration/all-in-one-wp-migration.php",
+      "current_version": "7.95",
+      "new_version": "7.97",
+      "package": "https://downloads.wordpress.org/plugin/all-in-one-wp-migration.7.97.zip",
+      "slug": "all-in-one-wp-migration",
+      "tested": "6.8.2",
+      "compatibility": []
+    },
+    {
+      "plugin": "Yoast Duplicate Post",
+      "plugin_file": "duplicate-post/duplicate-post.php",
+      "current_version": "4.4",
+      "new_version": "4.5",
+      "package": "https://downloads.wordpress.org/plugin/duplicate-post.4.5.zip",
+      "slug": "duplicate-post",
+      "tested": "6.8.2",
+      "compatibility": []
+    }
+  ],
+  "themes": [],
+  "total_count": 2
+} index-CamWgTAJ.js:763:282449
+Plugins array length: 2 index-CamWgTAJ.js:763:282510
+Themes array length: 0 index-CamWgTAJ.js:763:282604
+WordPress update available: false index-CamWgTAJ.js:763:282695
+======================== index-CamWgTAJ.js:763:282794
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 2 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 2 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== WRM UPDATES DEBUG === index-CamWgTAJ.js:763:282408
+Full updates object: {
+  "wordpress": [],
+  "plugins": [
+    {
+      "plugin": "All-in-One WP Migration and Backup",
+      "plugin_file": "all-in-one-wp-migration/all-in-one-wp-migration.php",
+      "current_version": "7.95",
+      "new_version": "7.97",
+      "package": "https://downloads.wordpress.org/plugin/all-in-one-wp-migration.7.97.zip",
+      "slug": "all-in-one-wp-migration",
+      "tested": "6.8.2",
+      "compatibility": []
+    },
+    {
+      "plugin": "Yoast Duplicate Post",
+      "plugin_file": "duplicate-post/duplicate-post.php",
+      "current_version": "4.4",
+      "new_version": "4.5",
+      "package": "https://downloads.wordpress.org/plugin/duplicate-post.4.5.zip",
+      "slug": "duplicate-post",
+      "tested": "6.8.2",
+      "compatibility": []
+    }
+  ],
+  "themes": [],
+  "total_count": 2
+} index-CamWgTAJ.js:763:282449
+Plugins array length: 2 index-CamWgTAJ.js:763:282510
+Themes array length: 0 index-CamWgTAJ.js:763:282604
+WordPress update available: false index-CamWgTAJ.js:763:282695
+======================== index-CamWgTAJ.js:763:282794
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 2 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 2 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== WRM UPDATES DEBUG === index-CamWgTAJ.js:763:282408
+Full updates object: {
+  "wordpress": [],
+  "plugins": [
+    {
+      "plugin": "All-in-One WP Migration and Backup",
+      "plugin_file": "all-in-one-wp-migration/all-in-one-wp-migration.php",
+      "current_version": "7.95",
+      "new_version": "7.97",
+      "package": "https://downloads.wordpress.org/plugin/all-in-one-wp-migration.7.97.zip",
+      "slug": "all-in-one-wp-migration",
+      "tested": "6.8.2",
+      "compatibility": []
+    },
+    {
+      "plugin": "Yoast Duplicate Post",
+      "plugin_file": "duplicate-post/duplicate-post.php",
+      "current_version": "4.4",
+      "new_version": "4.5",
+      "package": "https://downloads.wordpress.org/plugin/duplicate-post.4.5.zip",
+      "slug": "duplicate-post",
+      "tested": "6.8.2",
+      "compatibility": []
+    }
+  ],
+  "themes": [],
+  "total_count": 2
+} index-CamWgTAJ.js:763:282449
+Plugins array length: 2 index-CamWgTAJ.js:763:282510
+Themes array length: 0 index-CamWgTAJ.js:763:282604
+WordPress update available: false index-CamWgTAJ.js:763:282695
+======================== index-CamWgTAJ.js:763:282794
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 2 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 2 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== WRM UPDATES DEBUG === index-CamWgTAJ.js:763:282408
+Full updates object: {
+  "wordpress": [],
+  "plugins": [
+    {
+      "plugin": "All-in-One WP Migration and Backup",
+      "plugin_file": "all-in-one-wp-migration/all-in-one-wp-migration.php",
+      "current_version": "7.95",
+      "new_version": "7.97",
+      "package": "https://downloads.wordpress.org/plugin/all-in-one-wp-migration.7.97.zip",
+      "slug": "all-in-one-wp-migration",
+      "tested": "6.8.2",
+      "compatibility": []
+    },
+    {
+      "plugin": "Yoast Duplicate Post",
+      "plugin_file": "duplicate-post/duplicate-post.php",
+      "current_version": "4.4",
+      "new_version": "4.5",
+      "package": "https://downloads.wordpress.org/plugin/duplicate-post.4.5.zip",
+      "slug": "duplicate-post",
+      "tested": "6.8.2",
+      "compatibility": []
+    }
+  ],
+  "themes": [],
+  "total_count": 2
+} index-CamWgTAJ.js:763:282449
+Plugins array length: 2 index-CamWgTAJ.js:763:282510
+Themes array length: 0 index-CamWgTAJ.js:763:282604
+WordPress update available: false index-CamWgTAJ.js:763:282695
+======================== index-CamWgTAJ.js:763:282794
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 2 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 2 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== WRM UPDATES DEBUG === index-CamWgTAJ.js:763:282408
+Full updates object: {
+  "wordpress": [],
+  "plugins": [
+    {
+      "plugin": "All-in-One WP Migration and Backup",
+      "plugin_file": "all-in-one-wp-migration/all-in-one-wp-migration.php",
+      "current_version": "7.95",
+      "new_version": "7.97",
+      "package": "https://downloads.wordpress.org/plugin/all-in-one-wp-migration.7.97.zip",
+      "slug": "all-in-one-wp-migration",
+      "tested": "6.8.2",
+      "compatibility": []
+    },
+    {
+      "plugin": "Yoast Duplicate Post",
+      "plugin_file": "duplicate-post/duplicate-post.php",
+      "current_version": "4.4",
+      "new_version": "4.5",
+      "package": "https://downloads.wordpress.org/plugin/duplicate-post.4.5.zip",
+      "slug": "duplicate-post",
+      "tested": "6.8.2",
+      "compatibility": []
+    }
+  ],
+  "themes": [],
+  "total_count": 2
+} index-CamWgTAJ.js:763:282449
+Plugins array length: 2 index-CamWgTAJ.js:763:282510
+Themes array length: 0 index-CamWgTAJ.js:763:282604
+WordPress update available: false index-CamWgTAJ.js:763:282695
+======================== index-CamWgTAJ.js:763:282794
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 2 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 2 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== WRM UPDATES DEBUG === index-CamWgTAJ.js:763:282408
+Full updates object: {
+  "wordpress": [],
+  "plugins": [
+    {
+      "plugin": "All-in-One WP Migration and Backup",
+      "plugin_file": "all-in-one-wp-migration/all-in-one-wp-migration.php",
+      "current_version": "7.95",
+      "new_version": "7.97",
+      "package": "https://downloads.wordpress.org/plugin/all-in-one-wp-migration.7.97.zip",
+      "slug": "all-in-one-wp-migration",
+      "tested": "6.8.2",
+      "compatibility": []
+    },
+    {
+      "plugin": "Yoast Duplicate Post",
+      "plugin_file": "duplicate-post/duplicate-post.php",
+      "current_version": "4.4",
+      "new_version": "4.5",
+      "package": "https://downloads.wordpress.org/plugin/duplicate-post.4.5.zip",
+      "slug": "duplicate-post",
+      "tested": "6.8.2",
+      "compatibility": []
+    }
+  ],
+  "themes": [],
+  "total_count": 2
+} index-CamWgTAJ.js:763:282449
+Plugins array length: 2 index-CamWgTAJ.js:763:282510
+Themes array length: 0 index-CamWgTAJ.js:763:282604
+WordPress update available: false index-CamWgTAJ.js:763:282695
+======================== index-CamWgTAJ.js:763:282794
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 2 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 2 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== WRM UPDATES DEBUG === index-CamWgTAJ.js:763:282408
+Full updates object: {
+  "wordpress": [],
+  "plugins": [
+    {
+      "plugin": "All-in-One WP Migration and Backup",
+      "plugin_file": "all-in-one-wp-migration/all-in-one-wp-migration.php",
+      "current_version": "7.95",
+      "new_version": "7.97",
+      "package": "https://downloads.wordpress.org/plugin/all-in-one-wp-migration.7.97.zip",
+      "slug": "all-in-one-wp-migration",
+      "tested": "6.8.2",
+      "compatibility": []
+    },
+    {
+      "plugin": "Yoast Duplicate Post",
+      "plugin_file": "duplicate-post/duplicate-post.php",
+      "current_version": "4.4",
+      "new_version": "4.5",
+      "package": "https://downloads.wordpress.org/plugin/duplicate-post.4.5.zip",
+      "slug": "duplicate-post",
+      "tested": "6.8.2",
+      "compatibility": []
+    }
+  ],
+  "themes": [],
+  "total_count": 2
+} index-CamWgTAJ.js:763:282449
+Plugins array length: 2 index-CamWgTAJ.js:763:282510
+Themes array length: 0 index-CamWgTAJ.js:763:282604
+WordPress update available: false index-CamWgTAJ.js:763:282695
+======================== index-CamWgTAJ.js:763:282794
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 2 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 2 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== WRM UPDATES DEBUG === index-CamWgTAJ.js:763:282408
+Full updates object: {
+  "wordpress": [],
+  "plugins": [
+    {
+      "plugin": "All-in-One WP Migration and Backup",
+      "plugin_file": "all-in-one-wp-migration/all-in-one-wp-migration.php",
+      "current_version": "7.95",
+      "new_version": "7.97",
+      "package": "https://downloads.wordpress.org/plugin/all-in-one-wp-migration.7.97.zip",
+      "slug": "all-in-one-wp-migration",
+      "tested": "6.8.2",
+      "compatibility": []
+    },
+    {
+      "plugin": "Yoast Duplicate Post",
+      "plugin_file": "duplicate-post/duplicate-post.php",
+      "current_version": "4.4",
+      "new_version": "4.5",
+      "package": "https://downloads.wordpress.org/plugin/duplicate-post.4.5.zip",
+      "slug": "duplicate-post",
+      "tested": "6.8.2",
+      "compatibility": []
+    }
+  ],
+  "themes": [],
+  "total_count": 2
+} index-CamWgTAJ.js:763:282449
+Plugins array length: 2 index-CamWgTAJ.js:763:282510
+Themes array length: 0 index-CamWgTAJ.js:763:282604
+WordPress update available: false index-CamWgTAJ.js:763:282695
+======================== index-CamWgTAJ.js:763:282794
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 2 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 2 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== WRM UPDATES DEBUG === index-CamWgTAJ.js:763:282408
+Full updates object: {
+  "wordpress": [],
+  "plugins": [
+    {
+      "plugin": "All-in-One WP Migration and Backup",
+      "plugin_file": "all-in-one-wp-migration/all-in-one-wp-migration.php",
+      "current_version": "7.95",
+      "new_version": "7.97",
+      "package": "https://downloads.wordpress.org/plugin/all-in-one-wp-migration.7.97.zip",
+      "slug": "all-in-one-wp-migration",
+      "tested": "6.8.2",
+      "compatibility": []
+    },
+    {
+      "plugin": "Yoast Duplicate Post",
+      "plugin_file": "duplicate-post/duplicate-post.php",
+      "current_version": "4.4",
+      "new_version": "4.5",
+      "package": "https://downloads.wordpress.org/plugin/duplicate-post.4.5.zip",
+      "slug": "duplicate-post",
+      "tested": "6.8.2",
+      "compatibility": []
+    }
+  ],
+  "themes": [],
+  "total_count": 2
+} index-CamWgTAJ.js:763:282449
+Plugins array length: 2 index-CamWgTAJ.js:763:282510
+Themes array length: 0 index-CamWgTAJ.js:763:282604
+WordPress update available: false index-CamWgTAJ.js:763:282695
+======================== index-CamWgTAJ.js:763:282794
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 2 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 2 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== WRM UPDATES DEBUG === index-CamWgTAJ.js:763:282408
+Full updates object: {
+  "wordpress": [],
+  "plugins": [
+    {
+      "plugin": "All-in-One WP Migration and Backup",
+      "plugin_file": "all-in-one-wp-migration/all-in-one-wp-migration.php",
+      "current_version": "7.95",
+      "new_version": "7.97",
+      "package": "https://downloads.wordpress.org/plugin/all-in-one-wp-migration.7.97.zip",
+      "slug": "all-in-one-wp-migration",
+      "tested": "6.8.2",
+      "compatibility": []
+    },
+    {
+      "plugin": "Yoast Duplicate Post",
+      "plugin_file": "duplicate-post/duplicate-post.php",
+      "current_version": "4.4",
+      "new_version": "4.5",
+      "package": "https://downloads.wordpress.org/plugin/duplicate-post.4.5.zip",
+      "slug": "duplicate-post",
+      "tested": "6.8.2",
+      "compatibility": []
+    }
+  ],
+  "themes": [],
+  "total_count": 2
+} index-CamWgTAJ.js:763:282449
+Plugins array length: 2 index-CamWgTAJ.js:763:282510
+Themes array length: 0 index-CamWgTAJ.js:763:282604
+WordPress update available: false index-CamWgTAJ.js:763:282695
+======================== index-CamWgTAJ.js:763:282794
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 2 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 2 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+PLUGIN OBJECT: 
+Object { plugin: "Yoast Duplicate Post", plugin_file: "duplicate-post/duplicate-post.php", current_version: "5.5", new_version: "4.5", package: "https://downloads.wordpress.org/plugin/duplicate-post.4.5.zip", slug: "duplicate-post", tested: "6.8.2", compatibility: [] }
+index-CamWgTAJ.js:763:302332
+Updating plugin with identifier: duplicate-post/duplicate-post.php index-CamWgTAJ.js:763:302382
+=== WRM UPDATES DEBUG === index-CamWgTAJ.js:763:282408
+Full updates object: {
+  "wordpress": [],
+  "plugins": [
+    {
+      "plugin": "All-in-One WP Migration and Backup",
+      "plugin_file": "all-in-one-wp-migration/all-in-one-wp-migration.php",
+      "current_version": "7.95",
+      "new_version": "7.97",
+      "package": "https://downloads.wordpress.org/plugin/all-in-one-wp-migration.7.97.zip",
+      "slug": "all-in-one-wp-migration",
+      "tested": "6.8.2",
+      "compatibility": []
+    },
+    {
+      "plugin": "Yoast Duplicate Post",
+      "plugin_file": "duplicate-post/duplicate-post.php",
+      "current_version": "4.4",
+      "new_version": "4.5",
+      "package": "https://downloads.wordpress.org/plugin/duplicate-post.4.5.zip",
+      "slug": "duplicate-post",
+      "tested": "6.8.2",
+      "compatibility": []
+    }
+  ],
+  "themes": [],
+  "total_count": 2
+} index-CamWgTAJ.js:763:282449
+Plugins array length: 2 index-CamWgTAJ.js:763:282510
+Themes array length: 0 index-CamWgTAJ.js:763:282604
+WordPress update available: false index-CamWgTAJ.js:763:282695
+======================== index-CamWgTAJ.js:763:282794
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 2 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 2 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== WRM UPDATES DEBUG === index-CamWgTAJ.js:763:282408
+Full updates object: {
+  "wordpress": [],
+  "plugins": [
+    {
+      "plugin": "All-in-One WP Migration and Backup",
+      "plugin_file": "all-in-one-wp-migration/all-in-one-wp-migration.php",
+      "current_version": "7.95",
+      "new_version": "7.97",
+      "package": "https://downloads.wordpress.org/plugin/all-in-one-wp-migration.7.97.zip",
+      "slug": "all-in-one-wp-migration",
+      "tested": "6.8.2",
+      "compatibility": []
+    },
+    {
+      "plugin": "Yoast Duplicate Post",
+      "plugin_file": "duplicate-post/duplicate-post.php",
+      "current_version": "4.4",
+      "new_version": "4.5",
+      "package": "https://downloads.wordpress.org/plugin/duplicate-post.4.5.zip",
+      "slug": "duplicate-post",
+      "tested": "6.8.2",
+      "compatibility": []
+    }
+  ],
+  "themes": [],
+  "total_count": 2
+} index-CamWgTAJ.js:763:282449
+Plugins array length: 2 index-CamWgTAJ.js:763:282510
+Themes array length: 0 index-CamWgTAJ.js:763:282604
+WordPress update available: false index-CamWgTAJ.js:763:282695
+======================== index-CamWgTAJ.js:763:282794
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 2 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 2 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== WRM UPDATES DEBUG === index-CamWgTAJ.js:763:282408
+Full updates object: {
+  "wordpress": [],
+  "plugins": [
+    {
+      "plugin": "All-in-One WP Migration and Backup",
+      "plugin_file": "all-in-one-wp-migration/all-in-one-wp-migration.php",
+      "current_version": "7.95",
+      "new_version": "7.97",
+      "package": "https://downloads.wordpress.org/plugin/all-in-one-wp-migration.7.97.zip",
+      "slug": "all-in-one-wp-migration",
+      "tested": "6.8.2",
+      "compatibility": []
+    },
+    {
+      "plugin": "Yoast Duplicate Post",
+      "plugin_file": "duplicate-post/duplicate-post.php",
+      "current_version": "4.4",
+      "new_version": "4.5",
+      "package": "https://downloads.wordpress.org/plugin/duplicate-post.4.5.zip",
+      "slug": "duplicate-post",
+      "tested": "6.8.2",
+      "compatibility": []
+    }
+  ],
+  "themes": [],
+  "total_count": 2
+} index-CamWgTAJ.js:763:282449
+Plugins array length: 2 index-CamWgTAJ.js:763:282510
+Themes array length: 0 index-CamWgTAJ.js:763:282604
+WordPress update available: false index-CamWgTAJ.js:763:282695
+======================== index-CamWgTAJ.js:763:282794
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 2 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 2 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== WRM UPDATES DEBUG === index-CamWgTAJ.js:763:282408
+Full updates object: {
+  "wordpress": [],
+  "plugins": [
+    {
+      "plugin": "All-in-One WP Migration and Backup",
+      "plugin_file": "all-in-one-wp-migration/all-in-one-wp-migration.php",
+      "current_version": "7.95",
+      "new_version": "7.97",
+      "package": "https://downloads.wordpress.org/plugin/all-in-one-wp-migration.7.97.zip",
+      "slug": "all-in-one-wp-migration",
+      "tested": "6.8.2",
+      "compatibility": []
+    },
+    {
+      "plugin": "Yoast Duplicate Post",
+      "plugin_file": "duplicate-post/duplicate-post.php",
+      "current_version": "4.4",
+      "new_version": "4.5",
+      "package": "https://downloads.wordpress.org/plugin/duplicate-post.4.5.zip",
+      "slug": "duplicate-post",
+      "tested": "6.8.2",
+      "compatibility": []
+    }
+  ],
+  "themes": [],
+  "total_count": 2
+} index-CamWgTAJ.js:763:282449
+Plugins array length: 2 index-CamWgTAJ.js:763:282510
+Themes array length: 0 index-CamWgTAJ.js:763:282604
+WordPress update available: false index-CamWgTAJ.js:763:282695
+======================== index-CamWgTAJ.js:763:282794
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 2 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 2 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== WRM UPDATES DEBUG === index-CamWgTAJ.js:763:282408
+Full updates object: {
+  "wordpress": [],
+  "plugins": [
+    {
+      "plugin": "All-in-One WP Migration and Backup",
+      "plugin_file": "all-in-one-wp-migration/all-in-one-wp-migration.php",
+      "current_version": "7.95",
+      "new_version": "7.97",
+      "package": "https://downloads.wordpress.org/plugin/all-in-one-wp-migration.7.97.zip",
+      "slug": "all-in-one-wp-migration",
+      "tested": "6.8.2",
+      "compatibility": []
+    }
+  ],
+  "themes": [],
+  "total_count": 1
+} index-CamWgTAJ.js:763:282449
+Plugins array length: 1 index-CamWgTAJ.js:763:282510
+Themes array length: 0 index-CamWgTAJ.js:763:282604
+WordPress update available: false index-CamWgTAJ.js:763:282695
+======================== index-CamWgTAJ.js:763:282794
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 1 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 1 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== WRM UPDATES DEBUG === index-CamWgTAJ.js:763:282408
+Full updates object: {
+  "wordpress": [],
+  "plugins": [
+    {
+      "plugin": "All-in-One WP Migration and Backup",
+      "plugin_file": "all-in-one-wp-migration/all-in-one-wp-migration.php",
+      "current_version": "7.95",
+      "new_version": "7.97",
+      "package": "https://downloads.wordpress.org/plugin/all-in-one-wp-migration.7.97.zip",
+      "slug": "all-in-one-wp-migration",
+      "tested": "6.8.2",
+      "compatibility": []
+    }
+  ],
+  "themes": [],
+  "total_count": 1
+} index-CamWgTAJ.js:763:282449
+Plugins array length: 1 index-CamWgTAJ.js:763:282510
+Themes array length: 0 index-CamWgTAJ.js:763:282604
+WordPress update available: false index-CamWgTAJ.js:763:282695
+======================== index-CamWgTAJ.js:763:282794
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 1 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 1 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== WRM UPDATES DEBUG === index-CamWgTAJ.js:763:282408
+Full updates object: {
+  "wordpress": [],
+  "plugins": [
+    {
+      "plugin": "All-in-One WP Migration and Backup",
+      "plugin_file": "all-in-one-wp-migration/all-in-one-wp-migration.php",
+      "current_version": "7.95",
+      "new_version": "7.97",
+      "package": "https://downloads.wordpress.org/plugin/all-in-one-wp-migration.7.97.zip",
+      "slug": "all-in-one-wp-migration",
+      "tested": "6.8.2",
+      "compatibility": []
+    }
+  ],
+  "themes": [],
+  "total_count": 1
+} index-CamWgTAJ.js:763:282449
+Plugins array length: 1 index-CamWgTAJ.js:763:282510
+Themes array length: 0 index-CamWgTAJ.js:763:282604
+WordPress update available: false index-CamWgTAJ.js:763:282695
+======================== index-CamWgTAJ.js:763:282794
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 1 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 1 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== WRM UPDATES DEBUG === index-CamWgTAJ.js:763:282408
+Full updates object: {
+  "wordpress": [],
+  "plugins": [
+    {
+      "plugin": "All-in-One WP Migration and Backup",
+      "plugin_file": "all-in-one-wp-migration/all-in-one-wp-migration.php",
+      "current_version": "7.95",
+      "new_version": "7.97",
+      "package": "https://downloads.wordpress.org/plugin/all-in-one-wp-migration.7.97.zip",
+      "slug": "all-in-one-wp-migration",
+      "tested": "6.8.2",
+      "compatibility": []
+    }
+  ],
+  "themes": [],
+  "total_count": 1
+} index-CamWgTAJ.js:763:282449
+Plugins array length: 1 index-CamWgTAJ.js:763:282510
+Themes array length: 0 index-CamWgTAJ.js:763:282604
+WordPress update available: false index-CamWgTAJ.js:763:282695
+======================== index-CamWgTAJ.js:763:282794
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 1 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 1 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== WRM UPDATES DEBUG === index-CamWgTAJ.js:763:282408
+Full updates object: {
+  "wordpress": [],
+  "plugins": [
+    {
+      "plugin": "All-in-One WP Migration and Backup",
+      "plugin_file": "all-in-one-wp-migration/all-in-one-wp-migration.php",
+      "current_version": "7.95",
+      "new_version": "7.97",
+      "package": "https://downloads.wordpress.org/plugin/all-in-one-wp-migration.7.97.zip",
+      "slug": "all-in-one-wp-migration",
+      "tested": "6.8.2",
+      "compatibility": []
+    }
+  ],
+  "themes": [],
+  "total_count": 1
+} index-CamWgTAJ.js:763:282449
+Plugins array length: 1 index-CamWgTAJ.js:763:282510
+Themes array length: 0 index-CamWgTAJ.js:763:282604
+WordPress update available: false index-CamWgTAJ.js:763:282695
+======================== index-CamWgTAJ.js:763:282794
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 1 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 1 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== WRM UPDATES DEBUG === index-CamWgTAJ.js:763:282408
+Full updates object: {
+  "wordpress": [],
+  "plugins": [
+    {
+      "plugin": "All-in-One WP Migration and Backup",
+      "plugin_file": "all-in-one-wp-migration/all-in-one-wp-migration.php",
+      "current_version": "7.95",
+      "new_version": "7.97",
+      "package": "https://downloads.wordpress.org/plugin/all-in-one-wp-migration.7.97.zip",
+      "slug": "all-in-one-wp-migration",
+      "tested": "6.8.2",
+      "compatibility": []
+    }
+  ],
+  "themes": [],
+  "total_count": 1
+} index-CamWgTAJ.js:763:282449
+Plugins array length: 1 index-CamWgTAJ.js:763:282510
+Themes array length: 0 index-CamWgTAJ.js:763:282604
+WordPress update available: false index-CamWgTAJ.js:763:282695
+======================== index-CamWgTAJ.js:763:282794
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 1 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 1 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== WRM UPDATES DEBUG === index-CamWgTAJ.js:763:282408
+Full updates object: {
+  "wordpress": [],
+  "plugins": [
+    {
+      "plugin": "All-in-One WP Migration and Backup",
+      "plugin_file": "all-in-one-wp-migration/all-in-one-wp-migration.php",
+      "current_version": "7.95",
+      "new_version": "7.97",
+      "package": "https://downloads.wordpress.org/plugin/all-in-one-wp-migration.7.97.zip",
+      "slug": "all-in-one-wp-migration",
+      "tested": "6.8.2",
+      "compatibility": []
+    }
+  ],
+  "themes": [],
+  "total_count": 1
+} index-CamWgTAJ.js:763:282449
+Plugins array length: 1 index-CamWgTAJ.js:763:282510
+Themes array length: 0 index-CamWgTAJ.js:763:282604
+WordPress update available: false index-CamWgTAJ.js:763:282695
+======================== index-CamWgTAJ.js:763:282794
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 1 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 1 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+=== WRM UPDATES DEBUG === index-CamWgTAJ.js:763:282408
+Full updates object: {
+  "wordpress": [],
+  "plugins": [
+    {
+      "plugin": "All-in-One WP Migration and Backup",
+      "plugin_file": "all-in-one-wp-migration/all-in-one-wp-migration.php",
+      "current_version": "7.95",
+      "new_version": "7.97",
+      "package": "https://downloads.wordpress.org/plugin/all-in-one-wp-migration.7.97.zip",
+      "slug": "all-in-one-wp-migration",
+      "tested": "6.8.2",
+      "compatibility": []
+    }
+  ],
+  "themes": [],
+  "total_count": 1
+} index-CamWgTAJ.js:763:282449
+Plugins array length: 1 index-CamWgTAJ.js:763:282510
+Themes array length: 0 index-CamWgTAJ.js:763:282604
+WordPress update available: false index-CamWgTAJ.js:763:282695
+======================== index-CamWgTAJ.js:763:282794
+=== FINAL UPDATE COUNTS === index-CamWgTAJ.js:763:285000
+Plugin updates: 1 index-CamWgTAJ.js:763:285043
+Theme updates: 0 index-CamWgTAJ.js:763:285083
+WordPress update: 0 index-CamWgTAJ.js:763:285122
+Total updates: 1 index-CamWgTAJ.js:763:285161
+========================== index-CamWgTAJ.js:763:285193
+Error in parsing value for ‘-webkit-text-size-adjust’.  Declaration dropped. index-_yHauxSS.css:1:2443
+Unknown property ‘-moz-osx-font-smoothing’.  Declaration dropped. index-_yHauxSS.css:1:5037
+Ruleset ignored due to bad selector. index-_yHauxSS.css:1:93233
+Ruleset ignored due to bad selector. index-_yHauxSS.css:1:93387

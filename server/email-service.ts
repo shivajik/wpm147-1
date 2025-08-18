@@ -1,11 +1,15 @@
 import { MailService } from '@sendgrid/mail';
 
-if (!process.env.SENDGRID_API_KEY) {
-  throw new Error("SENDGRID_API_KEY environment variable must be set");
-}
+// Initialize mail service only if API key is available
+let mailService: MailService | null = null;
 
-const mailService = new MailService();
-mailService.setApiKey(process.env.SENDGRID_API_KEY);
+if (process.env.SENDGRID_API_KEY) {
+  mailService = new MailService();
+  mailService.setApiKey(process.env.SENDGRID_API_KEY);
+  console.log('📧 SendGrid email service initialized');
+} else {
+  console.warn('⚠️ SENDGRID_API_KEY not found - email functionality will be disabled');
+}
 
 interface EmailParams {
   to: string;
@@ -20,6 +24,11 @@ export class EmailService {
   private static baseUrl = process.env.FRONTEND_URL || 'http://localhost:5000';
 
   static async sendEmail(params: EmailParams): Promise<boolean> {
+    if (!mailService) {
+      console.warn('📧 Email service not available - SENDGRID_API_KEY not configured');
+      return false;
+    }
+
     try {
       const emailData: any = {
         to: params.to,
@@ -31,10 +40,10 @@ export class EmailService {
       if (params.html) emailData.html = params.html;
       
       await mailService.send(emailData);
-      console.log(`Email sent successfully to ${params.to}`);
+      console.log(`📧 Email sent successfully to ${params.to}`);
       return true;
     } catch (error) {
-      console.error('SendGrid email error:', error);
+      console.error('📧 SendGrid email error:', error);
       return false;
     }
   }

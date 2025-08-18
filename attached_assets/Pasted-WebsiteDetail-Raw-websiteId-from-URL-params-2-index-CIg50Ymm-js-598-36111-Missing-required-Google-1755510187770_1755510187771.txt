@@ -1,0 +1,116 @@
+WebsiteDetail - Raw websiteId from URL params: 2 index-CIg50Ymm.js:598:36111
+Missing required Google Analytics key: VITE_GA_MEASUREMENT_ID index-CIg50Ymm.js:646:6410
+WebsiteDetail - Raw websiteId from URL params: 2 index-CIg50Ymm.js:598:36111
+=== FINAL UPDATE COUNTS === index-CIg50Ymm.js:578:181309
+Plugin updates: 0 index-CIg50Ymm.js:578:181352
+Theme updates: 0 index-CIg50Ymm.js:578:181392
+WordPress update: 0 index-CIg50Ymm.js:578:181431
+Total updates: 0 index-CIg50Ymm.js:578:181470
+========================== index-CIg50Ymm.js:578:181502
+WebsiteDetail - Raw websiteId from URL params: 2 index-CIg50Ymm.js:598:36111
+=== FINAL UPDATE COUNTS === index-CIg50Ymm.js:578:181309
+Plugin updates: 0 index-CIg50Ymm.js:578:181352
+Theme updates: 0 index-CIg50Ymm.js:578:181392
+WordPress update: 0 index-CIg50Ymm.js:578:181431
+Total updates: 0 index-CIg50Ymm.js:578:181470
+========================== index-CIg50Ymm.js:578:181502
+=== FINAL UPDATE COUNTS === index-CIg50Ymm.js:578:181309
+Plugin updates: 0 index-CIg50Ymm.js:578:181352
+Theme updates: 0 index-CIg50Ymm.js:578:181392
+WordPress update: 0 index-CIg50Ymm.js:578:181431
+Total updates: 0 index-CIg50Ymm.js:578:181470
+========================== index-CIg50Ymm.js:578:181502
+=== FINAL UPDATE COUNTS === index-CIg50Ymm.js:578:181309
+Plugin updates: 0 index-CIg50Ymm.js:578:181352
+Theme updates: 0 index-CIg50Ymm.js:578:181392
+WordPress update: 0 index-CIg50Ymm.js:578:181431
+Total updates: 0 index-CIg50Ymm.js:578:181470
+========================== index-CIg50Ymm.js:578:181502
+=== FINAL UPDATE COUNTS === index-CIg50Ymm.js:578:181309
+Plugin updates: 0 index-CIg50Ymm.js:578:181352
+Theme updates: 0 index-CIg50Ymm.js:578:181392
+WordPress update: 0 index-CIg50Ymm.js:578:181431
+Total updates: 0 index-CIg50Ymm.js:578:181470
+========================== index-CIg50Ymm.js:578:181502
+=== FINAL UPDATE COUNTS === index-CIg50Ymm.js:578:181309
+Plugin updates: 0 index-CIg50Ymm.js:578:181352
+Theme updates: 0 index-CIg50Ymm.js:578:181392
+WordPress update: 0 index-CIg50Ymm.js:578:181431
+Total updates: 0 index-CIg50Ymm.js:578:181470
+========================== index-CIg50Ymm.js:578:181502
+=== FINAL UPDATE COUNTS === index-CIg50Ymm.js:578:181309
+Plugin updates: 0 index-CIg50Ymm.js:578:181352
+Theme updates: 0 index-CIg50Ymm.js:578:181392
+WordPress update: 0 index-CIg50Ymm.js:578:181431
+Total updates: 0 index-CIg50Ymm.js:578:181470
+========================== index-CIg50Ymm.js:578:181502
+=== FINAL UPDATE COUNTS === index-CIg50Ymm.js:578:181309
+Plugin updates: 0 index-CIg50Ymm.js:578:181352
+Theme updates: 0 index-CIg50Ymm.js:578:181392
+WordPress update: 0 index-CIg50Ymm.js:578:181431
+Total updates: 0 index-CIg50Ymm.js:578:181470
+========================== index-CIg50Ymm.js:578:181502
+=== FINAL UPDATE COUNTS === index-CIg50Ymm.js:578:181309
+Plugin updates: 0 index-CIg50Ymm.js:578:181352
+Theme updates: 0 index-CIg50Ymm.js:578:181392
+WordPress update: 0 index-CIg50Ymm.js:578:181431
+Total updates: 0 index-CIg50Ymm.js:578:181470
+========================== index-CIg50Ymm.js:578:181502
+=== FINAL UPDATE COUNTS === index-CIg50Ymm.js:578:181309
+Plugin updates: 0 index-CIg50Ymm.js:578:181352
+Theme updates: 0 index-CIg50Ymm.js:578:181392
+WordPress update: 0 index-CIg50Ymm.js:578:181431
+Total updates: 0 index-CIg50Ymm.js:578:181470
+========================== index-CIg50Ymm.js:578:181502
+WebsitePlugins - Raw websiteId from URL params: 2 website-plugins-CYVdLsQ3.js:1:992
+Website data for plugins: 
+Object { id: 2, name: "KSoft Solution", url: "https://ksoftsolution.com/", wpAdminUsername: "", wpAdminPassword: "", wrmApiKey: "L._V?~f+rN7nKTv$WE#Rtv#Ej[UBKK$Iw .+]DJ4pLO:a_MyIh#3S=a7u7`X$k7u", wpVersion: "6.8.2", lastBackup: null, lastUpdate: "2025-08-17T13:39:54.088Z", lastSync: "2025-08-18T09:30:56.430Z", … }
+website-plugins-CYVdLsQ3.js:10:550
+Has wrmApiKey for plugins: true website-plugins-CYVdLsQ3.js:10:593
+WRM Plugins data: undefined website-plugins-CYVdLsQ3.js:10:660
+Query enabled condition: true website-plugins-CYVdLsQ3.js:10:695
+WebsiteId: 2 website-plugins-CYVdLsQ3.js:10:744
+Website exists: true website-plugins-CYVdLsQ3.js:10:772
+WebsitePlugins - Raw websiteId from URL params: 2 website-plugins-CYVdLsQ3.js:1:992
+Website data for plugins: 
+Object { id: 2, name: "KSoft Solution", url: "https://ksoftsolution.com/", wpAdminUsername: "", wpAdminPassword: "", wrmApiKey: "L._V?~f+rN7nKTv$WE#Rtv#Ej[UBKK$Iw .+]DJ4pLO:a_MyIh#3S=a7u7`X$k7u", wpVersion: "6.8.2", lastBackup: null, lastUpdate: "2025-08-17T13:39:54.088Z", lastSync: "2025-08-18T09:30:56.430Z", … }
+website-plugins-CYVdLsQ3.js:10:550
+Has wrmApiKey for plugins: true website-plugins-CYVdLsQ3.js:10:593
+WRM Plugins data: undefined website-plugins-CYVdLsQ3.js:10:660
+Query enabled condition: true website-plugins-CYVdLsQ3.js:10:695
+WebsiteId: 2 website-plugins-CYVdLsQ3.js:10:744
+Website exists: true website-plugins-CYVdLsQ3.js:10:772
+WebsitePlugins - Raw websiteId from URL params: 2 website-plugins-CYVdLsQ3.js:1:992
+Website data for plugins: 
+Object { id: 2, name: "KSoft Solution", url: "https://ksoftsolution.com/", wpAdminUsername: "", wpAdminPassword: "", wrmApiKey: "L._V?~f+rN7nKTv$WE#Rtv#Ej[UBKK$Iw .+]DJ4pLO:a_MyIh#3S=a7u7`X$k7u", wpVersion: "6.8.2", lastBackup: null, lastUpdate: "2025-08-17T13:39:54.088Z", lastSync: "2025-08-18T09:30:56.430Z", … }
+website-plugins-CYVdLsQ3.js:10:550
+Has wrmApiKey for plugins: true website-plugins-CYVdLsQ3.js:10:593
+WRM Plugins data: 
+Array(38) [ {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, … ]
+website-plugins-CYVdLsQ3.js:10:660
+Query enabled condition: true website-plugins-CYVdLsQ3.js:10:695
+WebsiteId: 2 website-plugins-CYVdLsQ3.js:10:744
+Website exists: true website-plugins-CYVdLsQ3.js:10:772
+Processed plugins array: 
+Array(38) [ {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, … ]
+website-plugins-CYVdLsQ3.js:10:6855
+Processed plugins length: 38 website-plugins-CYVdLsQ3.js:10:6897
+WebsitePlugins - Raw websiteId from URL params: 2 website-plugins-CYVdLsQ3.js:1:992
+Website data for plugins: 
+Object { id: 2, name: "KSoft Solution", url: "https://ksoftsolution.com/", wpAdminUsername: "", wpAdminPassword: "", wrmApiKey: "L._V?~f+rN7nKTv$WE#Rtv#Ej[UBKK$Iw .+]DJ4pLO:a_MyIh#3S=a7u7`X$k7u", wpVersion: "6.8.2", lastBackup: null, lastUpdate: "2025-08-17T13:39:54.088Z", lastSync: "2025-08-18T09:30:56.430Z", … }
+website-plugins-CYVdLsQ3.js:10:550
+Has wrmApiKey for plugins: true website-plugins-CYVdLsQ3.js:10:593
+WRM Plugins data: 
+Array(38) [ {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, … ]
+website-plugins-CYVdLsQ3.js:10:660
+Query enabled condition: true website-plugins-CYVdLsQ3.js:10:695
+WebsiteId: 2 website-plugins-CYVdLsQ3.js:10:744
+Website exists: true website-plugins-CYVdLsQ3.js:10:772
+Processed plugins array: 
+Array(38) [ {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, … ]
+website-plugins-CYVdLsQ3.js:10:6855
+Processed plugins length: 38 website-plugins-CYVdLsQ3.js:10:6897
+Error in parsing value for ‘-webkit-text-size-adjust’.  Declaration dropped. index-_yHauxSS.css:1:2443
+Unknown property ‘-moz-osx-font-smoothing’.  Declaration dropped. index-_yHauxSS.css:1:5037
+Ruleset ignored due to bad selector. index-_yHauxSS.css:1:93233
+Ruleset ignored due to bad selector. index-_yHauxSS.css:1:93387
