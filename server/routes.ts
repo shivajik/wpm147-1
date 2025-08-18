@@ -3417,7 +3417,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Transform httpRequests to match frontend expectations
         httpRequests: {
           ...analysisResults.httpRequests,
-          total: analysisResults.httpRequests?.totalRequests || analysisResults.performance.requests,
+          total: (analysisResults as any).httpRequests?.totalRequests || (analysisResults as any).performance?.requests || 0,
           // Transform JavaScript analysis to httpRequests.javascript format
           javascript: {
             total: analysisResults.javascriptAnalysis?.totalScripts || 0,

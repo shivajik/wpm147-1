@@ -56,7 +56,7 @@ export default function OptimizationCard({ websiteId }: OptimizationCardProps) {
 
   // Optimize post revisions mutation
   const optimizeRevisionsMutation = useMutation({
-    mutationFn: () => apiRequest(`/api/websites/${websiteId}/optimization/revisions`, 'POST'),
+    mutationFn: () => apiRequest('POST', `/api/websites/${websiteId}/optimization/revisions`),
     onMutate: () => {
       setOptimizingType('revisions');
     },
@@ -81,7 +81,7 @@ export default function OptimizationCard({ websiteId }: OptimizationCardProps) {
 
   // Optimize database mutation
   const optimizeDatabaseMutation = useMutation({
-    mutationFn: () => apiRequest(`/api/websites/${websiteId}/optimization/database`, 'POST'),
+    mutationFn: () => apiRequest('POST', `/api/websites/${websiteId}/optimization/database`),
     onMutate: () => {
       setOptimizingType('database');
     },
@@ -106,7 +106,7 @@ export default function OptimizationCard({ websiteId }: OptimizationCardProps) {
 
   // Optimize all mutation
   const optimizeAllMutation = useMutation({
-    mutationFn: () => apiRequest(`/api/websites/${websiteId}/optimization/all`, 'POST'),
+    mutationFn: () => apiRequest('POST', `/api/websites/${websiteId}/optimization/all`),
     onMutate: () => {
       setOptimizingType('all');
     },
