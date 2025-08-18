@@ -222,17 +222,29 @@ export default function ComprehensiveDashboard({ websiteId }: ComprehensiveDashb
                   <div className="space-y-3">
                     <div>
                       <p className="text-sm text-gray-600">WordPress Version</p>
-                      <p className="font-medium">{(wpData as any)?.systemInfo?.wordpress_version || (status as any)?.wordpress_version || 'N/A'}</p>
+                      <p className="font-medium">{
+                        (wpData as any)?.systemInfo?.wordpress_version || 
+                        (wpData as any)?.wordpress_version || 
+                        (status as any)?.wordpress_version || 
+                        'N/A'
+                      }</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">PHP Version</p>
-                      <p className="font-medium">{(wpData as any)?.systemInfo?.php_version || (status as any)?.php_version || 'N/A'}</p>
+                      <p className="font-medium">{
+                        (wpData as any)?.systemInfo?.php_version || 
+                        (wpData as any)?.php_version || 
+                        (status as any)?.php_version || 
+                        'N/A'
+                      }</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Database</p>
                       <p className="font-medium">
                         {(() => {
-                          const version = (wpData as any)?.systemInfo?.mysql_version || (status as any)?.mysql_version;
+                          const version = (wpData as any)?.systemInfo?.mysql_version || 
+                                         (wpData as any)?.mysql_version || 
+                                         (status as any)?.mysql_version;
                           if (version) {
                             // Extract just the major.minor version (e.g., "8.0" from "8.0.42-0ubuntu0.24.04.2")
                             const cleanVersion = version.match(/^(\d+\.\d+)/)?.[1] || version;
@@ -241,37 +253,37 @@ export default function ComprehensiveDashboard({ websiteId }: ComprehensiveDashb
                             }
                             return `MySQL ${cleanVersion}`;
                           }
-                          return (wpData as any)?.systemInfo?.database_type || (status as any)?.database_type || 'N/A';
+                          return (wpData as any)?.systemInfo?.database_type || 
+                                 (wpData as any)?.database_type || 
+                                 (status as any)?.database_type || 
+                                 'N/A';
                         })()}
                       </p>
                     </div>
                   </div>
                   <div className="space-y-3">
                     <div>
-                      <p className="text-sm text-gray-600">Server</p>
-                      <p className="font-medium">
-                        {(() => {
-                          const server = (wpData as any)?.systemInfo?.server_software || (status as any)?.server_info;
-                          if (!server || server === 'Unknown') {
-                            return 'N/A';
-                          }
-                          // Clean up server string to show just the main server name
-                          if (server.toLowerCase().includes('apache')) {
-                            return 'Apache';
-                          } else if (server.toLowerCase().includes('nginx')) {
-                            return 'Nginx';
-                          } else if (server.toLowerCase().includes('litespeed')) {
-                            return 'LiteSpeed';
-                          }
-                          return server;
-                        })()}
-                      </p>
+                      <p className="text-sm text-gray-600">Memory Limit</p>
+                      <p className="font-medium">{
+                        (wpData as any)?.systemInfo?.memory_limit || 
+                        (wpData as any)?.memory_limit || 
+                        (status as any)?.memory_limit || 
+                        'N/A'
+                      }</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">SSL Status</p>
                       <div className="flex items-center gap-2">
-                        <Badge variant={(wpData as any)?.systemInfo?.ssl_status || (wpData as any)?.systemInfo?.ssl_enabled || (status as any)?.ssl_enabled ? 'default' : 'destructive'}>
-                          {(wpData as any)?.systemInfo?.ssl_status || (wpData as any)?.systemInfo?.ssl_enabled || (status as any)?.ssl_enabled ? 'Enabled' : 'Disabled'}
+                        <Badge variant={
+                          (wpData as any)?.systemInfo?.ssl_status || 
+                          (wpData as any)?.systemInfo?.ssl_enabled || 
+                          (wpData as any)?.ssl_enabled || 
+                          (status as any)?.ssl_enabled ? 'default' : 'destructive'
+                        }>
+                          {(wpData as any)?.systemInfo?.ssl_status || 
+                           (wpData as any)?.systemInfo?.ssl_enabled || 
+                           (wpData as any)?.ssl_enabled || 
+                           (status as any)?.ssl_enabled ? 'Enabled' : 'Disabled'}
                         </Badge>
                       </div>
                     </div>
