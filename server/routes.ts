@@ -4072,10 +4072,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (websiteIds.length > 0) {
           const website = await storage.getWebsite(websiteIds[0], userId);
           if (website) {
+            // Try to resolve IP address with multiple methods
+            let ipAddress = '';
+            try {
+              const dns = require('dns').promises;
+              const urlObj = new URL(website.url);
+              const hostname = urlObj.hostname;
+              
+              console.log(`[IP_RESOLUTION] Attempting to resolve IP for: ${hostname}`);
+              
+              // Try IPv4 resolution first
+              try {
+                const addresses = await dns.resolve4(hostname);
+                if (addresses && addresses.length > 0) {
+                  ipAddress = addresses[0];
+                  console.log(`[IP_RESOLUTION] Successfully resolved ${hostname} to ${ipAddress}`);
+                }
+              } catch (ipv4Error) {
+                console.log(`[IP_RESOLUTION] IPv4 resolution failed for ${hostname}, trying IPv6...`);
+                
+                // Fallback to IPv6 if IPv4 fails
+                try {
+                  const addresses = await dns.resolve6(hostname);
+                  if (addresses && addresses.length > 0) {
+                    ipAddress = addresses[0];
+                    console.log(`[IP_RESOLUTION] Successfully resolved ${hostname} to IPv6: ${ipAddress}`);
+                  }
+                } catch (ipv6Error) {
+                  console.log(`[IP_RESOLUTION] Both IPv4 and IPv6 resolution failed for ${hostname}`);
+                }
+              }
+              
+              // If DNS fails, log it
+              if (!ipAddress) {
+                console.log(`[IP_RESOLUTION] No DNS resolution, IP will remain unknown for ${hostname}`);
+              }
+            } catch (dnsError) {
+              console.log(`[IP_RESOLUTION] DNS module error for ${website.url}:`, dnsError instanceof Error ? dnsError.message : 'Unknown error');
+            }
+
             websiteInfo = {
               name: website.name || 'Your Website',
               url: website.url || 'https://example.com',
-              ipAddress: '', // ipAddress not in schema yet
+              ipAddress: ipAddress || 'Unknown',
               wordpressVersion: website.wpVersion || 'Unknown'
             };
           }
@@ -4223,6 +4262,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
+  // Helper function to convert numeric score to letter grade
+  function getGradeFromScore(score: number): string {
+    if (score >= 90) return 'A';
+    if (score >= 80) return 'B';
+    if (score >= 70) return 'C';
+    if (score >= 60) return 'D';
+    return 'F';
+  }
+
+  // Helper function to extract clean plugin name from file path
+  function getCleanPluginName(itemName: string): string {
+    if (!itemName) return 'Plugin Update';
+    
+    // If it looks like a file path (contains / or .php), extract the name
+    if (itemName.includes('/') || itemName.includes('.php')) {
+      // Extract the directory name (which is usually the plugin slug)
+      const parts = itemName.split('/');
+      const pluginSlug = parts[0];
+      
+      // Convert slug to human-readable name
+      return pluginSlug
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ')
+        .replace(/[_-]/g, ' ')
+        .trim();
+    }
+    
+    return itemName;
+  }
+
   // Helper function to fetch stored maintenance data from logs
   async function fetchMaintenanceData(websiteIds: number[], userId: number, dateFrom: Date, dateTo: Date) {
     const maintenanceData = {
@@ -4290,34 +4360,163 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const website = await storage.getWebsite(websiteId, userId);
         if (!website) continue;
 
-        maintenanceData.websites.push(website);
+        // Enhance website data with WordPress information
+        let enhancedWebsite = { ...website };
+        
+        if (website.wrmApiKey) {
+          try {
+            const wrmClient = new WPRemoteManagerClient({
+              url: website.url,
+              apiKey: website.wrmApiKey
+            });
+            
+            // Get WordPress health data for additional information
+            const healthData = await wrmClient.getHealth();
+            if (healthData && (healthData as any).success && (healthData as any).data) {
+              const systemInfo = (healthData as any).data.systemInfo;
+              if (systemInfo) {
+                enhancedWebsite = {
+                  ...enhancedWebsite,
+                  wpVersion: systemInfo.wordpress_version || enhancedWebsite.wpVersion,
+                  // Add additional properties as dynamic properties
+                  ...{
+                    phpVersion: systemInfo.php_version,
+                    mysqlVersion: systemInfo.mysql_version,
+                    serverSoftware: systemInfo.server_software || 'Unknown',
+                    memoryLimit: systemInfo.memory_limit,
+                    memoryUsage: systemInfo.memory_usage,
+                    diskUsage: systemInfo.disk_usage,
+                    maxExecutionTime: systemInfo.max_execution_time,
+                    uploadMaxFilesize: systemInfo.upload_max_filesize,
+                    sslStatus: systemInfo.ssl_status,
+                    pluginsCount: systemInfo.plugins_count,
+                    themesCount: systemInfo.themes_count,
+                    usersCount: systemInfo.users_count,
+                    postsCount: systemInfo.posts_count,
+                    pagesCount: systemInfo.pages_count
+                  }
+                } as any;
+              }
+            }
+          } catch (healthError) {
+            console.log(`Could not fetch health data for ${website.url}:`, healthError instanceof Error ? healthError.message : 'Unknown error');
+          }
+        }
+        
+        maintenanceData.websites.push(enhancedWebsite);
 
         try {
           // Fetch stored update logs from database
           const updateLogs = await storage.getUpdateLogs(websiteId, userId);
           console.log(`[MAINTENANCE_DATA] Found ${updateLogs.length} update logs for website ${websiteId}`);
 
-          // Process plugin updates from stored logs
+          // Process plugin updates from stored logs with enhanced data
           const pluginLogs = updateLogs.filter(log => log.updateType === 'plugin');
-          pluginLogs.forEach(log => {
+          
+          // Cache WordPress data to avoid repeated API calls
+          let wrmClient: any = null;
+          let pluginsDataCache: any = null;
+          let updatesDataCache: any = null;
+          
+          if (website.wrmApiKey) {
+            try {
+              wrmClient = new WPRemoteManagerClient({
+                url: website.url,
+                apiKey: website.wrmApiKey
+              });
+              
+              // Fetch data once for all plugins
+              pluginsDataCache = await wrmClient.getPlugins();
+              updatesDataCache = await wrmClient.getUpdates();
+            } catch (apiError) {
+              console.log(`Could not connect to WordPress API for ${website.url}:`, apiError instanceof Error ? apiError.message : 'Unknown error');
+            }
+          }
+          
+          for (const log of pluginLogs) {
+            let pluginName = getCleanPluginName(log.itemName || '');
+            let fromVersion = log.fromVersion || 'Unknown';
+            let toVersion = log.toVersion || 'Latest';
+            
+            // Try to get better version info from cached data
+            if (pluginsDataCache && (fromVersion === 'Unknown' || toVersion === 'Latest' || toVersion === 'unknown')) {
+              const currentPlugin = pluginsDataCache.find((p: any) => 
+                p.plugin === log.itemName || 
+                p.name === log.itemName ||
+                p.plugin?.includes(log.itemSlug) ||
+                log.itemName?.includes(p.plugin?.split('/')[0])
+              );
+              
+              if (currentPlugin) {
+                pluginName = currentPlugin.name || pluginName;
+                if (fromVersion === 'Unknown' && currentPlugin.version) {
+                  fromVersion = currentPlugin.version;
+                }
+              }
+              
+              // Try to get update information if toVersion is still unknown
+              if (updatesDataCache && (toVersion === 'Latest' || toVersion === 'unknown')) {
+                const pluginUpdate = updatesDataCache.plugins?.find((p: any) => 
+                  p.plugin === log.itemName || 
+                  p.name === log.itemName ||
+                  p.plugin?.includes(log.itemSlug)
+                );
+                
+                if (pluginUpdate && pluginUpdate.new_version) {
+                  toVersion = pluginUpdate.new_version;
+                }
+              }
+            }
+            
             maintenanceData.updates.plugins.push({
-              name: log.itemName || 'Plugin Update',
-              versionFrom: log.fromVersion || 'Unknown',
-              versionTo: log.toVersion || 'Latest',
+              name: pluginName,
+              versionFrom: fromVersion,
+              versionTo: toVersion,
               date: log.createdAt
             });
-          });
+          }
 
-          // Process theme updates from stored logs
+          // Process theme updates from stored logs with enhanced data
           const themeLogs = updateLogs.filter(log => log.updateType === 'theme');
-          themeLogs.forEach(log => {
+          
+          // Get themes data using the same client if available
+          let themesDataCache: any = null;
+          if (wrmClient) {
+            try {
+              themesDataCache = await wrmClient.getThemes();
+            } catch (themeApiError) {
+              console.log(`Could not fetch themes data for ${website.url}:`, themeApiError instanceof Error ? themeApiError.message : 'Unknown error');
+            }
+          }
+          
+          for (const log of themeLogs) {
+            let themeName = getCleanPluginName(log.itemName || ''); // Reuse the same name cleaning function
+            let fromVersion = log.fromVersion || 'Unknown';
+            let toVersion = log.toVersion || 'Latest';
+            
+            // Try to get better theme info from cached data
+            if (themesDataCache && (fromVersion === 'Unknown' || toVersion === 'Latest' || toVersion === 'unknown')) {
+              const currentTheme = themesDataCache.find((t: any) => 
+                t.stylesheet === log.itemName || 
+                t.name === log.itemName ||
+                log.itemName?.includes(t.stylesheet)
+              );
+              
+              if (currentTheme) {
+                themeName = currentTheme.name || themeName;
+                if (fromVersion === 'Unknown' && currentTheme.version) {
+                  fromVersion = currentTheme.version;
+                }
+              }
+            }
+            
             maintenanceData.updates.themes.push({
-              name: log.itemName || 'Theme Update',
-              versionFrom: log.fromVersion || 'Unknown',
-              versionTo: log.toVersion || 'Latest',
+              name: themeName,
+              versionFrom: fromVersion,
+              versionTo: toVersion,
               date: log.createdAt
             });
-          });
+          }
 
           // Process core updates from stored logs
           const coreLogs = updateLogs.filter(log => log.updateType === 'core');
@@ -4357,13 +4556,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
               maintenanceData.performance.lastScan = {
                 date: latestPerformanceScan.scanTimestamp.toISOString(),
                 pageSpeedScore: latestPerformanceScan.pagespeedScore,
-                pageSpeedGrade: latestPerformanceScan.coreWebVitalsGrade || 'B',
+                pageSpeedGrade: getGradeFromScore(latestPerformanceScan.pagespeedScore),
                 ysloScore: latestPerformanceScan.yslowScore,
-                ysloGrade: latestPerformanceScan.coreWebVitalsGrade || 'C',
+                ysloGrade: getGradeFromScore(latestPerformanceScan.yslowScore),
                 loadTime: latestPerformanceScan.lcpScore
               };
               maintenanceData.performance.totalChecks = performanceScans.length;
-              maintenanceData.performance.history = performanceScans.slice(0, 10); // Last 10 scans
+              // Process performance history with enhanced data structure
+              maintenanceData.performance.history = performanceScans.slice(0, 10).map(scan => ({
+                date: scan.scanTimestamp.toISOString(),
+                loadTime: scan.scanData?.yslow_metrics?.load_time ? scan.scanData.yslow_metrics.load_time / 1000 : (scan.lcpScore || 2.5), // Convert ms to seconds or use LCP
+                pageSpeedScore: scan.pagespeedScore,
+                ysloScore: scan.yslowScore
+              }));
             }
           } catch (performanceError) {
             console.warn(`[MAINTENANCE_DATA] Performance scans not available for website ${websiteId}:`, performanceError instanceof Error ? performanceError.message : 'Unknown error');
@@ -4374,16 +4579,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const securityScans = await storage.getSecurityScans(websiteId, userId);
             if (securityScans.length > 0) {
               const latestSecurityScan = securityScans[0]; // Most recent scan
-              maintenanceData.overview.securityStatus = latestSecurityScan.scanStatus as 'safe' | 'warning' | 'critical' || 'safe';
+              
+              // Determine security status based on scan results
+              let securityStatus: 'safe' | 'warning' | 'critical' = 'safe';
+              if (latestSecurityScan.threatsDetected > 0 || latestSecurityScan.malwareStatus === 'infected') {
+                securityStatus = 'critical';
+              } else if (latestSecurityScan.coreVulnerabilities > 0 || latestSecurityScan.pluginVulnerabilities > 0) {
+                securityStatus = 'warning';
+              }
+              
+              maintenanceData.overview.securityStatus = securityStatus;
               maintenanceData.security.lastScan = {
                 date: latestSecurityScan.scanStartedAt.toISOString(),
-                status: latestSecurityScan.scanStatus === 'clean' ? 'clean' : 'issues',
-                malware: (latestSecurityScan.threatsDetected || 0) > 0 ? 'infected' : 'clean',
+                status: latestSecurityScan.scanStatus === 'completed' ? 'clean' : 'issues',
+                malware: latestSecurityScan.malwareStatus || 'clean',
                 webTrust: latestSecurityScan.blacklistStatus === 'clean' ? 'clean' : 'warning',
-                vulnerabilities: latestSecurityScan.coreVulnerabilities || 0
+                vulnerabilities: (latestSecurityScan.coreVulnerabilities || 0) + (latestSecurityScan.pluginVulnerabilities || 0) + (latestSecurityScan.themeVulnerabilities || 0)
               };
               maintenanceData.security.totalScans = securityScans.length;
-              maintenanceData.security.scanHistory = securityScans.slice(0, 10); // Last 10 scans
+              
+              // Enhanced security scan history with proper structure
+              maintenanceData.security.scanHistory = securityScans.slice(0, 10).map(scan => ({
+                date: scan.scanStartedAt.toISOString(),
+                status: scan.scanStatus === 'completed' ? 'clean' : 'issues',
+                malware: scan.malwareStatus || 'clean',
+                webTrust: scan.blacklistStatus === 'clean' ? 'clean' : 'warning',
+                securityScore: scan.overallSecurityScore || 85,
+                vulnerabilities: (scan.coreVulnerabilities || 0) + (scan.pluginVulnerabilities || 0) + (scan.themeVulnerabilities || 0)
+              }));
             }
           } catch (securityError) {
             console.warn(`[MAINTENANCE_DATA] Security scans not available for website ${websiteId}:`, securityError instanceof Error ? securityError.message : 'Unknown error');
@@ -4397,15 +4620,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
           maintenanceData.backups.total += backupLogs.length;
           maintenanceData.backups.totalAvailable += backupLogs.length;
           
-          // Update latest backup info from website (only if we have actual backup data)
+          // Update latest backup info from enhanced website data
           if (backupLogs.length > 0) {
             maintenanceData.backups.latest.date = backupLogs[0].createdAt.toISOString();
-            if (website.wpVersion) {
-              maintenanceData.backups.latest.wordpressVersion = website.wpVersion;
+          }
+          
+          // Use enhanced website data for backup metadata
+          if (enhancedWebsite.wpVersion) {
+            maintenanceData.backups.latest.wordpressVersion = enhancedWebsite.wpVersion;
+          }
+          if (enhancedWebsite.pluginsCount) {
+            maintenanceData.backups.latest.activePlugins = enhancedWebsite.pluginsCount;
+          }
+          if (enhancedWebsite.postsCount) {
+            maintenanceData.backups.latest.publishedPosts = parseInt(enhancedWebsite.postsCount) || 0;
+          }
+          
+          // Calculate approximate backup size based on content
+          if (enhancedWebsite.diskUsage) {
+            const diskUsage = enhancedWebsite.diskUsage;
+            if (typeof diskUsage === 'object' && diskUsage.used) {
+              maintenanceData.backups.latest.size = diskUsage.used;
             }
-          } else if (website.wpVersion) {
-            // Only set WordPress version if available, no fake backup data
-            maintenanceData.backups.latest.wordpressVersion = website.wpVersion;
           }
 
         } catch (error) {
