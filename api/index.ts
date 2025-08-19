@@ -3328,7 +3328,7 @@ export default async function handler(req: any, res: any) {
         return res.status(200).json({
           overall_score: null, // Frontend will show 'Pending' when null
           health_score: null,  // Frontend will show 'Pending' when null  
-          connection_status: website.apiKey ? "Connected" : "Not Connected",
+          connection_status: website.wrmApiKey ? "Connected" : "Not Connected",
           last_checked: website.lastUpdate || null,
           issues: {
             critical: 0,
@@ -3336,13 +3336,13 @@ export default async function handler(req: any, res: any) {
             recommendations: 0
           },
           checks: {
-            database_connection: website.apiKey ? true : null,
+            database_connection: website.wrmApiKey ? true : null,
             file_permissions: null,
             plugin_conflicts: null,
             theme_issues: null,
             security_status: null
           },
-          message: website.apiKey 
+          message: website.wrmApiKey 
             ? "Health check pending - run scan to get current status" 
             : "Not Connected - configure API key to enable health monitoring"
         });
@@ -3379,7 +3379,7 @@ export default async function handler(req: any, res: any) {
         
         // Return proper status data structure with clear connection status
         return res.status(200).json({
-          connection_status: website.apiKey ? "Connected" : "Not Connected",
+          connection_status: website.wrmApiKey ? "Connected" : "Not Connected",
           wordpress_version: website.wpVersion || null,
           php_version: null,
           mysql_version: null,
@@ -3391,7 +3391,7 @@ export default async function handler(req: any, res: any) {
           disk_space_available: null,
           ssl_enabled: website.url?.startsWith('https://') || null,
           last_updated: website.lastUpdate || null,
-          message: website.apiKey 
+          message: website.wrmApiKey 
             ? "System info pending - sync website to get current data" 
             : "Connection Failed - configure API key to access WordPress data"
           // No mock health_score - frontend handles empty state
@@ -5989,14 +5989,37 @@ export default async function handler(req: any, res: any) {
       try {
         const reports = await db.select().from(clientReports).where(eq(clientReports.userId, user.id));
         
+        // Get reports sent this month
+        const startOfMonth = new Date();
+        startOfMonth.setDate(1);
+        startOfMonth.setHours(0, 0, 0, 0);
+        
+        const sentThisMonth = reports.filter(r => 
+          r.status === 'sent' && 
+          r.createdAt && 
+          new Date(r.createdAt) >= startOfMonth
+        ).length;
+        
+        // Get unique active clients count
+        const uniqueClientIds = new Set(reports.filter(r => r.clientId).map(r => r.clientId));
+        const activeClients = uniqueClientIds.size;
+        
+        // Calculate average score from generated reports
+        const generatedReports = reports.filter(r => r.status === 'generated' || r.status === 'sent');
+        const averageScore = generatedReports.length > 0 
+          ? Math.round(generatedReports.reduce((sum, report) => {
+              // Try to extract score from report data, default to 85 if not available
+              const reportData = report.reportData as any;
+              const score = reportData?.overallScore || reportData?.score || 85;
+              return sum + score;
+            }, 0) / generatedReports.length)
+          : 0;
+        
         const stats = {
           totalReports: reports.length,
-          generatedReports: reports.filter(r => r.status === 'generated').length,
-          draftReports: reports.filter(r => r.status === 'draft').length,
-          scheduledReports: reports.filter(r => r.isScheduled).length,
-          recentReports: reports
-            .sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime())
-            .slice(0, 5)
+          sentThisMonth,
+          activeClients,
+          averageScore
         };
 
         return res.status(200).json(stats);
@@ -6023,7 +6046,50 @@ export default async function handler(req: any, res: any) {
           .where(eq(clientReports.userId, user.id))
           .orderBy(desc(clientReports.createdAt));
 
-        return res.status(200).json(reports);
+        // Enrich each report with client and website information
+        const enrichedReports = await Promise.all(reports.map(async (report) => {
+          let clientName = 'N/A';
+          let websiteName = 'N/A';
+          
+          try {
+            // Fetch client information if clientId exists
+            if (report.clientId) {
+              const clientRecord = await db
+                .select()
+                .from(clients)
+                .where(and(eq(clients.id, report.clientId), eq(clients.userId, user.id)))
+                .limit(1);
+              
+              if (clientRecord.length > 0) {
+                clientName = clientRecord[0].name || 'Valued Client';
+              }
+            }
+            
+            // Fetch website information if websiteIds exist
+            const websiteIds = Array.isArray(report.websiteIds) ? report.websiteIds : [];
+            if (websiteIds.length > 0) {
+              const websiteRecord = await db
+                .select()
+                .from(websites)
+                .where(and(eq(websites.id, websiteIds[0]), eq(websites.clientId, report.clientId)))
+                .limit(1);
+              
+              if (websiteRecord.length > 0) {
+                websiteName = websiteRecord[0].name || 'Website';
+              }
+            }
+          } catch (error) {
+            console.error(`Error fetching client/website data for report ${report.id}:`, error);
+          }
+          
+          return {
+            ...report,
+            clientName,
+            websiteName
+          };
+        }));
+
+        return res.status(200).json(enrichedReports);
       } catch (error) {
         console.error('Error fetching client reports:', error);
         return res.status(500).json({ message: 'Failed to fetch client reports' });
