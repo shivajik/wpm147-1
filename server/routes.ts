@@ -4026,6 +4026,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get client report data endpoint (must be before the /:id route)
+  app.get("/api/client-reports/:id/data", authenticateToken, async (req, res) => {
+    try {
+      const userId = (req as AuthRequest).user!.id;
+      const reportId = parseInt(req.params.id);
+      const report = await storage.getClientReport(reportId, userId);
+
+      if (!report) {
+        return res.status(404).json({ message: "Client report not found" });
+      }
+
+      // Get the base report data
+      const reportData = report.reportData || {};
+      
+      // Enrich with client and website information
+      let clientInfo = {
+        name: 'Valued Client',
+        email: '',
+        contactPerson: ''
+      };
+      
+      let websiteInfo = {
+        name: 'Your Website',
+        url: 'https://example.com',
+        ipAddress: '',
+        wordpressVersion: 'Unknown'
+      };
+
+      try {
+        // Fetch client information if clientId exists
+        if (report.clientId) {
+          const client = await storage.getClient(report.clientId, userId);
+          if (client) {
+            clientInfo = {
+              name: client.name || 'Valued Client',
+              email: client.email || '',
+              contactPerson: '' // contactPerson not in schema yet
+            };
+          }
+        }
+
+        // Fetch website information if websiteIds exist
+        const websiteIds = Array.isArray(report.websiteIds) ? report.websiteIds : [];
+        if (websiteIds.length > 0) {
+          const website = await storage.getWebsite(websiteIds[0], userId);
+          if (website) {
+            websiteInfo = {
+              name: website.name || 'Your Website',
+              url: website.url || 'https://example.com',
+              ipAddress: '', // ipAddress not in schema yet
+              wordpressVersion: website.wpVersion || 'Unknown'
+            };
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching client/website data:", error);
+      }
+
+      // Construct the complete ClientReportData structure
+      const completeReportData = {
+        id: report.id,
+        title: report.title || 'Client Report',
+        client: clientInfo,
+        website: websiteInfo,
+        dateFrom: report.dateFrom?.toISOString() || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+        dateTo: report.dateTo?.toISOString() || new Date().toISOString(),
+        reportType: 'maintenance', // reportType not in schema yet
+        ...reportData
+      };
+
+      res.json(completeReportData);
+    } catch (error) {
+      console.error("Error fetching client report data:", error);
+      res.status(500).json({ message: "Failed to fetch client report data" });
+    }
+  });
+
   // Get client report by ID
   app.get("/api/client-reports/:id", authenticateToken, async (req, res) => {
     try {

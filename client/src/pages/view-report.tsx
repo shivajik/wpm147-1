@@ -20,9 +20,9 @@ import type { ClientReport } from '@shared/schema';
 interface ClientReportData {
   id: number;
   title: string;
-  client: {
-    name: string;
-    email: string;
+  client?: {
+    name?: string;
+    email?: string;
     contactPerson?: string;
   };
   website: {

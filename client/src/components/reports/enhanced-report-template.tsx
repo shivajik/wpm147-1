@@ -27,9 +27,9 @@ import { format } from 'date-fns';
 interface ClientReportData {
   id: number;
   title: string;
-  client: {
-    name: string;
-    email: string;
+  client?: {
+    name?: string;
+    email?: string;
     contactPerson?: string;
   };
   website: {
@@ -285,8 +285,8 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
                 <Users className="w-6 h-6 text-blue-300" />
                 <h3 className="text-xl font-bold text-white">Client</h3>
               </div>
-              <h4 className="text-2xl font-bold mb-2 text-white">{reportData.client.name}</h4>
-              {reportData.client.email && (
+              <h4 className="text-2xl font-bold mb-2 text-white">{reportData.client?.name || 'Valued Client'}</h4>
+              {reportData.client?.email && (
                 <p className="text-blue-200">{reportData.client.email}</p>
               )}
             </div>
@@ -297,9 +297,9 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
                 <Globe className="w-6 h-6 text-green-300" />
                 <h3 className="text-xl font-bold text-white">Website</h3>
               </div>
-              <h4 className="text-2xl font-bold mb-2 text-white">{reportData.website.name}</h4>
-              <p className="text-green-200 font-medium">{reportData.website.url}</p>
-              {reportData.website.wordpressVersion && (
+              <h4 className="text-2xl font-bold mb-2 text-white">{reportData.website?.name || 'Your Website'}</h4>
+              <p className="text-green-200 font-medium">{reportData.website?.url || 'https://example.com'}</p>
+              {reportData.website?.wordpressVersion && (
                 <p className="text-blue-200 text-sm mt-2">WordPress v{reportData.website.wordpressVersion}</p>
               )}
             </div>
@@ -327,10 +327,10 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
             
             <div className="space-y-4 text-white/90 leading-relaxed">
               <p className="text-lg">
-                <span className="font-semibold text-blue-200">Dear {reportData.client.name},</span>
+                <span className="font-semibold text-blue-200">Dear {reportData.client?.name || 'Valued Client'},</span>
               </p>
               <p>
-                We are pleased to present your comprehensive website maintenance report for <span className="font-semibold text-green-200">{reportData.website.name}</span>. 
+                We are pleased to present your comprehensive website maintenance report for <span className="font-semibold text-green-200">{reportData.website?.name || 'your website'}</span>. 
                 This executive summary provides detailed insights into your website's security posture, performance optimization, and maintenance activities.
               </p>
               <p>
@@ -370,19 +370,19 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div className="font-semibold text-gray-700">
                 <Globe className="w-4 h-4 inline mr-2 text-blue-600" />
-                Website: <span className="font-normal text-blue-600">{reportData.website.url}</span>
+                Website: <span className="font-normal text-blue-600">{reportData.website?.url || 'https://example.com'}</span>
               </div>
               <div className="font-semibold text-gray-700">
                 <Calendar className="w-4 h-4 inline mr-2 text-green-600" />
                 Reporting Period: <span className="font-normal">{formatDate(reportData.dateFrom)} - {formatDate(reportData.dateTo)}</span>
               </div>
-              {reportData.website.ipAddress && (
+              {reportData.website?.ipAddress && (
                 <div className="font-semibold text-gray-700">
                   <Activity className="w-4 h-4 inline mr-2 text-orange-600" />
                   Server IP: <span className="font-normal text-gray-600">{reportData.website.ipAddress}</span>
                 </div>
               )}
-              {reportData.website.wordpressVersion && (
+              {reportData.website?.wordpressVersion && (
                 <div className="font-semibold text-gray-700">
                   <Shield className="w-4 h-4 inline mr-2 text-purple-600" />
                   WordPress: <span className="font-normal text-gray-600">v{reportData.website.wordpressVersion}</span>
@@ -881,7 +881,7 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
               </span>
             </CardTitle>
             <div className="text-yellow-100 text-sm font-medium pl-16">
-              Total performance checks: {reportData.performance.totalChecks}
+              Total performance checks: {reportData.performance.totalChecks || 0}
               <br />
               {formatDate(reportData.dateFrom)} to {formatDate(reportData.dateTo)}
             </div>
@@ -897,13 +897,13 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
             <div className="grid grid-cols-2 gap-6 mb-6">
               <div className="text-center p-6 bg-gray-50 rounded-lg">
                 <div className="text-sm text-gray-600 mb-2">PageSpeed Grade</div>
-                <div className="text-4xl font-bold text-blue-600 mb-2">{reportData.performance.lastScan.pageSpeedGrade} ({reportData.performance.lastScan.pageSpeedScore}%)</div>
-                <div className="text-sm text-gray-600">Previous check: {reportData.performance.lastScan.pageSpeedScore}%</div>
+                <div className="text-4xl font-bold text-blue-600 mb-2">{reportData.performance.lastScan.pageSpeedGrade || 'N/A'} ({reportData.performance.lastScan.pageSpeedScore || 'N/A'}%)</div>
+                <div className="text-sm text-gray-600">Previous check: {reportData.performance.lastScan.pageSpeedScore || 'N/A'}%</div>
               </div>
               <div className="text-center p-6 bg-gray-50 rounded-lg">
                 <div className="text-sm text-gray-600 mb-2">YSlow Grade</div>
-                <div className="text-4xl font-bold text-orange-600 mb-2">{reportData.performance.lastScan.ysloGrade} ({reportData.performance.lastScan.ysloScore}%)</div>
-                <div className="text-sm text-gray-600">Previous check: {reportData.performance.lastScan.ysloScore}%</div>
+                <div className="text-4xl font-bold text-orange-600 mb-2">{reportData.performance.lastScan.ysloGrade || 'N/A'} ({reportData.performance.lastScan.ysloScore || 'N/A'}%)</div>
+                <div className="text-sm text-gray-600">Previous check: {reportData.performance.lastScan.ysloScore || 'N/A'}%</div>
               </div>
             </div>
           </div>
@@ -924,9 +924,9 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
                   {reportData.performance.history.slice(0, 5).map((perf, index) => (
                     <tr key={index} className="border-b">
                       <td className="p-2">{formatDateTime(perf.date)}</td>
-                      <td className="p-2">{perf.loadTime.toFixed(2)} s</td>
-                      <td className="p-2">{getGradeFromScore(perf.pageSpeedScore)} ({perf.pageSpeedScore}%)</td>
-                      <td className="p-2">{getGradeFromScore(perf.ysloScore)} ({perf.ysloScore}%)</td>
+                      <td className="p-2">{perf.loadTime ? perf.loadTime.toFixed(2) : 'N/A'} s</td>
+                      <td className="p-2">{getGradeFromScore(perf.pageSpeedScore || 0)} ({perf.pageSpeedScore || 'N/A'}%)</td>
+                      <td className="p-2">{getGradeFromScore(perf.ysloScore || 0)} ({perf.ysloScore || 'N/A'}%)</td>
                     </tr>
                   ))}
                 </tbody>
