@@ -4016,7 +4016,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = (req as AuthRequest).user!.id;
       const reports = await storage.getClientReports(userId);
-      res.json(reports);
+      
+      // Enrich each report with client and website information
+      const enrichedReports = await Promise.all(reports.map(async (report) => {
+        let clientName = 'N/A';
+        let websiteName = 'N/A';
+        
+        try {
+          // Fetch client information if clientId exists
+          if (report.clientId) {
+            const client = await storage.getClient(report.clientId, userId);
+            if (client) {
+              clientName = client.name || 'Valued Client';
+            }
+          }
+          
+          // Fetch website information if websiteIds exist
+          const websiteIds = Array.isArray(report.websiteIds) ? report.websiteIds : [];
+          if (websiteIds.length > 0) {
+            const website = await storage.getWebsite(websiteIds[0], userId);
+            if (website) {
+              websiteName = website.name || 'Website';
+            }
+          }
+        } catch (error) {
+          console.error(`Error fetching client/website data for report ${report.id}:`, error);
+        }
+        
+        return {
+          ...report,
+          clientName,
+          websiteName
+        };
+      }));
+      
+      res.json(enrichedReports);
     } catch (error) {
       console.error("Error fetching client reports:", error);
       res.status(500).json({ 

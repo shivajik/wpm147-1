@@ -239,11 +239,11 @@ export default function ClientReports() {
                   {filteredReports.map((report) => (
                     <TableRow key={report.id}>
                       <TableCell className="font-medium">{report.title}</TableCell>
-                      <TableCell>{report.client?.name || 'N/A'}</TableCell>
+                      <TableCell>{(report as any).clientName || report.client?.name || 'N/A'}</TableCell>
                       <TableCell>
-                        {Array.isArray(report.websiteIds) && report.websiteIds.length > 0 
+                        {(report as any).websiteName || (Array.isArray(report.websiteIds) && report.websiteIds.length > 0 
                           ? `${report.websiteIds.length} website(s)` 
-                          : 'No websites'
+                          : 'No websites')
                         }
                       </TableCell>
                       <TableCell>
