@@ -4038,7 +4038,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Get the base report data
-      const reportData = report.reportData || {};
+      let reportData = report.reportData || {};
+      
+      // Enhance existing reportData if it has update information that needs cleaning
+      if (reportData.updates && reportData.updates.plugins) {
+        console.log(`[DATA_ENHANCEMENT] Enhancing ${reportData.updates.plugins.length} plugin entries`);
+        reportData.updates.plugins = reportData.updates.plugins.map((plugin: any) => {
+          let enhancedName = plugin.name || 'Plugin Update';
+          
+          // Clean plugin names that might be file paths
+          if (enhancedName.includes('/') || enhancedName.includes('.php')) {
+            enhancedName = getCleanPluginName(enhancedName);
+          }
+          
+          return {
+            ...plugin,
+            name: enhancedName,
+            versionFrom: plugin.versionFrom || plugin.fromVersion || 'Unknown',
+            versionTo: plugin.versionTo || plugin.toVersion || 'Latest'
+          };
+        });
+      }
+      
+      // Enhance theme names similarly
+      if (reportData.updates && reportData.updates.themes) {
+        console.log(`[DATA_ENHANCEMENT] Enhancing ${reportData.updates.themes.length} theme entries`);
+        reportData.updates.themes = reportData.updates.themes.map((theme: any) => {
+          let enhancedName = theme.name || 'Theme Update';
+          
+          // Clean theme names
+          if (enhancedName.includes('/') || enhancedName.includes('.php')) {
+            enhancedName = getCleanPluginName(enhancedName);
+          }
+          
+          return {
+            ...theme,
+            name: enhancedName,
+            versionFrom: theme.versionFrom || theme.fromVersion || 'Unknown',
+            versionTo: theme.versionTo || theme.toVersion || 'Latest'
+          };
+        });
+      }
       
       // Enrich with client and website information
       let clientInfo = {
@@ -4134,6 +4174,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
         reportType: 'maintenance', // reportType not in schema yet
         ...reportData
       };
+
+      // Enhance backup data with WordPress version if available
+      if (completeReportData.backups && websiteInfo.wordpressVersion && websiteInfo.wordpressVersion !== 'Unknown') {
+        if (!completeReportData.backups.latest) {
+          completeReportData.backups.latest = {};
+        }
+        completeReportData.backups.latest.wordpressVersion = websiteInfo.wordpressVersion;
+        console.log(`[DATA_ENHANCEMENT] Updated backup WordPress version to ${websiteInfo.wordpressVersion}`);
+      }
+
+      // Fix empty performance history if present
+      if (completeReportData.performance) {
+        // If history is empty but we have a lastScan, try to fetch actual performance data
+        if ((!completeReportData.performance.history || completeReportData.performance.history.length === 0) && 
+            completeReportData.performance.lastScan) {
+          console.log(`[DATA_ENHANCEMENT] Performance history is empty, attempting to fetch from database`);
+          
+          try {
+            const websiteIds = Array.isArray(report.websiteIds) ? report.websiteIds : [];
+            if (websiteIds.length > 0) {
+              const performanceScans = await storage.getPerformanceScans(websiteIds[0], userId);
+              if (performanceScans && performanceScans.length > 0) {
+                console.log(`[DATA_ENHANCEMENT] Found ${performanceScans.length} performance scans`);
+                completeReportData.performance.history = performanceScans.slice(0, 10).map(scan => ({
+                  date: scan.scanTimestamp.toISOString(),
+                  loadTime: scan.scanData?.yslow_metrics?.load_time ? scan.scanData.yslow_metrics.load_time / 1000 : (scan.lcpScore || 2.5),
+                  pageSpeedScore: scan.pagespeedScore,
+                  ysloScore: scan.yslowScore
+                }));
+                completeReportData.performance.totalChecks = performanceScans.length;
+              }
+            }
+          } catch (perfError) {
+            console.log(`[DATA_ENHANCEMENT] Could not fetch performance history:`, perfError instanceof Error ? perfError.message : 'Unknown error');
+          }
+        }
+      }
 
       res.json(completeReportData);
     } catch (error) {
@@ -4412,6 +4489,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // Process plugin updates from stored logs with enhanced data
           const pluginLogs = updateLogs.filter(log => log.updateType === 'plugin');
+          
+          console.log(`[MAINTENANCE_DATA] Processing ${pluginLogs.length} plugin logs for website ${websiteId}`);
           
           // Cache WordPress data to avoid repeated API calls
           let wrmClient: any = null;
