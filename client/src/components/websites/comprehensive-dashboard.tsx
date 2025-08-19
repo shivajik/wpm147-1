@@ -73,6 +73,40 @@ export default function ComprehensiveDashboard({ websiteId }: ComprehensiveDashb
     retry: false, // Don't retry on 404
   });
 
+  const getSystemInfo = (data: any) => {
+  if (!data) return null;
+  
+  // Production format
+  if (data.systemInfo?.site_info) {
+    return data.systemInfo.site_info;
+  }
+  // Localhost format
+  if (data.systemInfo && !data.systemInfo.site_info) {
+    return data.systemInfo;
+  }
+  // Fallback to direct properties
+  return data;
+};
+
+const systemInfo = getSystemInfo(wpData);
+
+// Helper function to safely get values with fallbacks
+const getValue = (value: any, fallback: string = 'Pending') => {
+  if (value === undefined || value === null) return fallback;
+  return value;
+};
+
+// Helper for database version
+const getDatabaseVersion = (version: string) => {
+  if (!version) return 'Pending';
+  
+  const cleanVersion = version.match(/^(\d+\.\d+)/)?.[1] || version;
+  if (version.toLowerCase().includes('mariadb')) {
+    return `MariaDB ${cleanVersion}`;
+  }
+  return `MySQL ${cleanVersion}`;
+};
+
   // Get health score - only show real data, no defaults or mock data
   const healthScore = healthLoading || statusLoading ? null : 
     (health && typeof health === 'object' && 'overall_score' in health && (health as any).overall_score !== 85) ? (health as any).overall_score :
@@ -234,75 +268,67 @@ export default function ComprehensiveDashboard({ websiteId }: ComprehensiveDashb
                   <div className="space-y-3">
                     <div>
                       <p className="text-sm text-gray-600">WordPress Version</p>
-                      <p className="font-medium">{
-                        (wpData as any)?.systemInfo?.wordpress_version || 
-                        (wpData as any)?.wordpress_version || 
-                        (status as any)?.wordpress_version || 
-                        ((status as any)?.connection_status === "Not Connected" ? "Not Connected" :
-                         (status as any)?.connection_status === "Connection Failed" ? "Connection Failed" : 
-                         "Pending")
-                      }</p>
+                      <p className="font-medium">
+                        {getValue(
+                          systemInfo?.wordpress_version || 
+                          (status as any)?.wordpress_version,
+                          (status as any)?.connection_status === "Not Connected" ? "Not Connected" :
+                          (status as any)?.connection_status === "Connection Failed" ? "Connection Failed" : 
+                          "Pending"
+                        )}
+                      </p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">PHP Version</p>
-                      <p className="font-medium">{
-                        (wpData as any)?.systemInfo?.php_version || 
-                        (wpData as any)?.php_version || 
-                        (status as any)?.php_version || 
-                        ((status as any)?.connection_status === "Not Connected" ? "Not Connected" :
-                         (status as any)?.connection_status === "Connection Failed" ? "Connection Failed" : 
-                         "Pending")
-                      }</p>
+                      <p className="font-medium">
+                        {getValue(
+                          systemInfo?.php_version || 
+                          (status as any)?.php_version,
+                          (status as any)?.connection_status === "Not Connected" ? "Not Connected" :
+                          (status as any)?.connection_status === "Connection Failed" ? "Connection Failed" : 
+                          "Pending"
+                        )}
+                      </p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Database</p>
                       <p className="font-medium">
-                        {(() => {
-                          const version = (wpData as any)?.systemInfo?.mysql_version || 
-                                         (wpData as any)?.mysql_version || 
-                                         (status as any)?.mysql_version;
-                          if (version) {
-                            // Extract just the major.minor version (e.g., "8.0" from "8.0.42-0ubuntu0.24.04.2")
-                            const cleanVersion = version.match(/^(\d+\.\d+)/)?.[1] || version;
-                            if (version.toLowerCase().includes('mariadb')) {
-                              return `MariaDB ${cleanVersion}`;
-                            }
-                            return `MySQL ${cleanVersion}`;
-                          }
-                          return (wpData as any)?.systemInfo?.database_type || 
-                                 (wpData as any)?.database_type || 
-                                 (status as any)?.database_type || 
-                                 ((status as any)?.connection_status === "Not Connected" ? "Not Connected" :
-                                  (status as any)?.connection_status === "Connection Failed" ? "Connection Failed" : 
-                                  "Pending");
-                        })()}
+                        {systemInfo?.mysql_version ? 
+                          getDatabaseVersion(systemInfo.mysql_version) :
+                          getValue(
+                            systemInfo?.database_type || 
+                            (status as any)?.database_type,
+                            (status as any)?.connection_status === "Not Connected" ? "Not Connected" :
+                            (status as any)?.connection_status === "Connection Failed" ? "Connection Failed" : 
+                            "Pending"
+                          )
+                        }
                       </p>
                     </div>
                   </div>
                   <div className="space-y-3">
                     <div>
                       <p className="text-sm text-gray-600">Memory Limit</p>
-                      <p className="font-medium">{
-                        (wpData as any)?.systemInfo?.memory_limit || 
-                        (wpData as any)?.memory_limit || 
-                        (status as any)?.memory_limit || 
-                        ((status as any)?.connection_status === "Not Connected" ? "Not Connected" :
-                         (status as any)?.connection_status === "Connection Failed" ? "Connection Failed" : 
-                         "Pending")
-                      }</p>
+                      <p className="font-medium">
+                        {getValue(
+                          systemInfo?.memory_limit || 
+                          (status as any)?.memory_limit,
+                          (status as any)?.connection_status === "Not Connected" ? "Not Connected" :
+                          (status as any)?.connection_status === "Connection Failed" ? "Connection Failed" : 
+                          "Pending"
+                        )}
+                      </p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">SSL Status</p>
                       <div className="flex items-center gap-2">
                         <Badge variant={
-                          (wpData as any)?.systemInfo?.ssl_status || 
-                          (wpData as any)?.systemInfo?.ssl_enabled || 
-                          (wpData as any)?.ssl_enabled || 
+                          systemInfo?.ssl_status || 
+                          systemInfo?.ssl_enabled || 
                           (status as any)?.ssl_enabled ? 'default' : 'destructive'
                         }>
-                          {(wpData as any)?.systemInfo?.ssl_status || 
-                           (wpData as any)?.systemInfo?.ssl_enabled || 
-                           (wpData as any)?.ssl_enabled || 
+                          {systemInfo?.ssl_status || 
+                           systemInfo?.ssl_enabled || 
                            (status as any)?.ssl_enabled ? 'Enabled' : 'Disabled'}
                         </Badge>
                       </div>
