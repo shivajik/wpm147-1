@@ -204,6 +204,11 @@ export const securityLogger = (req: Request, res: Response, next: NextFunction) 
     /wp-admin|wp-login/i
   ];
 
+  // Skip logging for legitimate API requests in development
+  if (process.env.NODE_ENV === 'development' && req.url.startsWith('/api/')) {
+    return next();
+  }
+
   const isSuspicious = suspiciousPatterns.some(pattern => 
     pattern.test(req.url) || pattern.test(req.body ? JSON.stringify(req.body) : '')
   );
