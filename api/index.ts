@@ -774,6 +774,21 @@ const reportTemplates = pgTable('report_templates', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
+const subscriptionPlans = pgTable('subscription_plans', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 50 }).notNull().unique(),
+  displayName: varchar('display_name', { length: 100 }).notNull(),
+  description: text('description'),
+  monthlyPrice: integer('monthly_price').notNull(),
+  yearlyPrice: integer('yearly_price').notNull(),
+  features: jsonb('features').notNull(),
+  isActive: boolean('is_active').default(true),
+  stripePriceIdMonthly: varchar('stripe_price_id_monthly', { length: 255 }),
+  stripePriceIdYearly: varchar('stripe_price_id_yearly', { length: 255 }),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
 const notifications = pgTable('notifications', {
   id: serial('id').primaryKey(),
   userId: integer('user_id').notNull(),
@@ -7072,6 +7087,108 @@ export default async function handler(req: any, res: any) {
       }
     }
 
+    // Subscription plans endpoint
+    if (path === '/api/subscription-plans' && req.method === 'GET') {
+      try {
+        console.log('[SUBSCRIPTION] Fetching subscription plans from database');
+        
+        const plans = await db.select()
+          .from(subscriptionPlans)
+          .where(eq(subscriptionPlans.isActive, true))
+          .orderBy(subscriptionPlans.monthlyPrice);
+
+        console.log(`[SUBSCRIPTION] Found ${plans.length} active subscription plans`);
+
+        // Transform features from JSON to array if needed
+        const transformedPlans = plans.map(plan => ({
+          ...plan,
+          features: Array.isArray(plan.features) 
+            ? plan.features 
+            : (typeof plan.features === 'string' 
+                ? JSON.parse(plan.features) 
+                : [])
+        }));
+
+        return res.status(200).json(transformedPlans);
+      } catch (error) {
+        console.error('[SUBSCRIPTION] Error fetching subscription plans:', error);
+        
+        // Return fallback plans if database is not accessible
+        const fallbackPlans = [
+          {
+            id: 1,
+            name: "free",
+            displayName: "Free",
+            description: "Get Started with Basic Monitoring",
+            monthlyPrice: 0,
+            yearlyPrice: 0,
+            features: [
+              "Basic uptime monitoring",
+              "Monthly WordPress updates",
+              "Email support",
+              "1 website monitoring",
+              "Basic analytics dashboard"
+            ],
+            isActive: true
+          },
+          {
+            id: 2,
+            name: "maintain",
+            displayName: "Maintain",
+            description: "Standard Site Maintenance",
+            monthlyPrice: 2999,
+            yearlyPrice: 29999,
+            features: [
+              "Weekly WordPress updates",
+              "24/7 emergency support", 
+              "24/7 uptime monitoring",
+              "Google Analytics integration",
+              "Cloud backups (4x daily)"
+            ],
+            isActive: true
+          },
+          {
+            id: 3,
+            name: "protect",
+            displayName: "Protect",
+            description: "Sites Needing Edits and Security",
+            monthlyPrice: 4999,
+            yearlyPrice: 49999,
+            features: [
+              "All features from Maintain",
+              "24/7 unlimited website edits",
+              "Security optimization",
+              "Malware scanning & removal",
+              "SSL certificate management",
+              "WordPress firewall protection"
+            ],
+            isActive: true
+          },
+          {
+            id: 4,
+            name: "perform",
+            displayName: "Perform",
+            description: "Advanced Functionality Sites",
+            monthlyPrice: 7999,
+            yearlyPrice: 79999,
+            features: [
+              "All features from Protect",
+              "Speed optimization",
+              "Mobile optimization", 
+              "Image optimization",
+              "Complete malware removal",
+              "Performance monitoring",
+              "SEO optimization",
+              "Advanced analytics"
+            ],
+            isActive: true
+          }
+        ];
+
+        return res.status(200).json(fallbackPlans);
+      }
+    }
+
     // Website optimization data endpoint (legacy)
     if (path.match(/^\/api\/websites\/\d+\/optimization$/) && req.method === 'GET') {
       const websiteId = parseInt(path.split('/')[3]);
@@ -7438,6 +7555,7 @@ export default async function handler(req: any, res: any) {
         'PUT /api/profile/password',
         'GET /api/clients',
         'POST /api/clients',
+        'GET /api/subscription-plans',
         'POST /api/websites/auto-sync',
         'POST /api/websites/:id/sync',
         'POST /api/websites/:id/test-connection',
