@@ -2411,9 +2411,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Get the original version for comparison - use the fromVersion we calculated earlier
             const oldVersion = fromVersion !== "unknown" ? fromVersion : (currentPlugin?.version || pluginUpdate?.current_version || "unknown");
             
-            // Always consider update successful if we can get the new version
-            actualUpdateSuccess = true; // WordPress update API worked, assume success
-            console.log(`Plugin version change: ${oldVersion} → ${actualNewVersion}`);
+            // CRITICAL FIX: Only consider update successful if version actually changed
+            if (oldVersion !== "unknown" && actualNewVersion !== "unknown" && oldVersion !== actualNewVersion) {
+              actualUpdateSuccess = true;
+              console.log(`Plugin version successfully changed: ${oldVersion} → ${actualNewVersion}`);
+            } else if (oldVersion === actualNewVersion) {
+              actualUpdateSuccess = false;
+              console.log(`Plugin update FAILED - version did not change: ${oldVersion} → ${actualNewVersion}`);
+            } else {
+              // Unknown versions - fallback to response success but add warning
+              console.log(`Warning: Cannot verify version change due to unknown versions (${oldVersion} → ${actualNewVersion}), using response success: ${responseSuccess}`);
+              actualUpdateSuccess = responseSuccess;
+            }
             
             console.log(`Plugin update verification: ${plugin}`);
             console.log(`  Old version: ${oldVersion}`);
@@ -2422,14 +2431,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log(`  Update successful: ${actualUpdateSuccess}`);
           } else {
             console.warn(`Could not find updated plugin data for: ${plugin}`);
-            // If plugin not found, assume success (might have been deactivated or removed)
-            actualUpdateSuccess = true;
+            // If plugin not found, this is likely a failure
+            actualUpdateSuccess = false;
           }
         } catch (verificationError) {
           console.warn("Could not verify plugin update:", verificationError);
-          // If verification fails, assume success since WordPress API confirmed the update
-          actualUpdateSuccess = true;
-          console.log("Assuming update success due to verification error");
+          // If verification fails, fallback to response success
+          actualUpdateSuccess = responseSuccess;
+          console.log("Using response success due to verification error:", responseSuccess);
         }
 
         // Determine the final toVersion with enhanced logic
@@ -2756,14 +2765,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Get the original version for comparison
             const oldVersion = currentTheme?.version || themeUpdate?.current_version || "unknown";
             
-            // Compare versions - update is successful if new version is different and not "unknown"
-            if (oldVersion !== "unknown" && actualNewVersion !== "unknown") {
-              actualUpdateSuccess = actualNewVersion !== oldVersion;
+            // CRITICAL FIX: Only consider update successful if version actually changed
+            if (oldVersion !== "unknown" && actualNewVersion !== "unknown" && oldVersion !== actualNewVersion) {
+              actualUpdateSuccess = true;
+              console.log(`Theme version successfully changed: ${oldVersion} → ${actualNewVersion}`);
+            } else if (oldVersion === actualNewVersion) {
+              actualUpdateSuccess = false;
+              console.log(`Theme update FAILED - version did not change: ${oldVersion} → ${actualNewVersion}`);
             } else {
               // If we can't get proper version info, check if there's still an update available
-              const stillHasUpdate = await wrmClient.getUpdates();
-              const stillNeedsUpdate = stillHasUpdate.themes?.some((t: any) => t.stylesheet === theme);
-              actualUpdateSuccess = !stillNeedsUpdate; // Success if no longer in updates list
+              try {
+                const stillHasUpdate = await wrmClient.getUpdates();
+                const stillNeedsUpdate = stillHasUpdate.themes?.some((t: any) => t.stylesheet === theme);
+                actualUpdateSuccess = !stillNeedsUpdate; // Success if no longer in updates list
+                console.log(`Warning: Cannot verify version change due to unknown versions (${oldVersion} → ${actualNewVersion}), checking updates list: ${!stillNeedsUpdate ? 'SUCCESS' : 'FAILED'}`);
+              } catch (updateCheckError) {
+                console.log(`Warning: Cannot verify version change or updates list (${oldVersion} → ${actualNewVersion}), using response success: ${updateResult.success}`);
+                actualUpdateSuccess = updateResult.success || false;
+              }
             }
             
             console.log(`Theme update verification: ${theme}`);
@@ -2773,7 +2792,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log(`  Update successful: ${actualUpdateSuccess}`);
           } else {
             console.warn(`Could not find updated theme data for: ${theme}`);
-            actualUpdateSuccess = true; // Assume success if theme not found
+            // If theme not found, this is likely a failure
+            actualUpdateSuccess = false;
           }
         } catch (verificationError) {
           console.warn("Could not verify theme update:", verificationError);

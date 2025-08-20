@@ -1,0 +1,46 @@
+analyse and understand the code of update theme and update plugin Here in the frontend there is no issue but in the backend is it has the issue the version is not getting updated and even I am getting the false messaging that the updated, even the version is not change So first of all fix that version not updating problem
+
+in path websites/15 here 15 is if of website in the update section we have available updates the correct thing is that we are getting here the old and the new version
+That we're going to get but when I'm performing the Install or the download button then it is telling that the success but in reality it is not getting success
+The problem is that Heres the old and the new version is same even after the updates it means it is fail
+the activity I just performed and I get the response
+Request URL
+http://localhost:5000/api/websites/15/update-theme
+Referrer Policy
+no-referrer
+
+{
+"success": false,
+"message": "Theme Twenty Twenty-Five update failed - version did not change",
+"updateResult": {
+"success": false,
+"message": "No update available for this theme"
+},
+"logId": 169,
+"oldVersion": "1.0",
+"newVersion": "1.0",
+"verified": true
+}
+
+
+The thing happening here is that when I do the update plug in or instal It is telling me the success even when the version is not getting updated So fix that if I do the update plugin then there should be the version should be updated in the end there is a problem in the back end not in the front end
+Request URL
+http://localhost:5000/api/websites/1/update-plugin
+Referrer Policy
+no-referrer
+
+{
+    "success": false,
+    "message": "Plugin all-in-one-wp-migration/all-in-one-wp-migration.php update failed - version did not change",
+    "updateResult": {
+        "success": true,
+        "plugins": [],
+        "themes": [],
+        "maintenance_mode": false,
+        "filesystem_initialized": true
+    },
+    "logId": 192,
+    "oldVersion": "7.95",
+    "newVersion": "7.95",
+    "verified": true
+}
