@@ -233,8 +233,8 @@ export default function Dashboard() {
                 <div className="text-xs text-muted-foreground">Websites</div>
               </div>
               <div className="text-center p-4 bg-card border rounded-lg">
-                <div className="text-2xl font-bold text-green-600 mb-1">99.9%</div>
-                <div className="text-xs text-muted-foreground">Uptime</div>
+                <div className="text-2xl font-bold text-orange-600 mb-1">{maintenanceStats.totalPendingUpdates}</div>
+                <div className="text-xs text-muted-foreground">Updates</div>
               </div>
             </div>
           </div>
@@ -493,7 +493,11 @@ export default function Dashboard() {
                             {website.name}
                           </h3>
                           <div className="text-sm text-slate-500 dark:text-slate-400 truncate flex items-center">
-                            <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                            <div className={`w-2 h-2 rounded-full mr-2 ${
+                              website.connectionStatus === 'connected' 
+                                ? 'bg-green-500' 
+                                : 'bg-red-500'
+                            }`}></div>
                             {website.url.replace(/^https?:\/\//, '')}
                           </div>
                         </div>

@@ -177,14 +177,18 @@ const getDatabaseVersion = (version: string) => {
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <p className="text-sm text-gray-600 dark:text-gray-400">WordPress</p>
-                <p className="text-lg font-semibold text-blue-600 dark:text-blue-400">
-                  {getValue(
-                    systemInfo?.wordpress_version || 
-                    (status as any)?.wordpress_version ||
-                    (website as any)?.wpVersion,
-                    'Not Connected'
-                  )}
-                </p>
+                {wpDataLoading || statusLoading ? (
+                  <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-16"></div>
+                ) : (
+                  <p className="text-lg font-semibold text-blue-600 dark:text-blue-400">
+                    {getValue(
+                      systemInfo?.wordpress_version || 
+                      (status as any)?.wordpress_version ||
+                      (website as any)?.wpVersion,
+                      'Not Connected'
+                    )}
+                  </p>
+                )}
                 <p className="text-xs text-gray-500 dark:text-gray-600 mt-1">
                   Core version
                 </p>
@@ -200,10 +204,15 @@ const getDatabaseVersion = (version: string) => {
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <p className="text-sm text-gray-600 dark:text-gray-400">Plugins</p>
-                <p className="text-lg font-semibold text-green-600 dark:text-green-400">
-                  {wpData?.plugins ? Object.keys(wpData.plugins).length : 
-                   (systemInfo?.plugins_count || 'N/A')}
-                </p>
+                {wpDataLoading ? (
+                  <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-12"></div>
+                ) : (
+                  <p className="text-lg font-semibold text-green-600 dark:text-green-400">
+                    {(wpData as any)?.plugins ? Object.keys((wpData as any).plugins).length : 
+                     systemInfo?.plugins_count || 
+                     ((website as any)?.connectionStatus !== 'connected' ? 'Not Connected' : '--')}
+                  </p>
+                )}
                 <p className="text-xs text-gray-500 dark:text-gray-600 mt-1">
                   Installed plugins
                 </p>
@@ -219,10 +228,15 @@ const getDatabaseVersion = (version: string) => {
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <p className="text-sm text-gray-600 dark:text-gray-400">Themes</p>
-                <p className="text-lg font-semibold text-purple-600 dark:text-purple-400">
-                  {wpData?.themes ? Object.keys(wpData.themes).length : 
-                   (systemInfo?.themes_count || 'N/A')}
-                </p>
+                {wpDataLoading ? (
+                  <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-12"></div>
+                ) : (
+                  <p className="text-lg font-semibold text-purple-600 dark:text-purple-400">
+                    {(wpData as any)?.themes ? Object.keys((wpData as any).themes).length : 
+                     systemInfo?.themes_count || 
+                     ((website as any)?.connectionStatus !== 'connected' ? 'Not Connected' : '--')}
+                  </p>
+                )}
                 <p className="text-xs text-gray-500 dark:text-gray-600 mt-1">
                   Available themes
                 </p>
@@ -238,13 +252,17 @@ const getDatabaseVersion = (version: string) => {
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <p className="text-sm text-gray-600 dark:text-gray-400">Status</p>
-                <p className={`text-lg font-semibold ${
-                  (website as any)?.connectionStatus === 'connected' 
-                    ? 'text-green-600 dark:text-green-400' 
-                    : 'text-red-600 dark:text-red-400'
-                }`}>
-                  {(website as any)?.connectionStatus === 'connected' ? 'Connected' : 'Offline'}
-                </p>
+                {wpDataLoading ? (
+                  <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-20"></div>
+                ) : (
+                  <p className={`text-lg font-semibold ${
+                    (website as any)?.connectionStatus === 'connected' 
+                      ? 'text-green-600 dark:text-green-400' 
+                      : 'text-red-600 dark:text-red-400'
+                  }`}>
+                    {(website as any)?.connectionStatus === 'connected' ? 'Connected' : 'Offline'}
+                  </p>
+                )}
                 <p className="text-xs text-gray-500 dark:text-gray-600 mt-1">
                   {(website as any)?.lastSync 
                     ? `Synced ${format(new Date((website as any).lastSync), 'MMM dd')}`
