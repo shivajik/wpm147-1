@@ -1,0 +1,110 @@
+analyse and understand the code of update theme and update plugin Here in the content there is no issue but in the back end is it has the issue the version is not getting updated and even I am getting the false messaging that the updated even the version is not change So first of all fix that version not updating problem
+ So first of all fix that version not updating problem
+
+in path websites/15 here 15 is if of website in the update section we have available updates the correct thing is that we are getting here the old and the new version
+That we're going to get but when I'm performing the Install or the download button then it is telling that the success but in reality it is not getting success
+The problem is that Heres the old and the new version is same even after the updates it means it is fail
+the activity I just performed and I get the response
+Request URL
+http://localhost:5000/api/websites/15/update-theme
+Referrer Policy
+no-referrer
+
+{
+"success": false,
+"message": "Theme Twenty Twenty-Five update failed - version did not change",
+"updateResult": {
+"success": false,
+"message": "No update available for this theme"
+},
+"logId": 169,
+"oldVersion": "1.0",
+"newVersion": "1.0",
+"verified": true
+}
+
+
+And also if it is really successful then the update locks API should give the proper log that the API is updated and the version should be different but here you can clearly see that dewang is in a deep dive take a deep dive in my coat understand the quotes and make the necessary changes so that it will work
+
+{
+"success": true,
+"message": "Plugin all-in-one-wp-migration/all-in-one-wp-migration.php updated successfully to version 7.95",
+"updateResult": {
+"success": true,
+"plugins": [],
+"themes": [],
+"maintenance_mode": false,
+"filesystem_initialized": true
+},
+"logId": 170,
+"oldVersion": "7.95",
+"newVersion": "7.95",
+"verified": true
+}
+
+also in other apis
+
+Request URL
+https://de3a9fc8-74bc-441f-bb26-6e053cbea98f-00-13r5psn1gmjne.janeway.replit.dev/api/websites/1/wrm/updates
+Request Method
+GET
+Status Code
+304 Not Modified
+Remote Address
+34.148.134.19:443
+Referrer Policy
+no-referrer
+
+{
+"wordpress": {
+"update_available": false
+},
+"plugins": [
+{
+"type": "plugin",
+"name": "All-in-One WP Migration and Backup",
+"current_version": "7.95",
+"new_version": "7.97",
+"package_url": "",
+"auto_update": false,
+"plugin": "all-in-one-wp-migration/all-in-one-wp-migration.php"
+}
+],
+"themes": [],
+"count": {
+"total": 1,
+"plugins": 1,
+"themes": 0,
+"core": 0
+}
+}
+
+also
+Request URL
+https://de3a9fc8-74bc-441f-bb26-6e053cbea98f-00-13r5psn1gmjne.janeway.replit.dev/api/websites/1/update-logs
+Request Method
+GET
+Status Code
+200 OK
+Remote Address
+34.148.134.19:443
+Referrer Policy
+no-referrer
+
+[
+{
+"id": 170,
+"websiteId": 1,
+"userId": 1,
+"updateType": "plugin",
+"itemName": "All-in-One WP Migration and Backup",
+"itemSlug": "all-in-one-wp-migration/all-in-one-wp-migration.php",
+"fromVersion": "7.95",
+"toVersion": "7.95",
+"updateStatus": "success",
+"errorMessage": null,
+"updateData": null,
+"duration": 9777,
+"automatedUpdate": false,
+"createdAt": "2025-08-20 04:29:53.621709+00"
+},
