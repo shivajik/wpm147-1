@@ -5178,34 +5178,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       const website = websiteResult[0];
       
-      // Get screenshot URL from cache or generate new one
-      let screenshotUrl = (website as any).screenshotUrl;
-      if (!screenshotUrl) {
-        // Check memory cache first
-        if ((global as any).screenshotUrlCache && (global as any).screenshotUrlCache.has(websiteId)) {
-          screenshotUrl = (global as any).screenshotUrlCache.get(websiteId);
-        } else {
-          // Generate screenshot URL on-the-fly
-          const screenshotAccessKey = 'hHY5I29lGy78hg';
-          const params = new URLSearchParams({
-            access_key: screenshotAccessKey,
-            url: website.url,
-            viewport_width: '1200',
-            viewport_height: '800',
-            device_scale_factor: '1',
-            format: 'png',
-            full_page: 'false',
-            block_ads: 'true',
-            block_cookie_banners: 'true',
-            cache: 'true',
-            cache_ttl: '86400'
-          });
-          screenshotUrl = `https://api.screenshotone.com/take?${params.toString()}`;
-        }
+      // ONLY serve cached thumbnails - never generate new ones automatically
+      let screenshotUrl = website.thumbnailUrl;
+      
+      // Check memory cache as fallback (but don't generate new ones)
+      if (!screenshotUrl && (global as any).screenshotUrlCache && (global as any).screenshotUrlCache.has(websiteId)) {
+        screenshotUrl = (global as any).screenshotUrlCache.get(websiteId);
       }
 
       if (!screenshotUrl) {
-        return res.status(404).json({ message: "No thumbnail available" });
+        // Return a placeholder or 404 - never generate new screenshots automatically
+        return res.status(404).json({ message: "No thumbnail available - use refresh button to generate" });
       }
 
       // Proxy the image from ScreenshotOne

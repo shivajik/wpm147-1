@@ -79,20 +79,20 @@ function WebsiteCard({ website, viewMode }: WebsiteCardProps) {
     },
   });
 
-  // Get thumbnail URL - use stored thumbnail or fallback to screenshot service
+  // Get thumbnail URL - use cached thumbnail only, never call external APIs directly
   const getThumbnailUrl = (website: Website) => {
     // Use proxy endpoint for thumbnails that have been refreshed
     if (website.thumbnailUrl && website.thumbnailUrl.startsWith('/api/thumbnails/')) {
       return website.thumbnailUrl;
     }
     
-    // For existing direct URLs or when thumbnail exists, use proxy
+    // For existing direct URLs, use proxy endpoint
     if (website.thumbnailUrl) {
       return `/api/thumbnails/${website.id}`;
     }
     
-    // Fallback to URL2PNG service for real website screenshots
-    return `https://api.url2png.com/v6/P4DE4C-55D9C7/png/?thumbnail_max_width=1200&thumbnail_max_height=800&url=${encodeURIComponent(website.url)}`;
+    // No external API calls - return null to show placeholder
+    return null;
   };
 
   const handleNavigateToMaintenance = () => {
@@ -154,17 +154,22 @@ function WebsiteCard({ website, viewMode }: WebsiteCardProps) {
       >
         {/* Website Screenshot/Icon */}
         <div className="relative w-16 h-12 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800 flex-shrink-0 mr-4">
-          <img 
-            src={getThumbnailUrl(website)} 
-            alt={website.name}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
-              target.nextElementSibling?.classList.remove('hidden');
-            }}
-          />
-          <div className="hidden w-full h-full flex items-center justify-center">
+          {getThumbnailUrl(website) ? (
+            <img 
+              src={getThumbnailUrl(website)!} 
+              alt={website.name}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                target.nextElementSibling?.classList.remove('hidden');
+              }}
+            />
+          ) : null}
+          <div className={cn(
+            "w-full h-full flex items-center justify-center",
+            getThumbnailUrl(website) ? "hidden" : ""
+          )}>
             <Globe className="h-6 w-6 text-slate-400" />
           </div>
         </div>
@@ -281,17 +286,23 @@ function WebsiteCard({ website, viewMode }: WebsiteCardProps) {
     >
       {/* Website Screenshot */}
       <div className="relative h-48 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 overflow-hidden">
-        <OptimizedImage
-          src={getThumbnailUrl(website)}
-          alt={website.name}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-          width={300}
-          height={192}
-          priority={false}
-          onError={() => {
-            // Error handling is built into OptimizedImage component
-          }}
-        />
+        {getThumbnailUrl(website) ? (
+          <OptimizedImage
+            src={getThumbnailUrl(website)!}
+            alt={website.name}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+            width={300}
+            height={192}
+            priority={false}
+            onError={() => {
+              // Error handling is built into OptimizedImage component
+            }}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <Globe className="h-12 w-12 text-slate-400" />
+          </div>
+        )}
         
         {/* Connection Status Indicator */}
         <div className="absolute top-3 left-3">
