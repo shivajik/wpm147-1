@@ -174,7 +174,27 @@ export const securityLogger = (req: Request, res: Response, next: NextFunction) 
   const userAgent = req.get('User-Agent');
   const ip = req.ip || req.connection.remoteAddress;
   
-  // Log suspicious patterns
+  // Skip security logging for development mode Vite requests
+  if (process.env.NODE_ENV === 'development') {
+    // Skip logging for Vite development server requests
+    const vitePatterns = [
+      /\/@fs\//,
+      /\/src\//,
+      /\/node_modules\//,
+      /\.(tsx?|jsx?|css|scss|less|vue)$/,
+      /\?v=[\w-]+$/,
+      /\/__vite/,
+      /@vite/,
+      /\.vite\//
+    ];
+    
+    const isViteRequest = vitePatterns.some(pattern => pattern.test(req.url));
+    if (isViteRequest) {
+      return next();
+    }
+  }
+  
+  // Log suspicious patterns (only in production or non-Vite requests in development)
   const suspiciousPatterns = [
     /\.(php|asp|jsp)$/i,
     /(union|select|insert|delete|update|drop|create|alter)/i,
