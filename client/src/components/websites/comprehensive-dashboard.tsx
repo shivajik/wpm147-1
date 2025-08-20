@@ -171,72 +171,92 @@ const getDatabaseVersion = (version: string) => {
 
       {/* Quick Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {/* WordPress Version Card */}
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <p className="text-sm text-gray-600 dark:text-gray-400">Health Score</p>
-                {healthScore && typeof healthScore === 'number' ? (
-                  <p className={`text-2xl font-bold ${getHealthColor(healthScore)}`}>
-                    {healthScore}%
-                  </p>
-                ) : (
-                  <div>
-                    <p className="text-lg font-semibold text-gray-400 dark:text-gray-500">
-                      {getEmptyStateDisplay('health').text}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-600 mt-1">
-                      {getEmptyStateDisplay('health').subtext}
-                    </p>
-                  </div>
-                )}
+                <p className="text-sm text-gray-600 dark:text-gray-400">WordPress</p>
+                <p className="text-lg font-semibold text-blue-600 dark:text-blue-400">
+                  {getValue(
+                    systemInfo?.wordpress_version || 
+                    (status as any)?.wordpress_version ||
+                    (website as any)?.wpVersion,
+                    'Not Connected'
+                  )}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-600 mt-1">
+                  Core version
+                </p>
               </div>
-              <Shield className={`h-8 w-8 ${healthScore && typeof healthScore === 'number' ? getHealthColor(healthScore) : getEmptyStateDisplay('health').icon}`} />
+              <Globe className="h-8 w-8 text-blue-500" />
             </div>
           </CardContent>
         </Card>
 
-
+        {/* Plugin Count Card */}
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <p className="text-sm text-gray-600 dark:text-gray-400">Uptime</p>
-                <div>
-                  <p className="text-lg font-semibold text-gray-400 dark:text-gray-500">
-                    {getEmptyStateDisplay('uptime').text}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-600 mt-1">
-                    {getEmptyStateDisplay('uptime').subtext}
-                  </p>
-                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Plugins</p>
+                <p className="text-lg font-semibold text-green-600 dark:text-green-400">
+                  {wpData?.plugins ? Object.keys(wpData.plugins).length : 
+                   (systemInfo?.plugins_count || 'N/A')}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-600 mt-1">
+                  Installed plugins
+                </p>
               </div>
-              <Activity className={`h-8 w-8 ${getEmptyStateDisplay('uptime').icon}`} />
+              <Zap className="h-8 w-8 text-green-500" />
             </div>
           </CardContent>
         </Card>
 
+        {/* Theme Count Card */}
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <p className="text-sm text-gray-600 dark:text-gray-400">Last Backup</p>
-                {(website as any)?.lastBackup ? (
-                  <p className="text-lg font-semibold text-green-600 dark:text-green-400">
-                    {format(new Date((website as any).lastBackup), 'MMM dd')}
-                  </p>
-                ) : (
-                  <div>
-                    <p className="text-lg font-semibold text-gray-400 dark:text-gray-500">
-                      {getEmptyStateDisplay('backup').text}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-600 mt-1">
-                      {getEmptyStateDisplay('backup').subtext}
-                    </p>
-                  </div>
-                )}
+                <p className="text-sm text-gray-600 dark:text-gray-400">Themes</p>
+                <p className="text-lg font-semibold text-purple-600 dark:text-purple-400">
+                  {wpData?.themes ? Object.keys(wpData.themes).length : 
+                   (systemInfo?.themes_count || 'N/A')}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-600 mt-1">
+                  Available themes
+                </p>
               </div>
-              <Database className={`h-8 w-8 ${(website as any)?.lastBackup ? 'text-purple-500' : getEmptyStateDisplay('backup').icon}`} />
+              <Eye className="h-8 w-8 text-purple-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Connection Status Card */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <p className="text-sm text-gray-600 dark:text-gray-400">Status</p>
+                <p className={`text-lg font-semibold ${
+                  (website as any)?.connectionStatus === 'connected' 
+                    ? 'text-green-600 dark:text-green-400' 
+                    : 'text-red-600 dark:text-red-400'
+                }`}>
+                  {(website as any)?.connectionStatus === 'connected' ? 'Connected' : 'Offline'}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-600 mt-1">
+                  {(website as any)?.lastSync 
+                    ? `Synced ${format(new Date((website as any).lastSync), 'MMM dd')}`
+                    : 'Never synced'
+                  }
+                </p>
+              </div>
+              <Activity className={`h-8 w-8 ${
+                (website as any)?.connectionStatus === 'connected' 
+                  ? 'text-green-500' 
+                  : 'text-red-500'
+              }`} />
             </div>
           </CardContent>
         </Card>
