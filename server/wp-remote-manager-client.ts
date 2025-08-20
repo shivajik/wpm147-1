@@ -1433,15 +1433,48 @@ export class WPRemoteManagerClient {
     const versionBefore = currentPlugin?.version;
     
     try {
-      // First try the WP Remote Manager plugin endpoint
-      const response = await this.api.post('/updates/perform', { 
-        type: 'plugins',
-        items: [plugin]
+      // First try the WP Remote Manager plugin-specific endpoint
+      console.log(`[WRM] Attempting plugin update via /updates/plugin endpoint for: ${plugin}`);
+      const response = await this.api.post('/updates/plugin', { 
+        plugin: plugin,
+        version: 'latest'
       }, {
         timeout: 240000 // 4 minutes for plugin updates
       });
+      
+      console.log(`[WRM] Plugin update response:`, JSON.stringify(response.data, null, 2));
       return response.data;
     } catch (primaryError: any) {
+      // If /updates/plugin endpoint doesn't exist, try the bulk updates endpoint with proper format
+      if (primaryError.response?.status === 404) {
+        console.log(`[WRM] Individual plugin endpoint not found, trying bulk updates endpoint...`);
+        try {
+          const bulkResponse = await this.api.post('/updates/perform', { 
+            plugins: [plugin]  // Try the correct plugins array format
+          }, {
+            timeout: 240000
+          });
+          console.log(`[WRM] Bulk update response:`, JSON.stringify(bulkResponse.data, null, 2));
+          return bulkResponse.data;
+        } catch (bulkError: any) {
+          console.log(`[WRM] Bulk endpoint also failed, trying alternative format...`);
+          try {
+            // Try another common format
+            const altResponse = await this.api.post('/updates/perform', { 
+              type: 'plugin',
+              plugin: plugin
+            }, {
+              timeout: 240000
+            });
+            console.log(`[WRM] Alternative format response:`, JSON.stringify(altResponse.data, null, 2));
+            return altResponse.data;
+          } catch (altError: any) {
+            console.log(`[WRM] All WRM endpoints failed, falling back to WordPress core API...`);
+            return await this.updatePluginViaWordPressAPI(plugin, versionBefore);
+          }
+        }
+      }
+      
       // If plugin endpoint fails due to permissions, try WordPress core REST API directly
       if (primaryError.response?.status === 403 || primaryError.response?.status === 401) {
         console.log(`[WRM] Plugin endpoint failed with permission error, trying WordPress core API...`);
