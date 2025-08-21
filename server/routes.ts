@@ -2301,8 +2301,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       try {
         updatesData = await wrmClient.getUpdates();
-        pluginUpdate = updatesData.plugins?.find((p: any) => p.plugin_file === plugin || p.plugin === plugin || p.name === plugin);
-        // pluginUpdate = updatesData.plugins?.find((p: any) => p.plugin === plugin || p.name === plugin);
+        pluginUpdate = updatesData.plugins?.find((p: any) => {
+          // Try multiple matching strategies
+          return p.plugin_file === plugin || 
+                 p.plugin === plugin || 
+                 p.name === plugin ||
+                 (p.plugin && p.plugin.includes(plugin)) ||
+                 (plugin && plugin.includes(p.plugin)) ||
+                 (p.slug && p.slug === plugin.split('/')[0]);
+        });
         console.log(`[PLUGIN UPDATE] Updates data fetched, found plugin update:`, pluginUpdate ? 'YES' : 'NO');
       } catch (updatesError) {
         console.error(`[PLUGIN UPDATE] Error fetching updates:`, updatesError);
@@ -2310,18 +2317,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       try {
         const pluginsData = await wrmClient.getPlugins();
-        currentPlugin = pluginsData.find((p: any) => p.plugin === plugin || p.name === plugin ||(p.plugin && p.plugin.includes(plugin)) ||(plugin && plugin.includes(p.plugin)));
-        // currentPlugin = pluginsData.find((p: any) => p.plugin === plugin || p.name === plugin);
+        currentPlugin = pluginsData.find((p: any) => {
+          return p.plugin === plugin || 
+                 p.name === plugin ||
+                 (p.plugin && p.plugin.includes(plugin)) ||
+                 (plugin && plugin.includes(p.plugin)) ||
+                 (p.slug && p.slug === plugin.split('/')[0]);
+        });
         console.log(`[PLUGIN UPDATE] Current plugin data fetched:`, currentPlugin ? 'YES' : 'NO');
       } catch (pluginDataError) {
         console.error(`[PLUGIN UPDATE] Error fetching current plugin data:`, pluginDataError);
       }
 
-      // Determine version information
-      const fromVersion = (pluginUpdate as any)?.current_version || currentPlugin?.version || "unknown";
-      const toVersion = (pluginUpdate as any)?.new_version || "latest";
-      const itemName = currentPlugin?.name || (pluginUpdate as any)?.name || plugin;
-      
+      // Enhanced version detection with better fallbacks
+      let fromVersion = "unknown";
+      let toVersion = "unknown";
+      let itemName = plugin;
+
+      // Try to get version from pluginUpdate first
+      if (pluginUpdate) {
+        fromVersion = pluginUpdate.current_version || pluginUpdate.version || fromVersion;
+        toVersion = pluginUpdate.new_version || toVersion;
+        itemName = pluginUpdate.name || pluginUpdate.plugin || itemName;
+      }
+
+      // If still unknown, try from currentPlugin
+      if (fromVersion === "unknown" && currentPlugin) {
+        fromVersion = currentPlugin.version || currentPlugin.current_version || fromVersion;
+        itemName = currentPlugin.name || currentPlugin.plugin || itemName;
+      }
+
+      // If we have a pluginUpdate but no toVersion, try to infer it
+      if (toVersion === "unknown" && pluginUpdate && pluginUpdate.package) {
+        // Extract version from package URL if available
+        const versionMatch = pluginUpdate.package.match(/(\d+\.\d+(\.\d+)*)\.zip$/);
+        if (versionMatch) {
+          toVersion = versionMatch[1];
+        }
+      }
+
       console.log(`[PLUGIN UPDATE] Version mapping: ${fromVersion} → ${toVersion}`);
       console.log(`[PLUGIN UPDATE] Item name: ${itemName}`);
       
@@ -2333,8 +2367,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updateType: "plugin",
         itemName,
         itemSlug: plugin,
-        fromVersion: fromVersion,
-        toVersion: toVersion,
+        fromVersion,
+        toVersion,
         updateStatus: "pending",
         automatedUpdate: false
       });
@@ -2349,7 +2383,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // The updateSinglePlugin method now includes built-in verification for timeouts
         let actualUpdateSuccess = updateResult.success;
-        let actualNewVersion = pluginUpdate?.new_version || "latest";
+        let actualNewVersion = toVersion; // Use the detected toVersion as fallback
         
         // If the update succeeded or was verified despite timeout, get the actual new version
         if (actualUpdateSuccess) {
@@ -2429,7 +2463,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log(`Plugin update verification: ${plugin}`);
             console.log(`  Old version: ${oldVersion}`);
             console.log(`  New version: ${actualNewVersion}`);
-            console.log(`  Expected new version: ${pluginUpdate?.new_version || "unknown"}`);
+            console.log(`  Expected new version: ${toVersion}`);
             console.log(`  Update successful: ${actualUpdateSuccess}`);
           } else {
             console.warn(`Could not find updated plugin data for: ${plugin}`);
@@ -2446,14 +2480,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Determine the final toVersion with enhanced logic
         const finalToVersion = actualNewVersion !== "unknown" 
           ? actualNewVersion 
-          : (pluginUpdate?.new_version || toVersion);
+          : toVersion;
 
         console.log(`=== FINAL LOG UPDATE SUMMARY ===`);
         console.log(`Log ID: ${updateLog.id}`);
         console.log(`Plugin: ${plugin}`);
         console.log(`Original fromVersion: ${fromVersion}`);
         console.log(`Detected newVersion: ${actualNewVersion}`);
-        console.log(`Expected newVersion: ${pluginUpdate?.new_version || "unknown"}`);
+        console.log(`Expected newVersion: ${toVersion}`);
         console.log(`Final toVersion: ${finalToVersion}`);
         console.log(`Update Success: ${actualUpdateSuccess}`);
         console.log(`================================`);
@@ -2464,7 +2498,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           updateData: updateResult,
           duration,
           toVersion: finalToVersion,
-          errorMessage: actualUpdateSuccess ? undefined : `Update completed but plugin version did not change (expected: ${pluginUpdate?.new_version || "newer version"})`
+          errorMessage: actualUpdateSuccess ? undefined : `Update completed but plugin version did not change (expected: ${toVersion})`
         });
 
         // Create notification for update completion
@@ -2477,7 +2511,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             title: actualUpdateSuccess ? "Plugin Update Completed" : "Plugin Update Failed",
             message: actualUpdateSuccess 
               ? `${pluginDisplayName} has been successfully updated from version ${fromVersion} to ${finalToVersion} on ${website.name}.`
-              : `Failed to update ${pluginDisplayName} on ${website.name}. ${pluginUpdate?.new_version || "newer version"} was expected but version did not change.`,
+              : `Failed to update ${pluginDisplayName} on ${website.name}. ${toVersion} was expected but version did not change.`,
             actionUrl: `/websites/${websiteId}/updates`
           });
           console.log(`Notification created for plugin update: ${actualUpdateSuccess ? 'success' : 'failed'}`);
@@ -2490,6 +2524,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           lastUpdate: new Date()
         }, userId);
 
+        // FIXED: Use the properly detected fromVersion instead of currentPlugin?.version
         res.json({ 
           success: actualUpdateSuccess, 
           message: actualUpdateSuccess 
@@ -2497,7 +2532,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             : `Plugin ${plugin} update failed - version did not change`,
           updateResult,
           logId: updateLog.id,
-          oldVersion: currentPlugin?.version || "unknown",
+          oldVersion: fromVersion, // Use fromVersion instead of currentPlugin?.version
           newVersion: actualNewVersion,
           verified: true
         });
