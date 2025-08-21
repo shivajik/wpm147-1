@@ -2331,8 +2331,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updateType: "plugin",
         itemName,
         itemSlug: plugin,
-        fromVersion: fromVersion,
-        toVersion: toVersion,
+        fromVersion,
+        toVersion,
         updateStatus: "pending",
         automatedUpdate: false
       });
