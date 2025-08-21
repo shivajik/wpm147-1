@@ -2301,7 +2301,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       try {
         updatesData = await wrmClient.getUpdates();
-        pluginUpdate = updatesData.plugins?.find((p: any) => p.plugin === plugin || p.name === plugin);
+        pluginUpdate = updatesData.plugins?.find((p: any) => p.plugin_file === plugin || p.plugin === plugin || p.name === plugin);
+        // pluginUpdate = updatesData.plugins?.find((p: any) => p.plugin === plugin || p.name === plugin);
         console.log(`[PLUGIN UPDATE] Updates data fetched, found plugin update:`, pluginUpdate ? 'YES' : 'NO');
       } catch (updatesError) {
         console.error(`[PLUGIN UPDATE] Error fetching updates:`, updatesError);
@@ -2309,12 +2310,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       try {
         const pluginsData = await wrmClient.getPlugins();
-        currentPlugin = pluginsData.find((p: any) => p.plugin === plugin || p.name === plugin);
+        currentPlugin = pluginsData.find((p: any) => p.plugin === plugin || p.name === plugin ||(p.plugin && p.plugin.includes(plugin)) ||(plugin && plugin.includes(p.plugin)));
+        // currentPlugin = pluginsData.find((p: any) => p.plugin === plugin || p.name === plugin);
         console.log(`[PLUGIN UPDATE] Current plugin data fetched:`, currentPlugin ? 'YES' : 'NO');
       } catch (pluginDataError) {
         console.error(`[PLUGIN UPDATE] Error fetching current plugin data:`, pluginDataError);
       }
-      
+
       // Determine version information
       const fromVersion = (pluginUpdate as any)?.current_version || currentPlugin?.version || "unknown";
       const toVersion = (pluginUpdate as any)?.new_version || "latest";
@@ -2324,7 +2326,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`[PLUGIN UPDATE] Item name: ${itemName}`);
       
       // Create initial log entry
-      console.log(`[PLUGIN UPDATE] Creating log entry...`);
+      console.log(`[PLUGIN UPDATE] Creating log entry...fromVersion → toVersion ${fromVersion} → ${toVersion}`);
       const updateLog = await storage.createUpdateLog({
         websiteId,
         userId,
