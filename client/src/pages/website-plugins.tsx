@@ -139,9 +139,11 @@ export default function WebsitePlugins() {
   // Fetch WRM plugins data separately
   const { data: wrmPlugins, isLoading: pluginsLoading, error: pluginsError, refetch: refetchPlugins } = useQuery<any[]>({
     queryKey: ['/api/websites', websiteId, 'wrm-plugins'],
-    enabled: !!websiteId && !!website,
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    retry: false, // Don't retry to see actual errors
+    enabled: !!websiteId && !!website && website.connectionStatus === 'connected',
+    staleTime: 1 * 60 * 1000, // 1 minute for more frequent updates
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
+    retry: 2, // Allow 2 retries for transient errors
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
   });
 
   // Debug log to check website data
@@ -250,11 +252,13 @@ export default function WebsitePlugins() {
     }
   });
 
-  if (isLoading || pluginsLoading) {
+  // Show loading state while website data or plugins are loading
+  if (isLoading) {
     return (
       <AppLayout title="Loading..." defaultOpen={false}>
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-3 text-gray-600">Loading website data...</span>
         </div>
       </AppLayout>
     );
@@ -380,10 +384,16 @@ export default function WebsitePlugins() {
 
   // Handle both array format and object format from WRM API using safe parser
   const parsedWRMData = safeParseWRMResponse(wrmPlugins);
-  const plugins = parsedWRMData.data;
+  const plugins = parsedWRMData.data || [];
       
   console.log('Processed plugins array:', plugins);
   console.log('Processed plugins length:', plugins.length);
+  
+  // Calculate plugin statistics with fallbacks
+  const totalPlugins = Array.isArray(plugins) ? plugins.length : 0;
+  const activePlugins = Array.isArray(plugins) ? plugins.filter((p: any) => p && p.active).length : 0;
+  const inactivePlugins = Array.isArray(plugins) ? plugins.filter((p: any) => p && !p.active).length : 0;
+  const pluginsWithUpdates = Array.isArray(plugins) ? plugins.filter((p: any) => p && p.update_available).length : 0;
   const filteredPlugins = Array.isArray(plugins) ? plugins.filter((plugin: any) => {
     if (!plugin || !plugin.name) return false;
     const matchesSearch = plugin.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -524,6 +534,21 @@ export default function WebsitePlugins() {
           </TabsList>
 
           <TabsContent value="plugins" className="space-y-6">
+            {/* Plugin Data Refresh Button */}
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Plugin Statistics</h2>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => refetchPlugins()}
+                disabled={pluginsLoading}
+                data-testid="button-refresh-plugins"
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${pluginsLoading ? 'animate-spin' : ''}`} />
+                {pluginsLoading ? 'Refreshing...' : 'Refresh Data'}
+              </Button>
+            </div>
+
             {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <Card>
@@ -531,7 +556,14 @@ export default function WebsitePlugins() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Plugins</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{plugins.length}</p>
+                  {pluginsLoading ? (
+                    <div className="flex items-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                      <span className="text-sm text-gray-500">Loading...</span>
+                    </div>
+                  ) : (
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white" data-testid="count-total-plugins">{totalPlugins}</p>
+                  )}
                 </div>
                 <FileText className="h-8 w-8 text-blue-600" />
               </div>
@@ -543,9 +575,14 @@ export default function WebsitePlugins() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Active</p>
-                  <p className="text-2xl font-bold text-green-600">
-                    {Array.isArray(plugins) ? plugins.filter((p: any) => p && p.active).length : 0}
-                  </p>
+                  {pluginsLoading ? (
+                    <div className="flex items-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 mr-2"></div>
+                      <span className="text-sm text-gray-500">Loading...</span>
+                    </div>
+                  ) : (
+                    <p className="text-2xl font-bold text-green-600" data-testid="count-active-plugins">{activePlugins}</p>
+                  )}
                 </div>
                 <CheckCircle className="h-8 w-8 text-green-600" />
               </div>
@@ -557,9 +594,14 @@ export default function WebsitePlugins() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Inactive</p>
-                  <p className="text-2xl font-bold text-gray-600">
-                    {Array.isArray(plugins) ? plugins.filter((p: any) => p && !p.active).length : 0}
-                  </p>
+                  {pluginsLoading ? (
+                    <div className="flex items-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mr-2"></div>
+                      <span className="text-sm text-gray-500">Loading...</span>
+                    </div>
+                  ) : (
+                    <p className="text-2xl font-bold text-gray-600" data-testid="count-inactive-plugins">{inactivePlugins}</p>
+                  )}
                 </div>
                 <XCircle className="h-8 w-8 text-gray-400" />
               </div>
@@ -571,9 +613,14 @@ export default function WebsitePlugins() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Updates Available</p>
-                  <p className="text-2xl font-bold text-orange-600">
-                    {Array.isArray(plugins) ? plugins.filter((p: any) => p && p.update_available).length : 0}
-                  </p>
+                  {pluginsLoading ? (
+                    <div className="flex items-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-600 mr-2"></div>
+                      <span className="text-sm text-gray-500">Loading...</span>
+                    </div>
+                  ) : (
+                    <p className="text-2xl font-bold text-orange-600" data-testid="count-updates-available">{pluginsWithUpdates}</p>
+                  )}
                 </div>
                 <RefreshCw className="h-8 w-8 text-orange-600" />
               </div>
