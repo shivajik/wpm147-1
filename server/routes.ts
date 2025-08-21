@@ -2316,7 +2316,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Determine version information
-      const fromVersion = currentPlugin?.version || (pluginUpdate as any)?.current_version || "unknown";
+      const fromVersion = (pluginUpdate as any)?.current_version || currentPlugin?.version || "unknown";
       const toVersion = (pluginUpdate as any)?.new_version || "latest";
       const itemName = currentPlugin?.name || (pluginUpdate as any)?.name || plugin;
       
@@ -2331,8 +2331,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updateType: "plugin",
         itemName,
         itemSlug: plugin,
-        fromVersion: fromVersion,
-        toVersion: toVersion,
+        fromVersion,
+        toVersion,
         updateStatus: "pending",
         automatedUpdate: false
       });
