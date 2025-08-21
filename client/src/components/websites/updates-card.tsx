@@ -386,7 +386,7 @@ export default function UpdatesCard({ websiteId }: UpdatesCardProps) {
           ) : null;
           return {
             ...plugin,
-            current_version: plugin.current_version || currentPlugin?.version || 'Unknown',
+            current_version: currentPlugin?.version || plugin.current_version || 'Unknown',
             slug: plugin.name || plugin.slug
           };
         }).filter(Boolean); // Remove any null entries
