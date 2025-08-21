@@ -351,6 +351,25 @@ export class SecurityScanner {
     console.log(`[SECURITY] Scanning for vulnerabilities...`);
     
     try {
+      // First try to get real WordPress data from WRM if available
+      let wrmUpdateData: any = null;
+      
+      try {
+        const website = await storage.getWebsite(this.websiteId, this.userId);
+        if (website?.wrmApiKey && website?.url) {
+          const { WPRemoteManagerClient } = await import('./wp-remote-manager-client.js');
+          const wrmClient = new WPRemoteManagerClient({
+            url: website.url,
+            apiKey: website.wrmApiKey
+          });
+          
+          wrmUpdateData = await wrmClient.getUpdates();
+          console.log('[SECURITY] Checking WRM updates for vulnerabilities:', wrmUpdateData);
+        }
+      } catch (wrmError) {
+        console.log('[SECURITY] WRM data not available, falling back to content analysis:', wrmError instanceof Error ? wrmError.message : 'Unknown error');
+      }
+
       const response = await axios.get(this.url, {
         timeout: 30000,
         headers: {
@@ -366,65 +385,119 @@ export class SecurityScanner {
       let themeVulnerabilities = 0;
       const outdatedSoftware: string[] = [];
 
-      // Check for WordPress version disclosure
-      const wpVersionMeta = $('meta[name="generator"]').attr('content');
-      if (wpVersionMeta && wpVersionMeta.includes('WordPress')) {
-        const versionMatch = wpVersionMeta.match(/WordPress\s+([\d.]+)/);
-        if (versionMatch) {
-          const version = versionMatch[1];
-          // Check if version is outdated (simple check - in production use CVE database)
-          const versionParts = version.split('.').map(Number);
-          if (versionParts[0] < 6 || (versionParts[0] === 6 && versionParts[1] < 4)) {
-            coreVulnerabilities++;
-            outdatedSoftware.push(`WordPress ${version} (outdated)`);
-          }
+      // Check WRM data for real vulnerabilities first
+      if (wrmUpdateData) {
+        console.log(`[SECURITY] Found ${wrmUpdateData.plugins?.length || 0} core, ${wrmUpdateData.plugins?.length || 0} plugin, ${wrmUpdateData.themes?.length || 0} theme vulnerabilities from WRM data`);
+        
+        // WordPress core vulnerabilities
+        if (wrmUpdateData.wordpress?.update_available) {
+          coreVulnerabilities++;
+          outdatedSoftware.push(`WordPress ${wrmUpdateData.wordpress.current_version || 'Unknown'} (update available)`);
         }
+        
+        // Plugin vulnerabilities
+        if (wrmUpdateData.plugins && Array.isArray(wrmUpdateData.plugins)) {
+          pluginVulnerabilities = wrmUpdateData.plugins.length;
+          wrmUpdateData.plugins.forEach((plugin: any) => {
+            outdatedSoftware.push(`Plugin: ${plugin.name || plugin.plugin} (${plugin.current_version || 'Unknown'} → ${plugin.new_version || 'Latest'})`);
+          });
+        }
+        
+        // Theme vulnerabilities
+        if (wrmUpdateData.themes && Array.isArray(wrmUpdateData.themes)) {
+          themeVulnerabilities = wrmUpdateData.themes.length;
+          wrmUpdateData.themes.forEach((theme: any) => {
+            outdatedSoftware.push(`Theme: ${theme.name || theme.theme} (${theme.current_version || 'Unknown'} → ${theme.new_version || 'Latest'})`);
+          });
+        }
+        
+        console.log(`[SECURITY] Total vulnerabilities found: ${coreVulnerabilities} core, ${pluginVulnerabilities} plugins, ${themeVulnerabilities} themes`);
       }
 
-      // Check for plugin version disclosures
-      const pluginLinks = $('link[href*="/wp-content/plugins/"]');
-      const pluginUrls = new Set<string>();
-      
-      pluginLinks.each((_, element) => {
-        const href = $(element).attr('href');
-        if (href) {
-          const pluginMatch = href.match(/\/wp-content\/plugins\/([^\/]+)/);
-          if (pluginMatch) {
-            pluginUrls.add(pluginMatch[1]);
+      // Fallback to content analysis if WRM data is not available
+      if (!wrmUpdateData) {
+        console.log('[SECURITY] Using content analysis for vulnerability detection');
+        
+        // Check for WordPress version disclosure
+        const wpVersionMeta = $('meta[name="generator"]').attr('content');
+        if (wpVersionMeta && wpVersionMeta.includes('WordPress')) {
+          const versionMatch = wpVersionMeta.match(/WordPress\s+([\d.]+)/);
+          if (versionMatch) {
+            const version = versionMatch[1];
+            // Check if version is outdated (WordPress versions older than 6.4 are considered outdated)
+            const versionParts = version.split('.').map(Number);
+            if (versionParts[0] < 6 || (versionParts[0] === 6 && versionParts[1] < 4)) {
+              coreVulnerabilities++;
+              outdatedSoftware.push(`WordPress ${version} (outdated - current is 6.8+)`);
+            }
           }
         }
-      });
 
-      // Simulate vulnerability check for detected plugins
-      pluginUrls.forEach(plugin => {
-        // In production, check against vulnerability databases
-        if (Math.random() < 0.3) { // 30% chance of vulnerability for demo
-          pluginVulnerabilities++;
-          outdatedSoftware.push(`Plugin: ${plugin}`);
-        }
-      });
-
-      // Check for theme disclosures
-      const themeLinks = $('link[href*="/wp-content/themes/"]');
-      const themeUrls = new Set<string>();
-      
-      themeLinks.each((_, element) => {
-        const href = $(element).attr('href');
-        if (href) {
-          const themeMatch = href.match(/\/wp-content\/themes\/([^\/]+)/);
-          if (themeMatch && themeMatch[1] !== 'twentytwentyfour' && themeMatch[1] !== 'twentytwentythree') {
-            themeUrls.add(themeMatch[1]);
+        // Check for plugin version disclosures
+        const pluginLinks = $('link[href*="/wp-content/plugins/"]');
+        const pluginUrls = new Set<string>();
+        
+        pluginLinks.each((_, element) => {
+          const href = $(element).attr('href');
+          if (href) {
+            const pluginMatch = href.match(/\/wp-content\/plugins\/([^\/]+)/);
+            if (pluginMatch) {
+              pluginUrls.add(pluginMatch[1]);
+            }
           }
-        }
-      });
+        });
 
-      // Check themes for vulnerabilities
-      themeUrls.forEach(theme => {
-        if (Math.random() < 0.2) { // 20% chance of vulnerability for demo
-          themeVulnerabilities++;
-          outdatedSoftware.push(`Theme: ${theme}`);
-        }
-      });
+        // Check for plugin vulnerabilities based on known vulnerable plugins
+        const knownVulnerablePlugins = [
+          'revolution-slider', 'revslider', 'wp-file-manager', 'file-manager',
+          'duplicate-post', 'wp-fastest-cache', 'contact-form-7-old',
+          'elementor-old', 'yoast-seo-old', 'updraftplus-old'
+        ];
+        
+        pluginUrls.forEach(plugin => {
+          // Check against known vulnerable plugins list
+          const isKnownVulnerable = knownVulnerablePlugins.some(vuln => 
+            plugin.toLowerCase().includes(vuln.toLowerCase())
+          );
+          
+          if (isKnownVulnerable) {
+            pluginVulnerabilities++;
+            outdatedSoftware.push(`Plugin: ${plugin} (known vulnerabilities)`);
+          }
+        });
+
+        // Check for theme disclosures
+        const themeLinks = $('link[href*="/wp-content/themes/"]');
+        const themeUrls = new Set<string>();
+        
+        themeLinks.each((_, element) => {
+          const href = $(element).attr('href');
+          if (href) {
+            const themeMatch = href.match(/\/wp-content\/themes\/([^\/]+)/);
+            if (themeMatch && themeMatch[1] !== 'twentytwentyfour' && themeMatch[1] !== 'twentytwentythree') {
+              themeUrls.add(themeMatch[1]);
+            }
+          }
+        });
+
+        // Check for theme vulnerabilities based on known vulnerable themes
+        const knownVulnerableThemes = [
+          'total-old', 'newspaper-old', 'enfold-old', 'avada-old',
+          'x-theme-old', 'bridge-old', 'betheme-old', 'flatsome-old'
+        ];
+        
+        themeUrls.forEach(theme => {
+          // Check against known vulnerable themes list
+          const isKnownVulnerable = knownVulnerableThemes.some(vuln => 
+            theme.toLowerCase().includes(vuln.toLowerCase())
+          );
+          
+          if (isKnownVulnerable) {
+            themeVulnerabilities++;
+            outdatedSoftware.push(`Theme: ${theme} (known vulnerabilities)`);
+          }
+        });
+      }
 
       // Calculate security score based on findings
       const totalVulnerabilities = coreVulnerabilities + pluginVulnerabilities + themeVulnerabilities;
@@ -524,14 +597,30 @@ export class SecurityScanner {
         }
       });
 
-      // Simulate file permission checks
-      if (Math.random() < 0.3) {
-        filePermissionIssues.push('wp-config.php permissions too open');
+      // Check for common file permission indicators in content
+      // Look for directory listing or exposed config files
+      if (content.includes('Index of /') || content.includes('Directory Listing')) {
+        filePermissionIssues.push('Directory listing exposed');
       }
       
-      if (Math.random() < 0.2) {
-        filePermissionIssues.push('.htaccess writable by group');
+      if (content.includes('wp-config.php') && !content.includes('<?php')) {
+        filePermissionIssues.push('wp-config.php potentially exposed');
       }
+      
+      // Check for common backup file patterns that shouldn't be accessible
+      const backupPatterns = [
+        /wp-config\.php\.bak/i,
+        /wp-config\.php\.backup/i,
+        /wp-config\.php\.old/i,
+        /\.sql/i,
+        /database\.sql/i
+      ];
+      
+      backupPatterns.forEach(pattern => {
+        if (pattern.test(content)) {
+          filePermissionIssues.push('Backup files potentially exposed');
+        }
+      });
 
       return {
         core_files_modified: coreFilesModified,
@@ -614,8 +703,12 @@ export class SecurityScanner {
                              !content.includes('author/admin') ||
                              !content.includes('user_login=admin');
 
-      // File permissions check (simulated)
-      const filePermissionsSecure = Math.random() > 0.3; // 70% chance secure
+      // File permissions check based on actual indicators
+      const filePermissionsSecure = !content.includes('Index of /') && 
+                                   !content.includes('Directory Listing') &&
+                                   !content.includes('wp-config.php') &&
+                                   !content.includes('.sql') &&
+                                   !content.includes('database.sql');
 
       return {
         file_permissions_secure: filePermissionsSecure,
