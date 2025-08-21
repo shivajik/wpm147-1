@@ -116,7 +116,7 @@ export default function ClientReports() {
           <div>
             <h1 className="text-3xl font-bold">Client Reports</h1>
             <p className="text-muted-foreground">
-              Create and manage professional client reports with security, SEO, performance, and update insights.
+              Create and manage professional client reports with security, SEO, performance, and update insights with KSoft Solution. 
             </p>
           </div>
           <div className="flex gap-2">
