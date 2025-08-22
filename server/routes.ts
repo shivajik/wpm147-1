@@ -2622,23 +2622,69 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
 
       // Enhanced plugin matching function
       const findPluginMatch = (pluginList: any[], targetPlugin: string) => {
-        return pluginList.find((p: any) => {
+        console.log(`[PLUGIN MATCH] Looking for plugin: ${targetPlugin} in list of ${pluginList.length} plugins`);
+        
+        const match = pluginList.find((p: any) => {
+          // Log each plugin being checked
+          console.log(`[PLUGIN MATCH] Checking plugin:`, {
+            plugin: p.plugin || p.plugin_file || 'N/A',
+            name: p.name || 'N/A',
+            slug: p.slug || 'N/A',
+            version: p.version || p.current_version || 'N/A'
+          });
+          
           // Direct matches
           if (p.plugin === targetPlugin || p.name === targetPlugin || p.slug === targetPlugin) {
+            console.log(`[PLUGIN MATCH] ✅ Direct match found: ${p.plugin || p.name || p.slug}`);
+            return true;
+          }
+          
+          // Check plugin_file field as well (some APIs use this)
+          if (p.plugin_file === targetPlugin) {
+            console.log(`[PLUGIN MATCH] ✅ Plugin file match found: ${p.plugin_file}`);
             return true;
           }
           
           // Partial matches
-          if (p.plugin && p.plugin.includes(targetPlugin)) return true;
-          if (targetPlugin && targetPlugin.includes(p.plugin)) return true;
+          if (p.plugin && p.plugin.includes(targetPlugin)) {
+            console.log(`[PLUGIN MATCH] ✅ Partial match (plugin contains target): ${p.plugin}`);
+            return true;
+          }
+          if (targetPlugin && targetPlugin.includes(p.plugin)) {
+            console.log(`[PLUGIN MATCH] ✅ Partial match (target contains plugin): ${p.plugin}`);
+            return true;
+          }
           
           // Slug comparison (for plugin paths like 'js_composer/js_composer.php')
           const targetSlug = targetPlugin.includes('/') ? targetPlugin.split('/')[0] : targetPlugin;
-          const pluginSlug = p.plugin && p.plugin.includes('/') ? p.plugin.split('/')[0] : p.plugin;
-          if (p.slug === targetSlug || pluginSlug === targetSlug) return true;
+          const pluginSlug = (p.plugin && p.plugin.includes('/')) ? p.plugin.split('/')[0] : 
+                            (p.plugin_file && p.plugin_file.includes('/')) ? p.plugin_file.split('/')[0] : 
+                            p.plugin || p.plugin_file;
+          
+          if (p.slug === targetSlug || pluginSlug === targetSlug) {
+            console.log(`[PLUGIN MATCH] ✅ Slug match found: ${p.slug || pluginSlug} matches ${targetSlug}`);
+            return true;
+          }
           
           return false;
         });
+        
+        if (match) {
+          console.log(`[PLUGIN MATCH] ✅ Final match found:`, {
+            plugin: match.plugin || match.plugin_file,
+            name: match.name,
+            version: match.version || match.current_version
+          });
+        } else {
+          console.log(`[PLUGIN MATCH] ❌ No match found for ${targetPlugin}`);
+          console.log(`[PLUGIN MATCH] Available plugins:`, pluginList.map(p => ({
+            plugin: p.plugin || p.plugin_file,
+            name: p.name,
+            slug: p.slug
+          })));
+        }
+        
+        return match;
       };
 
       // Get version information before update
@@ -2685,28 +2731,58 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
       let itemName = plugin;
       let actualPluginPath = plugin;
 
+      console.log(`[VERSION DETECTION] Starting version detection for plugin: ${plugin}`);
+      console.log(`[VERSION DETECTION] pluginUpdate available:`, !!pluginUpdate);
+      console.log(`[VERSION DETECTION] currentPlugin available:`, !!currentPlugin);
+
       // Priority 1: Get data from pluginUpdate
       if (pluginUpdate) {
+        console.log(`[VERSION DETECTION] Raw pluginUpdate data:`, {
+          current_version: pluginUpdate.current_version,
+          version: pluginUpdate.version,
+          new_version: pluginUpdate.new_version,
+          name: pluginUpdate.name,
+          plugin: pluginUpdate.plugin,
+          plugin_file: pluginUpdate.plugin_file,
+          slug: pluginUpdate.slug
+        });
+        
         fromVersion = pluginUpdate.current_version || pluginUpdate.version || fromVersion;
         toVersion = pluginUpdate.new_version || toVersion;
-        itemName = pluginUpdate.name || pluginUpdate.plugin || itemName;
-        actualPluginPath = pluginUpdate.plugin || pluginUpdate.slug || actualPluginPath;
+        itemName = pluginUpdate.name || pluginUpdate.plugin || pluginUpdate.plugin_file || itemName;
+        actualPluginPath = pluginUpdate.plugin || pluginUpdate.plugin_file || pluginUpdate.slug || actualPluginPath;
         
-        console.log(`[PLUGIN UPDATE] From pluginUpdate - fromVersion: ${fromVersion}, toVersion: ${toVersion}`);
+        console.log(`[VERSION DETECTION] From pluginUpdate - fromVersion: ${fromVersion}, toVersion: ${toVersion}`);
       }
 
       // Priority 2: Get current version from currentPlugin if still unknown
       if (fromVersion === "unknown" && currentPlugin) {
-        fromVersion = currentPlugin.version || currentPlugin.current_version || fromVersion;
-        itemName = currentPlugin.name || currentPlugin.plugin || itemName;
-        actualPluginPath = currentPlugin.plugin || currentPlugin.slug || actualPluginPath;
+        console.log(`[VERSION DETECTION] Raw currentPlugin data:`, {
+          version: currentPlugin.version,
+          current_version: currentPlugin.current_version,
+          name: currentPlugin.name,
+          plugin: currentPlugin.plugin,
+          plugin_file: currentPlugin.plugin_file,
+          slug: currentPlugin.slug
+        });
         
-        console.log(`[PLUGIN UPDATE] From currentPlugin - fromVersion: ${fromVersion}`);
+        fromVersion = currentPlugin.version || currentPlugin.current_version || fromVersion;
+        itemName = currentPlugin.name || currentPlugin.plugin || currentPlugin.plugin_file || itemName;
+        actualPluginPath = currentPlugin.plugin || currentPlugin.plugin_file || currentPlugin.slug || actualPluginPath;
+        
+        console.log(`[VERSION DETECTION] From currentPlugin - fromVersion: ${fromVersion}`);
       }
 
-      console.log(`[PLUGIN UPDATE] Final version mapping: ${fromVersion} → ${toVersion}`);
-      console.log(`[PLUGIN UPDATE] Final item name: ${itemName}`);
-      console.log(`[PLUGIN UPDATE] Final plugin path: ${actualPluginPath}`);
+      // Priority 3: If we have currentPlugin but no toVersion, try to get it from pluginUpdate again
+      if (toVersion === "unknown" && pluginUpdate) {
+        console.log(`[VERSION DETECTION] Trying to get toVersion from pluginUpdate again...`);
+        toVersion = pluginUpdate.new_version || pluginUpdate.version || toVersion;
+        console.log(`[VERSION DETECTION] Updated toVersion: ${toVersion}`);
+      }
+
+      console.log(`[VERSION DETECTION] Final version mapping: ${fromVersion} → ${toVersion}`);
+      console.log(`[VERSION DETECTION] Final item name: ${itemName}`);
+      console.log(`[VERSION DETECTION] Final plugin path: ${actualPluginPath}`);
 
       // Validate we have minimum required info
       if (!pluginUpdate && fromVersion === "unknown") {

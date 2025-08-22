@@ -704,6 +704,21 @@ export class WPRemoteManagerClient {
       // WordPress core update handling
       const wordpressUpdate = updateData.wordpress || {};
       
+      // Try to get current WordPress version if not available in updates
+      let currentWordPressVersion = wordpressUpdate.current_version;
+      if (!currentWordPressVersion) {
+        try {
+          // Try to get system info to fetch current WordPress version
+          const statusResponse = await this.makeRequestWithFallback('/status');
+          if (statusResponse?.data?.wordpress_version) {
+            currentWordPressVersion = statusResponse.data.wordpress_version;
+            console.log(`[WRM Updates] Retrieved current WordPress version from status: ${currentWordPressVersion}`);
+          }
+        } catch (statusError) {
+          console.warn('[WRM Updates] Could not fetch current WordPress version from status endpoint:', statusError);
+        }
+      }
+      
       // Calculate counts - prefer API provided counts, fallback to calculated
       const pluginCount = countData.plugins !== undefined ? countData.plugins : plugins.length;
       const themeCount = countData.themes !== undefined ? countData.themes : themes.length;
@@ -715,7 +730,7 @@ export class WPRemoteManagerClient {
       return {
         wordpress: {
           update_available: wordpressUpdate.update_available || false,
-          current_version: wordpressUpdate.current_version,
+          current_version: currentWordPressVersion,
           new_version: wordpressUpdate.new_version,
           package: wordpressUpdate.package
         },
