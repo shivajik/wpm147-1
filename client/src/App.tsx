@@ -27,6 +27,7 @@ import Tasks from "@/pages/tasks";
 import WebsiteDetail from "@/pages/website-detail";
 import WebsiteSecurity from "@/pages/website-security";
 import WebsitePerformance from "@/pages/website-performance";
+import WebsiteMaintenanceReports from "@/pages/website-maintenance-reports";
 import Subscription from "@/pages/subscription";
 import SubscriptionPreview from "@/pages/subscription-preview";
 import ViewReport from "@/pages/view-report";
@@ -117,6 +118,7 @@ function Router() {
           <Route path="/websites/:id/backup" component={() => <Suspense fallback={<PageSkeleton />}><LazyWebsiteBackup /></Suspense>} />
           <Route path="/websites/:id/seo" component={() => <Suspense fallback={<PageSkeleton />}><LazyWebsiteSEO /></Suspense>} />
           <Route path="/websites/:id/link-monitor" component={() => <Suspense fallback={<PageSkeleton />}><LazyLinkMonitor /></Suspense>} />
+          <Route path="/websites/:id/maintenance-reports" component={WebsiteMaintenanceReports} />
           <Route path="/tasks" component={Tasks} />
           <Route path="/reports" component={() => <Suspense fallback={<PageSkeleton />}><LazyClientReports /></Suspense>} />
           <Route path="/client-reports" component={() => <Suspense fallback={<PageSkeleton />}><LazyClientReports /></Suspense>} />
