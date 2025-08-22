@@ -3976,7 +3976,7 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
     let pluginUpdate: any = null;
     
     // Enhanced plugin matching function (ported from server/routes.ts)
-    const findPluginMatch = (pluginList: any[], targetPlugin: string) => {
+    const findPluginMatch = (pluginList: any[], targetPlugin: string, updateData?: any) => {
       addDebugLog('PLUGIN MATCH', `Looking for plugin: ${targetPlugin} in list of ${pluginList.length} plugins`);
       
       const match = pluginList.find((p: any) => {
@@ -3997,6 +3997,22 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
         if (p.plugin_file === targetPlugin) {
           addDebugLog('PLUGIN MATCH', `✅ Plugin file match found: ${p.plugin_file}`);
           return true;
+        }
+        
+        // Cross-reference with updates data for name-to-path mapping
+        if (updateData && p.name === updateData.plugin && updateData.plugin_file === targetPlugin) {
+          addDebugLog('PLUGIN MATCH', `✅ Cross-reference match: ${p.name} maps to ${targetPlugin}`);
+          return true;
+        }
+        
+        // Extract plugin name from path for comparison (e.g., "duplicate-post" from "duplicate-post/duplicate-post.php")
+        if (targetPlugin.includes('/')) {
+          const targetPluginName = targetPlugin.split('/')[0];
+          if (p.name && (p.name.toLowerCase().includes(targetPluginName.replace('-', ' ')) || 
+              p.name.toLowerCase().includes(targetPluginName))) {
+            addDebugLog('PLUGIN MATCH', `✅ Name-based match: ${p.name} matches extracted name from ${targetPlugin}`);
+            return true;
+          }
         }
         
         // Partial matches
@@ -4079,7 +4095,7 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
         }))
       });
 
-      currentPlugin = findPluginMatch(currentPlugins, plugin);
+      currentPlugin = findPluginMatch(currentPlugins, plugin, pluginUpdate);
       addDebugLog('PLUGIN MATCH', 'Current plugin search result', { 
         targetPlugin: plugin,
         foundPlugin: currentPlugin ? {
@@ -4132,7 +4148,7 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
           }))
         });
         
-        const updatedPlugin = findPluginMatch(updatedPlugins, plugin);
+        const updatedPlugin = findPluginMatch(updatedPlugins, plugin, pluginUpdate);
         addDebugLog('PLUGIN MATCH', 'Updated plugin match result', { 
           targetPlugin: plugin,
           foundUpdatedPlugin: updatedPlugin ? {
