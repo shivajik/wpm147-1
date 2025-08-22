@@ -2588,6 +2588,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Plugin update endpoint with URL parameter (frontend-compatible route)
+// Debug logs storage for production debugging
+let debugLogs: any[] = [];
+const addDebugLog = (type: string, message: string, data?: any) => {
+  const logEntry = {
+    timestamp: new Date().toISOString(),
+    type,
+    message,
+    data: data ? JSON.stringify(data, null, 2) : undefined
+  };
+  debugLogs.push(logEntry);
+  console.log(`[${type}] ${message}`, data || '');
+  
+  // Keep only last 100 logs to prevent memory issues
+  if (debugLogs.length > 100) {
+    debugLogs = debugLogs.slice(-100);
+  }
+};
+
+// Debug endpoint to retrieve logs
+app.get("/api/websites/:id/debug-logs", authenticateToken, async (req, res) => {
+  try {
+    const userId = (req as AuthRequest).user!.id;
+    const websiteId = parseInt(req.params.id);
+    
+    const website = await storage.getWebsite(websiteId, userId);
+    if (!website) {
+      return res.status(404).json({ message: "Website not found" });
+    }
+    
+    res.json({
+      logs: debugLogs,
+      count: debugLogs.length,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error("Error fetching debug logs:", error);
+    res.status(500).json({ message: "Failed to fetch debug logs" });
+  }
+});
+
+// Clear debug logs endpoint
+app.delete("/api/websites/:id/debug-logs", authenticateToken, async (req, res) => {
+  try {
+    const userId = (req as AuthRequest).user!.id;
+    const websiteId = parseInt(req.params.id);
+    
+    const website = await storage.getWebsite(websiteId, userId);
+    if (!website) {
+      return res.status(404).json({ message: "Website not found" });
+    }
+    
+    debugLogs = [];
+    res.json({ message: "Debug logs cleared", timestamp: new Date().toISOString() });
+  } catch (error) {
+    console.error("Error clearing debug logs:", error);
+    res.status(500).json({ message: "Failed to clear debug logs" });
+  }
+});
+
 app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res) => {
     const startTime = Date.now();
     const { plugin } = req.body;
@@ -2596,8 +2655,11 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
       return res.status(400).json({ message: "Plugin identifier is required in request body" });
     }
     
-    console.log('[PLUGINS]{PLUGINS}', plugin);
-    console.log(`[PLUGIN UPDATE] Starting update for plugin: ${plugin}`);
+    // Clear previous debug logs for this session
+    debugLogs = [];
+    
+    addDebugLog('PLUGINS', 'Plugin update request received', { plugin });
+    addDebugLog('PLUGIN UPDATE', `Starting update for plugin: ${plugin}`);
     
     try {
       const userId = (req as AuthRequest).user!.id;
@@ -2608,7 +2670,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
         return res.status(404).json({ message: "Website not found" });
       }
       
-      console.log('[WEBSITE] {WEBSITE}', website);
+      addDebugLog('WEBSITE', 'Website data loaded', website);
       
       if (!website.wrmApiKey) {
         return res.status(400).json({ message: "WP Remote Manager API key is required" });
@@ -2622,11 +2684,11 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
 
       // Enhanced plugin matching function
       const findPluginMatch = (pluginList: any[], targetPlugin: string) => {
-        console.log(`[PLUGIN MATCH] Looking for plugin: ${targetPlugin} in list of ${pluginList.length} plugins`);
+        addDebugLog('PLUGIN MATCH', `Looking for plugin: ${targetPlugin} in list of ${pluginList.length} plugins`);
         
         const match = pluginList.find((p: any) => {
           // Log each plugin being checked
-          console.log(`[PLUGIN MATCH] Checking plugin:`, {
+          addDebugLog('PLUGIN MATCH', 'Checking plugin', {
             plugin: p.plugin || p.plugin_file || 'N/A',
             name: p.name || 'N/A',
             slug: p.slug || 'N/A',
@@ -2635,23 +2697,23 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
           
           // Direct matches
           if (p.plugin === targetPlugin || p.name === targetPlugin || p.slug === targetPlugin) {
-            console.log(`[PLUGIN MATCH] ✅ Direct match found: ${p.plugin || p.name || p.slug}`);
+            addDebugLog('PLUGIN MATCH', `✅ Direct match found: ${p.plugin || p.name || p.slug}`);
             return true;
           }
           
           // Check plugin_file field as well (some APIs use this)
           if (p.plugin_file === targetPlugin) {
-            console.log(`[PLUGIN MATCH] ✅ Plugin file match found: ${p.plugin_file}`);
+            addDebugLog('PLUGIN MATCH', `✅ Plugin file match found: ${p.plugin_file}`);
             return true;
           }
           
           // Partial matches
           if (p.plugin && p.plugin.includes(targetPlugin)) {
-            console.log(`[PLUGIN MATCH] ✅ Partial match (plugin contains target): ${p.plugin}`);
+            addDebugLog('PLUGIN MATCH', `✅ Partial match (plugin contains target): ${p.plugin}`);
             return true;
           }
           if (targetPlugin && targetPlugin.includes(p.plugin)) {
-            console.log(`[PLUGIN MATCH] ✅ Partial match (target contains plugin): ${p.plugin}`);
+            addDebugLog('PLUGIN MATCH', `✅ Partial match (target contains plugin): ${p.plugin}`);
             return true;
           }
           
@@ -2662,7 +2724,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
                             p.plugin || p.plugin_file;
           
           if (p.slug === targetSlug || pluginSlug === targetSlug) {
-            console.log(`[PLUGIN MATCH] ✅ Slug match found: ${p.slug || pluginSlug} matches ${targetSlug}`);
+            addDebugLog('PLUGIN MATCH', `✅ Slug match found: ${p.slug || pluginSlug} matches ${targetSlug}`);
             return true;
           }
           
@@ -2670,14 +2732,14 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
         });
         
         if (match) {
-          console.log(`[PLUGIN MATCH] ✅ Final match found:`, {
+          addDebugLog('PLUGIN MATCH', '✅ Final match found', {
             plugin: match.plugin || match.plugin_file,
             name: match.name,
             version: match.version || match.current_version
           });
         } else {
-          console.log(`[PLUGIN MATCH] ❌ No match found for ${targetPlugin}`);
-          console.log(`[PLUGIN MATCH] Available plugins:`, pluginList.map(p => ({
+          addDebugLog('PLUGIN MATCH', `❌ No match found for ${targetPlugin}`);
+          addDebugLog('PLUGIN MATCH', 'Available plugins', pluginList.map(p => ({
             plugin: p.plugin || p.plugin_file,
             name: p.name,
             slug: p.slug
@@ -2688,7 +2750,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
       };
 
       // Get version information before update
-      console.log(`[PLUGIN UPDATE] Fetching current plugin data and updates...`);
+      addDebugLog('PLUGIN UPDATE', 'Fetching current plugin data and updates...');
       let updatesData;
       let currentPlugin;
       let pluginUpdate;
@@ -2696,14 +2758,17 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
       // Fetch updates data
       try {
         updatesData = await wrmClient.getUpdates();
-        console.log('[UPDATES LOG]{UPDATES LOG}', updatesData);
+        addDebugLog('UPDATES LOG', 'Updates data fetched', updatesData);
         
         if (updatesData.plugins && Array.isArray(updatesData.plugins)) {
           pluginUpdate = findPluginMatch(updatesData.plugins, plugin);
-          console.log(`[PLUGIN UPDATE] Updates data fetched, found plugin update:`, pluginUpdate || 'NO');
+          addDebugLog('PLUGIN UPDATE', 'Plugin update search result', {
+            found: !!pluginUpdate,
+            pluginUpdate: pluginUpdate || null
+          });
         }
       } catch (updatesError) {
-        console.error(`[PLUGIN UPDATE] Error fetching updates:`, updatesError);
+        addDebugLog('PLUGIN UPDATE', 'Error fetching updates', { error: updatesError });
       }
 
       // Fetch current plugin data
@@ -2711,9 +2776,12 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
         const pluginsData = await wrmClient.getPlugins();
         if (Array.isArray(pluginsData)) {
           currentPlugin = findPluginMatch(pluginsData, plugin);
-          console.log(`[PLUGIN UPDATE] Current plugin data fetched:`, currentPlugin ? 'YES' : 'NO');
+          addDebugLog('PLUGIN UPDATE', 'Current plugin search result', {
+            found: !!currentPlugin,
+            currentPlugin: currentPlugin || null
+          });
           if (currentPlugin) {
-            console.log(`[PLUGIN UPDATE] Current plugin details:`, {
+            addDebugLog('PLUGIN UPDATE', 'Current plugin details', {
               name: currentPlugin.name,
               version: currentPlugin.version,
               plugin: currentPlugin.plugin,
@@ -2722,7 +2790,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
           }
         }
       } catch (pluginDataError) {
-        console.error(`[PLUGIN UPDATE] Error fetching current plugin data:`, pluginDataError);
+        addDebugLog('PLUGIN UPDATE', 'Error fetching current plugin data', { error: pluginDataError });
       }
 
       // Enhanced version detection
@@ -2731,13 +2799,15 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
       let itemName = plugin;
       let actualPluginPath = plugin;
 
-      console.log(`[VERSION DETECTION] Starting version detection for plugin: ${plugin}`);
-      console.log(`[VERSION DETECTION] pluginUpdate available:`, !!pluginUpdate);
-      console.log(`[VERSION DETECTION] currentPlugin available:`, !!currentPlugin);
+      addDebugLog('VERSION DETECTION', `Starting version detection for plugin: ${plugin}`);
+      addDebugLog('VERSION DETECTION', 'Data availability', {
+        pluginUpdateAvailable: !!pluginUpdate,
+        currentPluginAvailable: !!currentPlugin
+      });
 
       // Priority 1: Get data from pluginUpdate
       if (pluginUpdate) {
-        console.log(`[VERSION DETECTION] Raw pluginUpdate data:`, {
+        addDebugLog('VERSION DETECTION', 'Raw pluginUpdate data', {
           current_version: pluginUpdate.current_version,
           version: pluginUpdate.version,
           new_version: pluginUpdate.new_version,
@@ -2752,12 +2822,12 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
         itemName = pluginUpdate.name || pluginUpdate.plugin || pluginUpdate.plugin_file || itemName;
         actualPluginPath = pluginUpdate.plugin || pluginUpdate.plugin_file || pluginUpdate.slug || actualPluginPath;
         
-        console.log(`[VERSION DETECTION] From pluginUpdate - fromVersion: ${fromVersion}, toVersion: ${toVersion}`);
+        addDebugLog('VERSION DETECTION', `From pluginUpdate - fromVersion: ${fromVersion}, toVersion: ${toVersion}`);
       }
 
       // Priority 2: Get current version from currentPlugin if still unknown
       if (fromVersion === "unknown" && currentPlugin) {
-        console.log(`[VERSION DETECTION] Raw currentPlugin data:`, {
+        addDebugLog('VERSION DETECTION', 'Raw currentPlugin data', {
           version: currentPlugin.version,
           current_version: currentPlugin.current_version,
           name: currentPlugin.name,
@@ -2770,19 +2840,22 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
         itemName = currentPlugin.name || currentPlugin.plugin || currentPlugin.plugin_file || itemName;
         actualPluginPath = currentPlugin.plugin || currentPlugin.plugin_file || currentPlugin.slug || actualPluginPath;
         
-        console.log(`[VERSION DETECTION] From currentPlugin - fromVersion: ${fromVersion}`);
+        addDebugLog('VERSION DETECTION', `From currentPlugin - fromVersion: ${fromVersion}`);
       }
 
       // Priority 3: If we have currentPlugin but no toVersion, try to get it from pluginUpdate again
       if (toVersion === "unknown" && pluginUpdate) {
-        console.log(`[VERSION DETECTION] Trying to get toVersion from pluginUpdate again...`);
+        addDebugLog('VERSION DETECTION', 'Trying to get toVersion from pluginUpdate again...');
         toVersion = pluginUpdate.new_version || pluginUpdate.version || toVersion;
-        console.log(`[VERSION DETECTION] Updated toVersion: ${toVersion}`);
+        addDebugLog('VERSION DETECTION', `Updated toVersion: ${toVersion}`);
       }
 
-      console.log(`[VERSION DETECTION] Final version mapping: ${fromVersion} → ${toVersion}`);
-      console.log(`[VERSION DETECTION] Final item name: ${itemName}`);
-      console.log(`[VERSION DETECTION] Final plugin path: ${actualPluginPath}`);
+      addDebugLog('VERSION DETECTION', 'Final results', {
+        fromVersion,
+        toVersion,
+        itemName,
+        actualPluginPath
+      });
 
       // Validate we have minimum required info
       if (!pluginUpdate && fromVersion === "unknown") {
