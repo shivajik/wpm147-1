@@ -6641,10 +6641,33 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
     try {
       const userId = (req as AuthRequest).user!.id;
       const websiteId = parseInt(req.params.id);
+      const { dateFrom, dateTo } = req.body;
       
       const website = await storage.getWebsite(websiteId, userId);
       if (!website) {
         return res.status(404).json({ message: "Website not found" });
+      }
+
+      // Parse and validate date range
+      let reportDateFrom: Date;
+      let reportDateTo: Date;
+      
+      if (dateFrom && dateTo) {
+        reportDateFrom = new Date(dateFrom);
+        reportDateTo = new Date(dateTo);
+        
+        // Validate dates
+        if (isNaN(reportDateFrom.getTime()) || isNaN(reportDateTo.getTime())) {
+          return res.status(400).json({ message: "Invalid date format" });
+        }
+        
+        if (reportDateFrom > reportDateTo) {
+          return res.status(400).json({ message: "Start date cannot be after end date" });
+        }
+      } else {
+        // Default to last 30 days if no date range provided
+        reportDateTo = new Date();
+        reportDateFrom = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
       }
 
       // Generate comprehensive maintenance report data
@@ -6771,22 +6794,30 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
         console.log(`[MAINTENANCE-REPORT] Could not fetch performance data for website ${websiteId}:`, performanceError);
       }
 
-      // Get recent update logs for better update tracking
+      // Get update logs for the specified date range
       try {
-        const updateLogs = await storage.getUpdateLogs(websiteId, userId, 50);
+        console.log(`[MAINTENANCE-REPORT] Fetching update logs for website ${websiteId} from ${reportDateFrom.toISOString()} to ${reportDateTo.toISOString()}`);
+        const updateLogs = await storage.getUpdateLogs(websiteId, userId, 200); // Get more logs to filter from
         if (updateLogs && updateLogs.length > 0) {
-          maintenanceData.overview.updatesPerformed = updateLogs.length;
+          // Filter logs within the specified date range
+          const dateFilteredLogs = updateLogs.filter(log => {
+            const logDate = new Date(log.createdAt);
+            return logDate >= reportDateFrom && logDate <= reportDateTo;
+          });
           
-          // Add recent updates to the report
-          const recentPluginUpdates = updateLogs.filter(log => log.updateType === 'plugin').slice(0, 10);
-          const recentThemeUpdates = updateLogs.filter(log => log.updateType === 'theme').slice(0, 10);
+          maintenanceData.overview.updatesPerformed = dateFilteredLogs.length;
+          
+          // Filter by type and limit for display
+          const recentPluginUpdates = dateFilteredLogs.filter(log => log.updateType === 'plugin').slice(0, 10);
+          const recentThemeUpdates = dateFilteredLogs.filter(log => log.updateType === 'theme').slice(0, 10);
+          const recentCoreUpdates = dateFilteredLogs.filter(log => log.updateType === 'core').slice(0, 10);
           
           if (recentPluginUpdates.length > 0) {
             maintenanceData.updates.plugins = recentPluginUpdates.map(log => ({
               name: log.itemName,
               fromVersion: log.fromVersion || 'Unknown',
               toVersion: log.toVersion || 'Latest',
-              date: log.createdAt.toISOString(),
+              date: new Date(log.createdAt).toISOString(),
               status: log.updateStatus
             }));
           }
@@ -6796,27 +6827,38 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
               name: log.itemName,
               fromVersion: log.fromVersion || 'Unknown',
               toVersion: log.toVersion || 'Latest',
-              date: log.createdAt.toISOString(),
+              date: new Date(log.createdAt).toISOString(),
               status: log.updateStatus
             }));
           }
+          
+          if (recentCoreUpdates.length > 0) {
+            maintenanceData.updates.core = recentCoreUpdates.map(log => ({
+              name: 'WordPress Core',
+              fromVersion: log.fromVersion || 'Unknown',
+              toVersion: log.toVersion || 'Latest',
+              date: new Date(log.createdAt).toISOString(),
+              status: log.updateStatus
+            }));
+          }
+          
+          // Update total count based on filtered data
+          maintenanceData.updates.total = recentPluginUpdates.length + recentThemeUpdates.length + recentCoreUpdates.length;
         }
       } catch (updateError) {
         console.log(`[MAINTENANCE-REPORT] Could not fetch update logs for website ${websiteId}:`, updateError);
       }
 
       // Store the maintenance report in the database as a client report
-      const reportTitle = `Maintenance Report - ${website.name} - ${new Date().toLocaleDateString()}`;
-      const currentDate = new Date();
-      const oneMonthAgo = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, currentDate.getDate());
+      const reportTitle = `Maintenance Report - ${website.name} - ${reportDateFrom.toLocaleDateString()} to ${reportDateTo.toLocaleDateString()}`;
       
       const storedReport = await storage.createClientReport({
         userId,
         title: reportTitle,
         clientId: website.clientId,
         websiteIds: [websiteId],
-        dateFrom: oneMonthAgo,
-        dateTo: currentDate,
+        dateFrom: reportDateFrom,
+        dateTo: reportDateTo,
         status: 'generated',
         reportData: maintenanceData,
         generatedAt: new Date()

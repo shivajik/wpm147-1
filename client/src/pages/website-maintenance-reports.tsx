@@ -14,9 +14,27 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { apiCall } from "@/lib/queryClient";
-import { format } from "date-fns";
+import { format, subDays } from "date-fns";
 import {
   Wrench,
   Plus,
@@ -57,6 +75,10 @@ export default function WebsiteMaintenanceReports() {
   const [, setLocation] = useLocation();
   const websiteId = parseInt(id || '0');
   const [selectedTab, setSelectedTab] = useState('all');
+  const [isGenerateDialogOpen, setIsGenerateDialogOpen] = useState(false);
+  const [selectedPeriod, setSelectedPeriod] = useState('30');
+  const [customDateFrom, setCustomDateFrom] = useState('');
+  const [customDateTo, setCustomDateTo] = useState('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -71,9 +93,13 @@ export default function WebsiteMaintenanceReports() {
   });
 
   const generateMaintenanceReport = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (params?: { dateFrom?: string; dateTo?: string }) => {
       const response = await apiCall(`/api/websites/${websiteId}/maintenance-report`, {
         method: 'POST',
+        body: JSON.stringify(params || {}),
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
       return response;
     },
@@ -83,6 +109,11 @@ export default function WebsiteMaintenanceReports() {
         description: "Your maintenance report has been generated successfully.",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/websites', websiteId, 'maintenance-reports'] });
+      setIsGenerateDialogOpen(false);
+      // Reset form
+      setSelectedPeriod('30');
+      setCustomDateFrom('');
+      setCustomDateTo('');
     },
     onError: (error: any) => {
       toast({
@@ -183,18 +214,110 @@ export default function WebsiteMaintenanceReports() {
               {website?.name || 'Loading...'} • {website?.url}
             </p>
           </div>
-          <Button 
-            onClick={() => generateMaintenanceReport.mutate()}
-            disabled={generateMaintenanceReport.isPending}
-            data-testid="button-generate-new-report"
-          >
-            {generateMaintenanceReport.isPending ? (
-              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <Plus className="w-4 h-4 mr-2" />
-            )}
-            Generate Report
-          </Button>
+          <Dialog open={isGenerateDialogOpen} onOpenChange={setIsGenerateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button data-testid="button-generate-new-report">
+                <Plus className="w-4 h-4 mr-2" />
+                Generate Report
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Generate Maintenance Report</DialogTitle>
+                <DialogDescription>
+                  Select the time period for your maintenance report. This will include all maintenance activities, updates, and scans within the selected period.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="period" className="text-right">
+                    Period
+                  </Label>
+                  <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Select period" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="7">Last 7 days</SelectItem>
+                      <SelectItem value="15">Last 15 days</SelectItem>
+                      <SelectItem value="30">Last 30 days</SelectItem>
+                      <SelectItem value="custom">Custom date range</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {selectedPeriod === 'custom' && (
+                  <>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="dateFrom" className="text-right">
+                        From
+                      </Label>
+                      <Input
+                        id="dateFrom"
+                        type="date"
+                        value={customDateFrom}
+                        onChange={(e) => setCustomDateFrom(e.target.value)}
+                        className="col-span-3"
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="dateTo" className="text-right">
+                        To
+                      </Label>
+                      <Input
+                        id="dateTo"
+                        type="date"
+                        value={customDateTo}
+                        onChange={(e) => setCustomDateTo(e.target.value)}
+                        className="col-span-3"
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsGenerateDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => {
+                    let dateFrom: string;
+                    let dateTo: string = new Date().toISOString();
+                    
+                    if (selectedPeriod === 'custom') {
+                      if (!customDateFrom || !customDateTo) {
+                        toast({
+                          title: "Invalid Date Range",
+                          description: "Please select both start and end dates.",
+                          variant: "destructive",
+                        });
+                        return;
+                      }
+                      dateFrom = new Date(customDateFrom).toISOString();
+                      dateTo = new Date(customDateTo).toISOString();
+                    } else {
+                      const days = parseInt(selectedPeriod);
+                      dateFrom = subDays(new Date(), days).toISOString();
+                    }
+                    
+                    generateMaintenanceReport.mutate({ dateFrom, dateTo });
+                  }}
+                  disabled={generateMaintenanceReport.isPending}
+                >
+                  {generateMaintenanceReport.isPending ? (
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <FileText className="w-4 h-4 mr-2" />
+                  )}
+                  Generate Report
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Stats Cards */}
@@ -283,13 +406,110 @@ export default function WebsiteMaintenanceReports() {
                       }
                     </p>
                     {selectedTab === 'all' && (
-                      <Button 
-                        onClick={() => generateMaintenanceReport.mutate()}
-                        data-testid="button-generate-first-report"
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Generate First Report
-                      </Button>
+                      <Dialog open={isGenerateDialogOpen} onOpenChange={setIsGenerateDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button data-testid="button-generate-first-report">
+                            <Plus className="w-4 h-4 mr-2" />
+                            Generate First Report
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[425px]">
+                          <DialogHeader>
+                            <DialogTitle>Generate Maintenance Report</DialogTitle>
+                            <DialogDescription>
+                              Select the time period for your maintenance report. This will include all maintenance activities, updates, and scans within the selected period.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="grid gap-4 py-4">
+                            <div className="grid grid-cols-4 items-center gap-4">
+                              <Label htmlFor="period" className="text-right">
+                                Period
+                              </Label>
+                              <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+                                <SelectTrigger className="col-span-3">
+                                  <SelectValue placeholder="Select period" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="7">Last 7 days</SelectItem>
+                                  <SelectItem value="15">Last 15 days</SelectItem>
+                                  <SelectItem value="30">Last 30 days</SelectItem>
+                                  <SelectItem value="custom">Custom date range</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            {selectedPeriod === 'custom' && (
+                              <>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                  <Label htmlFor="dateFrom" className="text-right">
+                                    From
+                                  </Label>
+                                  <Input
+                                    id="dateFrom"
+                                    type="date"
+                                    value={customDateFrom}
+                                    onChange={(e) => setCustomDateFrom(e.target.value)}
+                                    className="col-span-3"
+                                  />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                  <Label htmlFor="dateTo" className="text-right">
+                                    To
+                                  </Label>
+                                  <Input
+                                    id="dateTo"
+                                    type="date"
+                                    value={customDateTo}
+                                    onChange={(e) => setCustomDateTo(e.target.value)}
+                                    className="col-span-3"
+                                  />
+                                </div>
+                              </>
+                            )}
+                          </div>
+                          <DialogFooter>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => setIsGenerateDialogOpen(false)}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              type="button"
+                              onClick={() => {
+                                let dateFrom: string;
+                                let dateTo: string = new Date().toISOString();
+                                
+                                if (selectedPeriod === 'custom') {
+                                  if (!customDateFrom || !customDateTo) {
+                                    toast({
+                                      title: "Invalid Date Range",
+                                      description: "Please select both start and end dates.",
+                                      variant: "destructive",
+                                    });
+                                    return;
+                                  }
+                                  dateFrom = new Date(customDateFrom).toISOString();
+                                  dateTo = new Date(customDateTo).toISOString();
+                                } else {
+                                  const days = parseInt(selectedPeriod);
+                                  dateFrom = subDays(new Date(), days).toISOString();
+                                }
+                                
+                                generateMaintenanceReport.mutate({ dateFrom, dateTo });
+                              }}
+                              disabled={generateMaintenanceReport.isPending}
+                            >
+                              {generateMaintenanceReport.isPending ? (
+                                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                              ) : (
+                                <FileText className="w-4 h-4 mr-2" />
+                              )}
+                              Generate Report
+                            </Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
                     )}
                   </div>
                 ) : (
@@ -327,7 +547,12 @@ export default function WebsiteMaintenanceReports() {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  onClick={() => generateMaintenanceReport.mutate()}
+                                  onClick={() => {
+                                    // For regenerating existing reports, use default 30-day period
+                                    const dateTo = new Date().toISOString();
+                                    const dateFrom = subDays(new Date(), 30).toISOString();
+                                    generateMaintenanceReport.mutate({ dateFrom, dateTo });
+                                  }}
                                   disabled={generateMaintenanceReport.isPending}
                                   data-testid={`button-generate-report-${report.id}`}
                                 >
