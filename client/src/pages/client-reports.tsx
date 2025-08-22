@@ -55,14 +55,49 @@ export default function ClientReports() {
     queryKey: ['/api/client-reports/stats'],
   });
 
+  // Helper function to validate token and handle authentication errors for PDF downloads
+  const validateAuthAndOpenPDF = async (reportId: number) => {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      throw new Error('Authentication required. Please log in again.');
+    }
+
+    // First, validate the token by making a test API call
+    try {
+      const response = await apiCall(`/api/client-reports/${reportId}`);
+      if (!response) {
+        throw new Error('Report not found or access denied.');
+      }
+    } catch (error: any) {
+      // If we get a 401 or authentication error, don't try to open the PDF
+      if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+        throw new Error('Your session has expired. Please log in again.');
+      }
+      // For other errors, still try to open the PDF as it might be a different issue
+      console.warn('Report validation failed, but attempting PDF generation:', error);
+    }
+
+    // If validation passes or fails non-auth related, try to open the PDF
+    const url = `/api/client-reports/${reportId}/pdf?pdf=true&token=${encodeURIComponent(token)}`;
+    const newWindow = window.open(url, '_blank');
+    
+    // Check if popup was blocked
+    if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+      throw new Error('Popup blocked. Please allow popups for this site and try again.');
+    }
+
+    return { success: true };
+  };
+
   const downloadReport = useMutation({
     mutationFn: async (reportId: number) => {
-      const token = localStorage.getItem('auth_token');
-      if (!token) {
-        throw new Error('Authentication required. Please log in again.');
-      }
-      // Directly open PDF with authentication token and PDF parameter
-      window.open(`/api/client-reports/${reportId}/pdf?pdf=true&token=${token}`, '_blank');
+      return validateAuthAndOpenPDF(reportId);
+    },
+    onError: (error: any) => {
+      // Handle errors with toast notification
+      const errorMessage = error.message || "Failed to download report";
+      // You can add toast notification here if available
+      console.error('Download failed:', errorMessage);
     },
   });
 

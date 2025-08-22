@@ -134,24 +134,44 @@ export default function WebsiteMaintenanceReports() {
     return localStorage.getItem('auth_token');
   };
 
+  // Helper function to validate token and handle authentication errors
+  const validateAuthAndOpenPDF = async (reportId: number, action: 'download' | 'view') => {
+    const token = getAuthToken();
+    if (!token) {
+      throw new Error('Authentication required. Please log in again.');
+    }
+
+    // First, validate the token by making a test API call to the report endpoint
+    try {
+      const response = await apiCall(`/api/websites/${websiteId}/maintenance-reports/${reportId}`);
+      if (!response) {
+        throw new Error('Report not found or access denied.');
+      }
+    } catch (error: any) {
+      // If we get a 401 or authentication error, don't try to open the PDF
+      if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+        throw new Error('Your session has expired. Please log in again.');
+      }
+      // For other errors, still try to open the PDF as it might be a different issue
+      console.warn('Report validation failed, but attempting PDF generation:', error);
+    }
+
+    // If validation passes or fails non-auth related, try to open the PDF
+    const url = `/api/websites/${websiteId}/maintenance-reports/${reportId}/pdf?token=${encodeURIComponent(token)}`;
+    const newWindow = window.open(url, '_blank');
+    
+    // Check if popup was blocked
+    if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+      throw new Error('Popup blocked. Please allow popups for this site and try again.');
+    }
+
+    return { success: true };
+  };
+
   // Download maintenance report mutation
   const downloadMaintenanceReport = useMutation({
     mutationFn: async (reportId: number) => {
-      try {
-        // Get the authentication token from localStorage
-        const token = getAuthToken();
-        if (!token) {
-          throw new Error('Authentication token not found. Please log in again.');
-        }
-        
-        // Open the PDF in a new tab for viewing/downloading with token
-        const url = `/api/websites/${websiteId}/maintenance-reports/${reportId}/pdf?token=${encodeURIComponent(token)}`;
-        window.open(url, '_blank');
-        return { success: true };
-      } catch (error) {
-        console.error('Error downloading maintenance report:', error);
-        throw error;
-      }
+      return validateAuthAndOpenPDF(reportId, 'download');
     },
     onError: (error: any) => {
       toast({
@@ -165,21 +185,7 @@ export default function WebsiteMaintenanceReports() {
   // View maintenance report mutation
   const viewMaintenanceReport = useMutation({
     mutationFn: async (reportId: number) => {
-      try {
-        // Get the authentication token from localStorage
-        const token = getAuthToken();
-        if (!token) {
-          throw new Error('Authentication token not found. Please log in again.');
-        }
-        
-        // Open the PDF directly in a new tab with token
-        const url = `/api/websites/${websiteId}/maintenance-reports/${reportId}/pdf?token=${encodeURIComponent(token)}`;
-        window.open(url, '_blank');
-        return { success: true };
-      } catch (error) {
-        console.error('Error viewing maintenance report:', error);
-        throw error;
-      }
+      return validateAuthAndOpenPDF(reportId, 'view');
     },
     onError: (error: any) => {
       toast({
