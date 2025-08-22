@@ -11,6 +11,14 @@
     {
       "src": "api/index.ts",
       "use": "@vercel/node"
+    },
+    {
+      "src": "api/security-scanner.ts",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/debug.ts",
+      "use": "@vercel/node"
     }
   ],
   "routes": [
@@ -19,7 +27,19 @@
       "dest": "/api/index.ts"
     },
     {
+      "src": "/api/security-scanner",
+      "dest": "/api/security-scanner.ts"
+    },
+    {
+      "src": "/api/debug",
+      "dest": "/api/debug.ts"
+    },
+    {
       "src": "/wordpress-maintenance-worker.zip",
+      "dest": "/api/index.ts"
+    },
+    {
+      "src": "/wp-remote-manager-.*\\.zip",
       "dest": "/api/index.ts"
     },
     {
@@ -33,5 +53,13 @@
       "src": "/(.*)",
       "dest": "/index.html"
     }
-  ]
+  ],
+  "functions": {
+    "api/*.ts": {
+      "maxDuration": 30
+    }
+  },
+  "env": {
+    "NODE_ENV": "production"
+  }
 }
