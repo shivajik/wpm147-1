@@ -94,17 +94,50 @@ export default function WebsiteMaintenanceReports() {
 
   const generateMaintenanceReport = useMutation({
     mutationFn: async (params?: { dateFrom?: string; dateTo?: string }) => {
+      // Check authentication token first
+      const token = getAuthToken();
+      if (!token) {
+        throw new Error('Authentication required. Please log in again.');
+      }
+
       try {
-        const response = await apiCall(`/api/websites/${websiteId}/maintenance-report`, {
+        // Make the API call with error handling
+        const response = await fetch(`/api/websites/${websiteId}/maintenance-report`, {
           method: 'POST',
-          body: JSON.stringify(params || {}),
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
           },
+          body: JSON.stringify(params || {}),
         });
-        return response;
-      } catch (error) {
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          let errorData;
+          try {
+            errorData = JSON.parse(errorText);
+          } catch {
+            errorData = { message: errorText || response.statusText };
+          }
+
+          // Handle authentication errors gracefully without auto-logout
+          if (response.status === 401) {
+            throw new Error('Your session has expired. Please log in again.');
+          }
+
+          throw new Error(errorData.message || `HTTP ${response.status}`);
+        }
+
+        const result = await response.json();
+        return result;
+      } catch (error: any) {
         console.error('Error generating maintenance report:', error);
+        
+        // If it's a network error or other issue, provide a helpful message
+        if (error.message?.includes('fetch')) {
+          throw new Error('Network error. Please check your connection and try again.');
+        }
+        
         throw error;
       }
     },
