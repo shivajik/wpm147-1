@@ -6988,14 +6988,18 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
         console.error(`[MAINTENANCE-PDF] Error fetching client data:`, error);
       }
 
-      // Transform maintenance data to enhanced format for professional PDF
+      // Transform maintenance data efficiently for serverless compatibility
       const reportData = report.reportData as any || {};
+      
+      // Helper function to limit array sizes for serverless memory efficiency
+      const limitArray = (arr: any[], maxSize: number = 50) => arr ? arr.slice(0, maxSize) : [];
+      
       const enhancedData = {
         id: report.id,
         title: report.title,
         client: {
           name: clientName,
-          email: '', // Could be populated from client data if available
+          email: '',
           contactPerson: clientName
         },
         website: {
@@ -7017,16 +7021,16 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
           seoScore: 0,
           keywordsTracked: 0
         },
-        customWork: reportData.customWork || [],
+        customWork: limitArray(reportData.customWork, 20),
         updates: {
           total: reportData.updates?.total || 0,
-          plugins: (reportData.updates?.plugins || []).map((plugin: any) => ({
+          plugins: limitArray(reportData.updates?.plugins || [], 30).map((plugin: any) => ({
             name: plugin.name || plugin.itemName || 'Unknown Plugin',
             versionFrom: plugin.fromVersion || 'N/A',
             versionTo: plugin.toVersion || plugin.newVersion || 'Latest',
             date: plugin.date || new Date().toISOString()
           })),
-          themes: (reportData.updates?.themes || []).map((theme: any) => ({
+          themes: limitArray(reportData.updates?.themes || [], 15).map((theme: any) => ({
             name: theme.name || theme.itemName || 'Unknown Theme',
             versionFrom: theme.fromVersion || 'N/A',
             versionTo: theme.toVersion || theme.newVersion || 'Latest',
@@ -7056,11 +7060,11 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
           last24h: 100,
           last7days: 100,
           last30days: reportData.overview?.uptimePercentage || 99.9,
-          incidents: []
+          incidents: limitArray(reportData.uptime?.incidents, 10)
         },
         analytics: {
           changePercentage: 0,
-          sessions: []
+          sessions: limitArray(reportData.analytics?.sessions, 30)
         },
         security: {
           totalScans: reportData.security?.scanHistory?.length || 0,
@@ -7071,7 +7075,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
             webTrust: 'clean',
             vulnerabilities: reportData.security?.vulnerabilities || 0
           },
-          scanHistory: reportData.security?.scanHistory || []
+          scanHistory: limitArray(reportData.security?.scanHistory, 20)
         },
         performance: {
           totalChecks: reportData.performance?.history?.length || 0,
@@ -7083,16 +7087,16 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
             ysloGrade: reportData.performance?.score >= 90 ? 'A' : reportData.performance?.score >= 80 ? 'B' : 'C',
             loadTime: 2.5
           },
-          history: reportData.performance?.history || []
+          history: limitArray(reportData.performance?.history, 20)
         },
         seo: {
           visibilityChange: 0,
           competitors: 0,
-          keywords: [],
+          keywords: limitArray(reportData.seo?.keywords, 25),
           topRankKeywords: 0,
           firstPageKeywords: 0,
           visibility: 0,
-          topCompetitors: []
+          topCompetitors: limitArray(reportData.seo?.topCompetitors, 10)
         }
       };
 
