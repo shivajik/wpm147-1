@@ -1890,8 +1890,6 @@ export default async function handler(req: any, res: any) {
     if (req.method === 'GET') {
       // Get debug logs
       return res.status(200).json({
-        logs: debugLogs,
-        count: debugLogs.length,
         timestamp: new Date().toISOString(),
         websiteId: websiteId,
         note: "Debug logs from plugin update process"
@@ -1900,7 +1898,6 @@ export default async function handler(req: any, res: any) {
     
     if (req.method === 'DELETE') {
       // Clear debug logs
-      debugLogs = [];
       return res.status(200).json({ 
         message: "Debug logs cleared", 
         timestamp: new Date().toISOString(),
@@ -1912,8 +1909,6 @@ export default async function handler(req: any, res: any) {
   // Simple debug endpoint without authentication for testing
   if (path === '/api/debug/logs' && req.method === 'GET') {
     return res.status(200).json({
-      logs: debugLogs,
-      count: debugLogs.length,
       timestamp: new Date().toISOString(),
       note: "Public debug logs endpoint - use only for testing"
     });
@@ -3984,7 +3979,6 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
           return true;
         }
         if (targetPlugin && targetPlugin.includes(p.plugin)) {
-          addDebugLog('PLUGIN MATCH', `✅ Partial match (target contains plugin): ${p.plugin}`);
           return true;
         }
         
