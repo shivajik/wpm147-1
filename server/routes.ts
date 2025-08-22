@@ -2588,9 +2588,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Plugin update endpoint with URL parameter (frontend-compatible route)
-  app.post("/api/websites/:id/plugins/:pluginId/update", authenticateToken, async (req, res) => {
+  app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res) => {
     const startTime = Date.now();
-    const plugin = decodeURIComponent(req.params.pluginId); // Handle URL-encoded plugin paths
+    const { plugin } = req.body; // Get plugin from request body
+    
+    if (!plugin) {
+      return res.status(400).json({ message: "Plugin identifier is required in request body" });
+    }
+    console.log('[PLUGINS]{PLUGINS}',plugin)
+    // const plugin = decodeURIComponent(req.params.pluginId); // Handle URL-encoded plugin paths
     console.log(`[PLUGIN UPDATE] Starting update for plugin: ${plugin}`);
     
     try {

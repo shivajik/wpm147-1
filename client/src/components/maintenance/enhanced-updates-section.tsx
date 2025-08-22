@@ -180,7 +180,7 @@ export default function EnhancedUpdatesSection({ websiteId }: EnhancedUpdatesSec
   // Plugin update mutation
   const updatePluginMutation = useMutation({
     mutationFn: async (plugin: string) => {
-      return apiCall(`/api/websites/${websiteId}/update-plugin`, {
+      return apiCall(`/api/websites/${websiteId}/plugins/update`, {
         method: 'POST',
         body: JSON.stringify({ plugin })
       });
