@@ -6599,7 +6599,44 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
     }
   });
 
-  // Website Maintenance Report endpoint
+  // Get maintenance reports for a website
+  app.get("/api/websites/:id/maintenance-reports", authenticateToken, async (req, res) => {
+    try {
+      const userId = (req as AuthRequest).user!.id;
+      const websiteId = parseInt(req.params.id);
+      
+      const website = await storage.getWebsite(websiteId, userId);
+      if (!website) {
+        return res.status(404).json({ message: "Website not found" });
+      }
+
+      // Get all client reports for this website that are maintenance type
+      const allReports = await storage.getClientReports(userId);
+      const maintenanceReports = allReports.filter(report => {
+        const websiteIds = Array.isArray(report.websiteIds) ? report.websiteIds : [report.websiteIds];
+        return websiteIds.includes(websiteId) && report.title.toLowerCase().includes('maintenance');
+      });
+
+      // Transform to match the frontend interface
+      const formattedReports = maintenanceReports.map(report => ({
+        id: report.id,
+        websiteId: websiteId,
+        title: report.title,
+        reportType: 'maintenance' as const,
+        status: report.status as 'draft' | 'generated' | 'sent' | 'failed',
+        createdAt: report.createdAt?.toISOString() || new Date().toISOString(),
+        generatedAt: report.generatedAt?.toISOString(),
+        data: report.reportData
+      }));
+
+      res.json(formattedReports);
+    } catch (error) {
+      console.error("Error fetching maintenance reports:", error);
+      res.status(500).json({ message: "Failed to fetch maintenance reports" });
+    }
+  });
+
+  // Generate and store a new maintenance report
   app.post("/api/websites/:id/maintenance-report", authenticateToken, async (req, res) => {
     try {
       const userId = (req as AuthRequest).user!.id;
@@ -6610,7 +6647,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
         return res.status(404).json({ message: "Website not found" });
       }
 
-      // Generate maintenance report data
+      // Generate comprehensive maintenance report data
       const maintenanceData = {
         website: {
           id: website.id,
@@ -6624,34 +6661,46 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
         updates: {
           plugins: [],
           themes: [],
-          wordpress: null
+          wordpress: null,
+          total: 0
         },
         
         // Security status
         security: {
           lastScan: null,
           vulnerabilities: 0,
-          status: 'good'
+          status: 'good',
+          scanHistory: []
         },
         
         // Performance metrics
         performance: {
           lastScan: null,
           score: null,
-          metrics: {}
+          metrics: {},
+          history: []
         },
         
         // Backup status  
         backups: {
           lastBackup: website.lastBackup,
-          status: website.lastBackup ? 'current' : 'none'
+          status: website.lastBackup ? 'current' : 'none',
+          total: 0
         },
         
         // General health
         health: {
           wpVersion: website.wpVersion,
-          phpVersion: website.phpVersion,
+          phpVersion: 'Unknown',
           overallScore: 85
+        },
+        
+        overview: {
+          updatesPerformed: 0,
+          backupsCreated: 0,
+          uptimePercentage: 99.9,
+          securityStatus: 'safe' as 'safe' | 'warning' | 'critical',
+          performanceScore: 85
         },
         
         generatedAt: new Date().toISOString(),
@@ -6672,13 +6721,14 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
             maintenanceData.updates.plugins = updates.plugins || [];
             maintenanceData.updates.themes = updates.themes || [];
             maintenanceData.updates.wordpress = updates.wordpress || null;
+            maintenanceData.updates.total = (updates.plugins?.length || 0) + (updates.themes?.length || 0) + (updates.wordpress ? 1 : 0);
           }
 
           // Get status data for health information
           const status = await wrmClient.getStatus();
           if (status) {
             maintenanceData.health.wpVersion = status.wordpress_version || maintenanceData.health.wpVersion;
-            maintenanceData.health.phpVersion = status.php_version || maintenanceData.health.phpVersion;
+            maintenanceData.health.phpVersion = status.php_version || 'Unknown';
           }
         } catch (wrmError) {
           console.log(`[MAINTENANCE-REPORT] Could not fetch live data for website ${websiteId}:`, wrmError);
@@ -6687,12 +6737,17 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
 
       // Get recent security scans
       try {
-        const securityScans = await storage.getSecurityScans(websiteId, userId);
+        const securityScans = await storage.getSecurityScans(websiteId, userId, 10);
         if (securityScans && securityScans.length > 0) {
           const latestScan = securityScans[0];
-          maintenanceData.security.lastScan = latestScan.createdAt;
-          maintenanceData.security.vulnerabilities = latestScan.issuesCount || 0;
-          maintenanceData.security.status = latestScan.issuesCount === 0 ? 'good' : 'issues';
+          maintenanceData.security.lastScan = latestScan.createdAt?.toISOString() || null;
+          maintenanceData.security.vulnerabilities = (latestScan.coreVulnerabilities || 0) + (latestScan.pluginVulnerabilities || 0) + (latestScan.themeVulnerabilities || 0);
+          maintenanceData.security.status = latestScan.threatsDetected === 0 ? 'good' : 'issues';
+          maintenanceData.security.scanHistory = securityScans.map(scan => ({
+            date: scan.createdAt?.toISOString() || new Date().toISOString(),
+            status: scan.scanStatus === 'completed' ? 'clean' : 'issues',
+            vulnerabilities: (scan.coreVulnerabilities || 0) + (scan.pluginVulnerabilities || 0) + (scan.themeVulnerabilities || 0)
+          }));
         }
       } catch (securityError) {
         console.log(`[MAINTENANCE-REPORT] Could not fetch security data for website ${websiteId}:`, securityError);
@@ -6703,18 +6758,84 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
         const performanceScans = await storage.getPerformanceScans(websiteId, userId);
         if (performanceScans && performanceScans.length > 0) {
           const latestScan = performanceScans[0];
-          maintenanceData.performance.lastScan = latestScan.createdAt;
-          maintenanceData.performance.score = latestScan.performanceScore;
+          maintenanceData.performance.lastScan = latestScan.createdAt?.toISOString() || null;
+          maintenanceData.performance.score = latestScan.pagespeedScore;
           maintenanceData.performance.metrics = latestScan.scanData || {};
+          maintenanceData.performance.history = performanceScans.slice(0, 10).map(scan => ({
+            date: scan.scanTimestamp.toISOString(),
+            score: scan.pagespeedScore
+          }));
+          maintenanceData.overview.performanceScore = latestScan.pagespeedScore;
         }
       } catch (performanceError) {
         console.log(`[MAINTENANCE-REPORT] Could not fetch performance data for website ${websiteId}:`, performanceError);
       }
 
+      // Get recent update logs for better update tracking
+      try {
+        const updateLogs = await storage.getUpdateLogs(websiteId, userId, 50);
+        if (updateLogs && updateLogs.length > 0) {
+          maintenanceData.overview.updatesPerformed = updateLogs.length;
+          
+          // Add recent updates to the report
+          const recentPluginUpdates = updateLogs.filter(log => log.updateType === 'plugin').slice(0, 10);
+          const recentThemeUpdates = updateLogs.filter(log => log.updateType === 'theme').slice(0, 10);
+          
+          if (recentPluginUpdates.length > 0) {
+            maintenanceData.updates.plugins = recentPluginUpdates.map(log => ({
+              name: log.itemName,
+              fromVersion: log.fromVersion || 'Unknown',
+              toVersion: log.toVersion || 'Latest',
+              date: log.createdAt.toISOString(),
+              status: log.updateStatus
+            }));
+          }
+          
+          if (recentThemeUpdates.length > 0) {
+            maintenanceData.updates.themes = recentThemeUpdates.map(log => ({
+              name: log.itemName,
+              fromVersion: log.fromVersion || 'Unknown',
+              toVersion: log.toVersion || 'Latest',
+              date: log.createdAt.toISOString(),
+              status: log.updateStatus
+            }));
+          }
+        }
+      } catch (updateError) {
+        console.log(`[MAINTENANCE-REPORT] Could not fetch update logs for website ${websiteId}:`, updateError);
+      }
+
+      // Store the maintenance report in the database as a client report
+      const reportTitle = `Maintenance Report - ${website.name} - ${new Date().toLocaleDateString()}`;
+      const currentDate = new Date();
+      const oneMonthAgo = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, currentDate.getDate());
+      
+      const storedReport = await storage.createClientReport({
+        userId,
+        title: reportTitle,
+        clientId: website.clientId,
+        websiteIds: [websiteId],
+        dateFrom: oneMonthAgo,
+        dateTo: currentDate,
+        status: 'generated',
+        reportData: maintenanceData,
+        generatedAt: new Date()
+      });
+
       res.json({
         success: true,
         message: "Maintenance report generated successfully",
-        data: maintenanceData
+        reportId: storedReport.id,
+        data: {
+          id: storedReport.id,
+          websiteId: websiteId,
+          title: reportTitle,
+          reportType: 'maintenance',
+          status: 'generated',
+          createdAt: storedReport.createdAt?.toISOString(),
+          generatedAt: storedReport.generatedAt?.toISOString(),
+          data: maintenanceData
+        }
       });
 
     } catch (error) {
@@ -6722,6 +6843,99 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
       res.status(500).json({ 
         success: false,
         message: "Failed to generate maintenance report",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Get a specific maintenance report
+  app.get("/api/websites/:id/maintenance-reports/:reportId", authenticateToken, async (req, res) => {
+    try {
+      const userId = (req as AuthRequest).user!.id;
+      const websiteId = parseInt(req.params.id);
+      const reportId = parseInt(req.params.reportId);
+      
+      const website = await storage.getWebsite(websiteId, userId);
+      if (!website) {
+        return res.status(404).json({ message: "Website not found" });
+      }
+
+      const report = await storage.getClientReport(reportId, userId);
+      if (!report) {
+        return res.status(404).json({ message: "Report not found" });
+      }
+
+      // Verify this report belongs to the requested website
+      const websiteIds = Array.isArray(report.websiteIds) ? report.websiteIds : [report.websiteIds];
+      if (!websiteIds.includes(websiteId)) {
+        return res.status(403).json({ message: "Report does not belong to this website" });
+      }
+
+      res.json({
+        id: report.id,
+        websiteId: websiteId,
+        title: report.title,
+        reportType: 'maintenance',
+        status: report.status,
+        createdAt: report.createdAt?.toISOString(),
+        generatedAt: report.generatedAt?.toISOString(),
+        data: report.reportData
+      });
+    } catch (error) {
+      console.error("Error fetching maintenance report:", error);
+      res.status(500).json({ message: "Failed to fetch maintenance report" });
+    }
+  });
+
+  // Download maintenance report as PDF/HTML
+  app.get("/api/websites/:id/maintenance-reports/:reportId/pdf", authenticateToken, async (req, res) => {
+    try {
+      const userId = (req as AuthRequest).user!.id;
+      const websiteId = parseInt(req.params.id);
+      const reportId = parseInt(req.params.reportId);
+      
+      const website = await storage.getWebsite(websiteId, userId);
+      if (!website) {
+        return res.status(404).json({ message: "Website not found" });
+      }
+
+      const report = await storage.getClientReport(reportId, userId);
+      if (!report) {
+        return res.status(404).json({ message: "Report not found" });
+      }
+
+      // Verify this report belongs to the requested website
+      const websiteIds = Array.isArray(report.websiteIds) ? report.websiteIds : [report.websiteIds];
+      if (!websiteIds.includes(websiteId)) {
+        return res.status(403).json({ message: "Report does not belong to this website" });
+      }
+
+      // Generate HTML for the maintenance report
+      const reportData = report.reportData as any || {};
+      const maintenanceData = {
+        id: report.id,
+        title: report.title,
+        dateFrom: report.dateFrom.toISOString(),
+        dateTo: report.dateTo.toISOString(),
+        reportData: reportData,
+        clientName: 'Valued Client',
+        websiteName: website.name,
+        websiteUrl: website.url,
+        wpVersion: reportData.health?.wpVersion || 'Unknown',
+        hasMaintenanceActivity: true
+      };
+
+      // Use the existing ManageWPStylePDFGenerator for consistency
+      const pdfGenerator = new ManageWPStylePDFGenerator();
+      const reportHtml = pdfGenerator.generateReportHTML(maintenanceData);
+      
+      res.setHeader('Content-Type', 'text/html');
+      res.setHeader('Content-Disposition', `inline; filename="maintenance-report-${reportId}.html"`);
+      res.send(reportHtml);
+    } catch (error) {
+      console.error("Error serving maintenance report PDF:", error);
+      res.status(500).json({ 
+        message: "Failed to generate maintenance report PDF",
         error: error instanceof Error ? error.message : "Unknown error"
       });
     }

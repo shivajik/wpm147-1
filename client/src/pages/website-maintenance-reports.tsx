@@ -65,32 +65,9 @@ export default function WebsiteMaintenanceReports() {
     queryKey: ['/api/websites', websiteId],
   });
 
-  // Mock data for maintenance reports (replace with real API call)
+  // Fetch maintenance reports from the real API
   const { data: reports, isLoading } = useQuery<MaintenanceReport[]>({
     queryKey: ['/api/websites', websiteId, 'maintenance-reports'],
-    queryFn: async () => {
-      // For now, return mock data since we haven't created the backend storage yet
-      return [
-        {
-          id: 1,
-          websiteId,
-          title: `Maintenance Report - ${format(new Date(), 'MMM yyyy')}`,
-          reportType: 'maintenance',
-          status: 'generated',
-          createdAt: new Date().toISOString(),
-          generatedAt: new Date().toISOString(),
-        },
-        {
-          id: 2,
-          websiteId,
-          title: `Weekly Maintenance - ${format(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), 'MMM dd')}`,
-          reportType: 'maintenance',
-          status: 'sent',
-          createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-          generatedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-        },
-      ] as MaintenanceReport[];
-    },
   });
 
   const generateMaintenanceReport = useMutation({
@@ -111,6 +88,44 @@ export default function WebsiteMaintenanceReports() {
       toast({
         title: "Generation Failed",
         description: error.message || "Failed to generate maintenance report",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Download maintenance report mutation
+  const downloadMaintenanceReport = useMutation({
+    mutationFn: async (reportId: number) => {
+      // Open the PDF in a new tab for viewing/downloading
+      const url = `/api/websites/${websiteId}/maintenance-reports/${reportId}/pdf`;
+      window.open(url, '_blank');
+      return { success: true };
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Download Failed",
+        description: error.message || "Failed to download maintenance report",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // View maintenance report mutation
+  const viewMaintenanceReport = useMutation({
+    mutationFn: async (reportId: number) => {
+      const response = await apiCall(`/api/websites/${websiteId}/maintenance-reports/${reportId}`);
+      return response;
+    },
+    onSuccess: (data) => {
+      // For now, show the report data in the PDF viewer
+      // In a real implementation, you might navigate to a dedicated report view page
+      const url = `/api/websites/${websiteId}/maintenance-reports/${data.id}/pdf`;
+      window.open(url, '_blank');
+    },
+    onError: (error: any) => {
+      toast({
+        title: "View Failed",
+        description: error.message || "Failed to view maintenance report",
         variant: "destructive",
       });
     },
@@ -158,6 +173,7 @@ export default function WebsiteMaintenanceReports() {
           <Button 
             onClick={() => generateMaintenanceReport.mutate()}
             disabled={generateMaintenanceReport.isPending}
+            data-testid="button-generate-new-report"
           >
             {generateMaintenanceReport.isPending ? (
               <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
@@ -254,7 +270,10 @@ export default function WebsiteMaintenanceReports() {
                       }
                     </p>
                     {selectedTab === 'all' && (
-                      <Button onClick={() => generateMaintenanceReport.mutate()}>
+                      <Button 
+                        onClick={() => generateMaintenanceReport.mutate()}
+                        data-testid="button-generate-first-report"
+                      >
                         <Plus className="w-4 h-4 mr-2" />
                         Generate First Report
                       </Button>
@@ -297,6 +316,7 @@ export default function WebsiteMaintenanceReports() {
                                   variant="outline"
                                   onClick={() => generateMaintenanceReport.mutate()}
                                   disabled={generateMaintenanceReport.isPending}
+                                  data-testid={`button-generate-report-${report.id}`}
                                 >
                                   <RefreshCw className="w-3 h-3 mr-1" />
                                   Generate
@@ -307,12 +327,9 @@ export default function WebsiteMaintenanceReports() {
                                   <Button
                                     size="sm"
                                     variant="outline"
-                                    onClick={() => {
-                                      toast({
-                                        title: "Report Details",
-                                        description: "Report viewing will be implemented soon.",
-                                      });
-                                    }}
+                                    onClick={() => viewMaintenanceReport.mutate(report.id)}
+                                    disabled={viewMaintenanceReport.isPending}
+                                    data-testid={`button-view-report-${report.id}`}
                                   >
                                     <Eye className="w-3 h-3 mr-1" />
                                     View
@@ -320,12 +337,9 @@ export default function WebsiteMaintenanceReports() {
                                   <Button
                                     size="sm"
                                     variant="outline"
-                                    onClick={() => {
-                                      toast({
-                                        title: "Download",
-                                        description: "Report download will be implemented soon.",
-                                      });
-                                    }}
+                                    onClick={() => downloadMaintenanceReport.mutate(report.id)}
+                                    disabled={downloadMaintenanceReport.isPending}
+                                    data-testid={`button-download-report-${report.id}`}
                                   >
                                     <Download className="w-3 h-3 mr-1" />
                                     Download
