@@ -3856,6 +3856,219 @@ export default async function handler(req: any, res: any) {
       }
     }
 
+// New Plugin Update endpoint using /plugins/update path
+if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req.method === 'POST') {
+  const user = authenticateToken(req);
+  if (!user) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  const websiteId = parseInt(path.split('/')[3]);
+  if (isNaN(websiteId)) {
+    return res.status(400).json({ message: 'Invalid website ID' });
+  }
+
+  try {
+    const { plugin } = req.body;
+    if (!plugin) {
+      return res.status(400).json({ message: 'Plugin parameter is required' });
+    }
+
+    const websiteResult = await db.select()
+      .from(websites)
+      .innerJoin(clients, eq(websites.clientId, clients.id))
+      .where(and(eq(websites.id, websiteId), eq(clients.userId, user.id)))
+      .limit(1);
+      
+    if (websiteResult.length === 0) {
+      return res.status(404).json({ message: "Website not found" });
+    }
+    
+    const website = websiteResult[0].websites;
+    if (!website.wrmApiKey || !website.url) {
+      return res.status(400).json({ message: 'WordPress connection not configured' });
+    }
+
+    // Log update start
+    const logInsert = await db.insert(updateLogs).values({
+      websiteId: websiteId,
+      userId: user.id,
+      updateType: 'plugin',
+      itemName: plugin,
+      itemSlug: plugin,
+      updateStatus: 'pending',
+      automatedUpdate: false,
+    }).returning();
+
+    const logId = logInsert[0].id;
+    const startTime = Date.now();
+
+    // Initialize outside try block for wider scope
+    const wpClient = new WPRemoteManagerClient(website.url, website.wrmApiKey);
+    let oldVersion = "unknown";
+    let currentPlugin: any = null;
+    
+    try {
+      // Get current plugin data before update
+      const currentPluginsData = await wpClient.getPlugins();
+      const currentPlugins = Array.isArray(currentPluginsData) ? currentPluginsData : [];
+      currentPlugin = currentPlugins.find((p: any) => p.plugin === plugin || p.slug === plugin);
+      oldVersion = currentPlugin?.version || "unknown";
+
+      // Perform update via WRM API (bulk update method)
+      const updateResult = await wpClient.performUpdates([{ type: 'plugin', items: [plugin] }]);
+      
+      if (updateResult.success !== false) {
+        // Wait for WordPress to process the update
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        // Get updated plugin data
+        const updatedPluginsData = await wpClient.getPlugins();
+        const updatedPlugins = Array.isArray(updatedPluginsData) ? updatedPluginsData : [];
+        const updatedPlugin = updatedPlugins.find((p: any) => p.plugin === plugin || p.slug === plugin);
+        const newVersion = updatedPlugin?.version || oldVersion;
+        
+        const duration = Math.round((Date.now() - startTime) / 1000);
+        
+        // Update log with success
+        await db.update(updateLogs)
+          .set({
+            updateStatus: 'success',
+            fromVersion: oldVersion,
+            toVersion: newVersion,
+            duration: duration,
+            updateData: { wpResult: updateResult, versions: { old: oldVersion, new: newVersion } }
+          })
+          .where(eq(updateLogs.id, logId));
+
+        // Create notification for successful plugin update
+        try {
+          const pluginDisplayName = currentPlugin?.name || plugin.split('/')[1]?.replace('.php', '') || plugin;
+          await createTaskNotification(
+            user.id,
+            websiteId,
+            'plugin_update_success',
+            'Plugin Update Completed',
+            `${pluginDisplayName} has been successfully updated from version ${oldVersion} to ${newVersion} on ${website.name}.`,
+            `/websites/${websiteId}/updates`
+          );
+        } catch (notificationError) {
+          console.warn("Failed to create plugin update notification:", notificationError);
+        }
+
+        return res.status(200).json({
+          success: true,
+          message: `Plugin ${plugin} updated successfully`,
+          fromVersion: oldVersion,
+          toVersion: newVersion,
+          duration: duration
+        });
+      } else {
+        throw new Error(updateResult.message || 'Update failed');
+      }
+    } catch (error: any) {
+      const duration = Math.round((Date.now() - startTime) / 1000);
+      
+      // Check if this is a timeout-related error
+      let isTimeoutError = false;
+      const errorMessage = error.message || '';
+      const errorCode = error.code || '';
+      
+      if (errorMessage.includes('timeout') || 
+          errorMessage.includes('ETIMEDOUT') || 
+          errorMessage.includes('ECONNABORTED') ||
+          errorCode === 'ETIMEDOUT' || 
+          errorCode === 'ECONNABORTED' ||
+          errorCode === 'timeout' ||
+          duration >= 240) { // Consider anything over 4 minutes as timeout
+        isTimeoutError = true;
+        
+        // For timeout errors, try to verify if the update actually completed
+        try {
+          console.log(`Timeout detected for plugin ${plugin}, attempting to verify update completion...`);
+          console.log(`Expected to update from version: ${oldVersion}`);
+          await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
+          
+          const verification = await wpClient.verifyPluginUpdate(plugin, oldVersion);
+          console.log(`Verification result:`, verification);
+          
+          if (verification.currentVersion !== oldVersion) {
+            // Update actually completed successfully despite timeout
+            console.log(`Plugin ${plugin} update completed despite timeout. Version: ${oldVersion} -> ${verification.currentVersion}`);
+            
+            await db.update(updateLogs)
+              .set({
+                updateStatus: 'success',
+                fromVersion: oldVersion,
+                toVersion: verification.currentVersion,
+                duration: duration,
+                updateData: { 
+                  wpResult: { success: true, message: 'Update completed after timeout' }, 
+                  versions: { old: oldVersion, new: verification.currentVersion },
+                  timeoutRecovered: true
+                }
+              })
+              .where(eq(updateLogs.id, logId));
+
+            // Create notification for timeout-recovered plugin update
+            try {
+              const pluginDisplayName = currentPlugin?.name || plugin.split('/')[1]?.replace('.php', '') || plugin;
+              await createTaskNotification(
+                user.id,
+                websiteId,
+                'plugin_update_success',
+                'Plugin Update Completed',
+                `${pluginDisplayName} has been successfully updated from version ${oldVersion} to ${verification.currentVersion} on ${website.name} (recovered from timeout).`,
+                `/websites/${websiteId}/updates`
+              );
+            } catch (notificationError) {
+              console.warn("Failed to create plugin timeout-recovery notification:", notificationError);
+            }
+
+            return res.status(200).json({
+              success: true,
+              message: `Plugin ${plugin} updated successfully (recovered from timeout)`,
+              fromVersion: oldVersion,
+              toVersion: verification.currentVersion,
+              duration: duration,
+              wasTimeout: true
+            });
+          }
+        } catch (verificationError) {
+          console.log('Verification after timeout failed:', verificationError);
+        }
+      }
+      
+      // Update log with appropriate status
+      await db.update(updateLogs)
+        .set({
+          updateStatus: isTimeoutError ? 'timeout' : 'failed',
+          errorMessage: error.message || 'Unknown error',
+          duration: duration,
+          updateData: { error: error.message, timeout: isTimeoutError }
+        })
+        .where(eq(updateLogs.id, logId));
+
+      if (isTimeoutError) {
+        return res.status(202).json({
+          success: false,
+          message: 'Update initiated but taking longer than expected. The plugin may still be updating in the background. Please check back in a few minutes.',
+          isTimeout: true,
+          status: 'processing'
+        });
+      }
+
+      return res.status(500).json({
+        success: false,
+        message: error.message || 'Plugin update failed'
+      });
+    }
+  } catch (error) {
+    console.error('Plugin update error:', error);
+    return res.status(500).json({ message: 'Failed to update plugin' });
+  }
+}
+
     // Update Theme endpoint
     if (path.startsWith('/api/websites/') && path.endsWith('/update-theme') && req.method === 'POST') {
       const user = authenticateToken(req);
@@ -7565,6 +7778,7 @@ export default async function handler(req: any, res: any) {
         'POST /api/websites/:id/optimization/revisions',
         'POST /api/websites/:id/optimization/database',
         'POST /api/websites/:id/optimization/all',
+        'POST /api/websites/:id/plugins/update/',,
         'POST /api/websites/:id/seo-analysis',
         'GET /api/websites/:id/seo-reports',
         'GET /api/websites/:id/seo-reports/:reportId',
