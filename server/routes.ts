@@ -2587,6 +2587,183 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Plugin update endpoint with URL parameter (frontend-compatible route)
+  app.post("/api/websites/:id/plugins/:pluginId/update", authenticateToken, async (req, res) => {
+    const startTime = Date.now();
+    const plugin = decodeURIComponent(req.params.pluginId); // Handle URL-encoded plugin paths
+    console.log(`[PLUGIN UPDATE] Starting update for plugin: ${plugin}`);
+    
+    try {
+      const userId = (req as AuthRequest).user!.id;
+      const websiteId = parseInt(req.params.id);
+      
+      const website = await storage.getWebsite(websiteId, userId);
+      if (!website) {
+        return res.status(404).json({ message: "Website not found" });
+      }
+
+      if (!website.wrmApiKey) {
+        return res.status(400).json({ message: "WP Remote Manager API key is required" });
+      }
+
+      console.log(`[PLUGIN UPDATE] Setting up WRM client for ${website.url}`);
+      const wrmClient = new WPRemoteManagerClient({
+        url: website.url,
+        apiKey: website.wrmApiKey
+      });
+
+      // Get version information before update
+      console.log(`[PLUGIN UPDATE] Fetching current plugin data and updates...`);
+      let updatesData;
+      let currentPlugin;
+      let pluginUpdate;
+      
+      try {
+        updatesData = await wrmClient.getUpdates();
+        pluginUpdate = updatesData.plugins?.find((p: any) => {
+          return p.plugin_file === plugin || 
+                 p.plugin === plugin || 
+                 p.name === plugin ||
+                 (p.plugin && p.plugin.includes(plugin)) ||
+                 (plugin && plugin.includes(p.plugin)) ||
+                 (p.slug && p.slug === plugin.split('/')[0]);
+        });
+        console.log(`[PLUGIN UPDATE] Updates data fetched, found plugin update:`, pluginUpdate ? 'YES' : 'NO');
+      } catch (updatesError) {
+        console.error(`[PLUGIN UPDATE] Error fetching updates:`, updatesError);
+      }
+
+      try {
+        const pluginsData = await wrmClient.getPlugins();
+        currentPlugin = pluginsData.find((p: any) => {
+          return p.plugin === plugin || 
+                 p.name === plugin ||
+                 (p.plugin && p.plugin.includes(plugin)) ||
+                 (plugin && plugin.includes(p.plugin)) ||
+                 (p.slug && p.slug === plugin.split('/')[0]);
+        });
+        console.log(`[PLUGIN UPDATE] Current plugin data fetched:`, currentPlugin ? 'YES' : 'NO');
+      } catch (pluginDataError) {
+        console.error(`[PLUGIN UPDATE] Error fetching current plugin data:`, pluginDataError);
+      }
+
+      // Enhanced version detection with better fallbacks
+      let fromVersion = "unknown";
+      let toVersion = "unknown";
+      let itemName = plugin;
+
+      // Try to get version from pluginUpdate first
+      if (pluginUpdate) {
+        fromVersion = pluginUpdate.current_version || pluginUpdate.version || fromVersion;
+        toVersion = pluginUpdate.new_version || toVersion;
+        itemName = pluginUpdate.name || pluginUpdate.plugin || itemName;
+      }
+
+      // If still unknown, try from currentPlugin
+      if (fromVersion === "unknown" && currentPlugin) {
+        fromVersion = currentPlugin.version || currentPlugin.current_version || fromVersion;
+        itemName = currentPlugin.name || currentPlugin.plugin || itemName;
+      }
+
+      console.log(`[PLUGIN UPDATE] Version mapping: ${fromVersion} → ${toVersion}`);
+      console.log(`[PLUGIN UPDATE] Item name: ${itemName}`);
+      
+      // Create initial log entry
+      console.log(`[PLUGIN UPDATE] Creating log entry...fromVersion → toVersion ${fromVersion} → ${toVersion}`);
+      const updateLog = await storage.createUpdateLog({
+        websiteId,
+        userId,
+        updateType: "plugin",
+        itemName,
+        itemSlug: plugin,
+        fromVersion,
+        toVersion,
+        updateStatus: "pending",
+        automatedUpdate: false
+      });
+      console.log(`[PLUGIN UPDATE] Log entry created with ID: ${updateLog.id}`);
+
+      try {
+        // Perform the update
+        const updateResult = await wrmClient.updateSinglePlugin(plugin);
+        const duration = Date.now() - startTime;
+
+        console.log(`Enhanced update result for ${plugin}:`, JSON.stringify(updateResult, null, 2));
+
+        let actualUpdateSuccess = updateResult.success;
+        let actualNewVersion = toVersion;
+        
+        // If the update succeeded, get the actual new version
+        if (actualUpdateSuccess) {
+          try {
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            const updatedPluginsData = await wrmClient.getPlugins();
+            const updatedPlugin = updatedPluginsData.find((p: any) => p.plugin === plugin || p.name === plugin);
+            if (updatedPlugin) {
+              actualNewVersion = updatedPlugin.version;
+            }
+          } catch (versionCheckError) {
+            console.warn("Could not fetch updated version:", versionCheckError);
+          }
+        }
+        
+        // Update the existing log with success/failure status
+        await storage.updateUpdateLog(updateLog.id, {
+          updateStatus: actualUpdateSuccess ? "success" : "failed",
+          updateData: updateResult,
+          duration,
+          toVersion: actualNewVersion,
+          errorMessage: actualUpdateSuccess ? undefined : "Update completed but plugin version did not change"
+        });
+
+        res.json({ 
+          success: actualUpdateSuccess, 
+          message: actualUpdateSuccess 
+            ? `Plugin ${plugin} updated successfully to version ${actualNewVersion}`
+            : `Plugin ${plugin} update failed - version did not change`,
+          updateResult,
+          logId: updateLog.id,
+          oldVersion: fromVersion,
+          newVersion: actualNewVersion,
+          verified: true
+        });
+      } catch (updateError) {
+        const duration = Date.now() - startTime;
+        
+        // Update the existing log with failure
+        await storage.updateUpdateLog(updateLog.id, {
+          updateStatus: "failed",
+          errorMessage: updateError instanceof Error ? updateError.message : "Unknown error",
+          duration
+        });
+
+        throw updateError;
+      }
+    } catch (error) {
+      console.error("Error updating plugin:", error);
+      
+      let errorMessage = "Unknown error";
+      let statusCode = 500;
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+        
+        if (error.message.includes('404') || error.message.includes('not found')) {
+          statusCode = 400;
+        } else if (error.message.includes('401') || error.message.includes('403')) {
+          statusCode = 401;
+        }
+      }
+      
+      res.status(statusCode).json({ 
+        message: `Plugin update failed: ${errorMessage}`,
+        error: errorMessage,
+        plugin: plugin,
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
   // Test WP Remote Manager connection
   app.get("/api/websites/:id/wrm/test-connection", authenticateToken, async (req, res) => {
     try {
@@ -2927,6 +3104,150 @@ export async function registerRoutes(app: Express): Promise<Server> {
         error: errorMessage,
         theme: req.body.theme || "unknown",
         details: details,
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
+  // Theme update endpoint with URL parameter (frontend-compatible route)
+  app.post("/api/websites/:id/themes/:themeId/update", authenticateToken, async (req, res) => {
+    const startTime = Date.now();
+    const theme = decodeURIComponent(req.params.themeId); // Handle URL-encoded theme paths
+    console.log(`[THEME UPDATE] Starting update for theme: ${theme}`);
+    
+    try {
+      const userId = (req as AuthRequest).user!.id;
+      const websiteId = parseInt(req.params.id);
+      
+      const website = await storage.getWebsite(websiteId, userId);
+      if (!website) {
+        return res.status(404).json({ message: "Website not found" });
+      }
+
+      if (!website.wrmApiKey) {
+        return res.status(400).json({ message: "WP Remote Manager API key is required" });
+      }
+
+      const wrmClient = new WPRemoteManagerClient({
+        url: website.url,
+        apiKey: website.wrmApiKey
+      });
+
+      // Get available updates first (this is the most reliable source)
+      const updatesData = await wrmClient.getUpdates();
+      const themeUpdate = updatesData.themes?.find((t: any) => t.stylesheet === theme || t.name === theme || t.theme === theme);
+      
+      // Try to get current theme data (may fail due to API issues)
+      let themesData = [];
+      let currentTheme = null;
+      try {
+        themesData = await wrmClient.getThemes();
+        currentTheme = themesData.find((t: any) => t.stylesheet === theme || t.name === theme || t.theme === theme);
+      } catch (themeDataError) {
+        console.warn(`Could not fetch current theme data for ${theme}:`, themeDataError);
+      }
+      
+      console.log(`Theme update preparation: ${theme}`);
+      console.log(`  Current theme data:`, currentTheme);
+      console.log(`  Theme update data:`, themeUpdate);
+      
+      // Determine version information with fallback priority
+      const fromVersion = currentTheme?.version || themeUpdate?.current_version || "unknown";
+      const toVersion = themeUpdate?.new_version || "latest";
+      const itemName = currentTheme?.name || themeUpdate?.name || theme;
+      
+      console.log(`  Final version mapping: ${fromVersion} → ${toVersion}`);
+      
+      // Create initial log entry with proper theme information
+      const updateLog = await storage.createUpdateLog({
+        websiteId,
+        userId,
+        updateType: "theme",
+        itemName,
+        itemSlug: theme,
+        fromVersion,
+        toVersion,
+        updateStatus: "pending",
+        automatedUpdate: false
+      });
+
+      try {
+        // Perform the update using the enhanced single theme update method with verification
+        const updateResult = await wrmClient.updateSingleTheme(theme);
+        const duration = Date.now() - startTime;
+
+        console.log(`Enhanced theme update result for ${theme}:`, JSON.stringify(updateResult, null, 2));
+
+        // The updateSingleTheme method now includes built-in verification for timeouts
+        let actualUpdateSuccess = updateResult.success;
+        let actualNewVersion = themeUpdate?.new_version || "latest";
+        
+        // If the update succeeded or was verified despite timeout, get the actual new version
+        if (actualUpdateSuccess) {
+          try {
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            const updatedThemesData = await wrmClient.getThemes();
+            const updatedTheme = updatedThemesData.find((t: any) => t.stylesheet === theme || t.name === theme);
+            if (updatedTheme) {
+              actualNewVersion = updatedTheme.version;
+            }
+          } catch (versionCheckError) {
+            console.warn("Could not fetch updated theme version:", versionCheckError);
+          }
+        }
+        
+        // Update the existing log with actual success/failure status
+        await storage.updateUpdateLog(updateLog.id, {
+          updateStatus: actualUpdateSuccess ? "success" : "failed",
+          updateData: updateResult,
+          duration,
+          toVersion: actualNewVersion !== "unknown" ? actualNewVersion : themeUpdate?.new_version,
+          errorMessage: actualUpdateSuccess ? undefined : `Update completed but theme version did not change (expected: ${themeUpdate?.new_version || "newer version"})`
+        });
+
+        res.json({ 
+          success: actualUpdateSuccess, 
+          message: actualUpdateSuccess 
+            ? `Theme ${theme} updated successfully to version ${actualNewVersion}`
+            : `Theme ${theme} update failed - version did not change`,
+          updateResult,
+          logId: updateLog.id,
+          oldVersion: fromVersion,
+          newVersion: actualNewVersion,
+          verified: true
+        });
+      } catch (updateError) {
+        const duration = Date.now() - startTime;
+        
+        // Update the existing log with failure
+        await storage.updateUpdateLog(updateLog.id, {
+          updateStatus: "failed",
+          errorMessage: updateError instanceof Error ? updateError.message : "Unknown error",
+          duration
+        });
+
+        throw updateError;
+      }
+    } catch (error) {
+      console.error("Error updating theme:", error);
+      
+      let errorMessage = "Unknown error";
+      let statusCode = 500;
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+        
+        if (error.message.includes('404') || error.message.includes('not found')) {
+          statusCode = 400;
+        } else if (error.message.includes('401') || error.message.includes('403')) {
+          statusCode = 401;
+        }
+      }
+      
+      res.status(statusCode).json({ 
+        message: `Theme update failed: ${errorMessage}`,
+        error: errorMessage,
+        theme: theme,
         timestamp: new Date().toISOString()
       });
     }
