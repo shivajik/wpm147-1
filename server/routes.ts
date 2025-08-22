@@ -2588,15 +2588,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Plugin update endpoint with URL parameter (frontend-compatible route)
-  app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res) => {
+app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res) => {
     const startTime = Date.now();
-    const { plugin } = req.body; // Get plugin from request body
+    const { plugin } = req.body;
     
     if (!plugin) {
       return res.status(400).json({ message: "Plugin identifier is required in request body" });
     }
-    console.log('[PLUGINS]{PLUGINS}',plugin)
-    // const plugin = decodeURIComponent(req.params.pluginId); // Handle URL-encoded plugin paths
+    
+    console.log('[PLUGINS]{PLUGINS}', plugin);
     console.log(`[PLUGIN UPDATE] Starting update for plugin: ${plugin}`);
     
     try {
@@ -2607,7 +2607,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!website) {
         return res.status(404).json({ message: "Website not found" });
       }
-
+      
+      console.log('[WEBSITE] {WEBSITE}', website);
+      
       if (!website.wrmApiKey) {
         return res.status(400).json({ message: "WP Remote Manager API key is required" });
       }
@@ -2618,135 +2620,272 @@ export async function registerRoutes(app: Express): Promise<Server> {
         apiKey: website.wrmApiKey
       });
 
+      // Enhanced plugin matching function
+      const findPluginMatch = (pluginList: any[], targetPlugin: string) => {
+        return pluginList.find((p: any) => {
+          // Direct matches
+          if (p.plugin === targetPlugin || p.name === targetPlugin || p.slug === targetPlugin) {
+            return true;
+          }
+          
+          // Partial matches
+          if (p.plugin && p.plugin.includes(targetPlugin)) return true;
+          if (targetPlugin && targetPlugin.includes(p.plugin)) return true;
+          
+          // Slug comparison (for plugin paths like 'js_composer/js_composer.php')
+          const targetSlug = targetPlugin.includes('/') ? targetPlugin.split('/')[0] : targetPlugin;
+          const pluginSlug = p.plugin && p.plugin.includes('/') ? p.plugin.split('/')[0] : p.plugin;
+          if (p.slug === targetSlug || pluginSlug === targetSlug) return true;
+          
+          return false;
+        });
+      };
+
       // Get version information before update
       console.log(`[PLUGIN UPDATE] Fetching current plugin data and updates...`);
       let updatesData;
       let currentPlugin;
       let pluginUpdate;
       
+      // Fetch updates data
       try {
         updatesData = await wrmClient.getUpdates();
-        pluginUpdate = updatesData.plugins?.find((p: any) => {
-          return p.plugin_file === plugin || 
-                 p.plugin === plugin || 
-                 p.name === plugin ||
-                 (p.plugin && p.plugin.includes(plugin)) ||
-                 (plugin && plugin.includes(p.plugin)) ||
-                 (p.slug && p.slug === plugin.split('/')[0]);
-        });
-        console.log(`[PLUGIN UPDATE] Updates data fetched, found plugin update:`, pluginUpdate ? 'YES' : 'NO');
+        console.log('[UPDATES LOG]{UPDATES LOG}', updatesData);
+        
+        if (updatesData.plugins && Array.isArray(updatesData.plugins)) {
+          pluginUpdate = findPluginMatch(updatesData.plugins, plugin);
+          console.log(`[PLUGIN UPDATE] Updates data fetched, found plugin update:`, pluginUpdate || 'NO');
+        }
       } catch (updatesError) {
         console.error(`[PLUGIN UPDATE] Error fetching updates:`, updatesError);
       }
 
+      // Fetch current plugin data
       try {
         const pluginsData = await wrmClient.getPlugins();
-        currentPlugin = pluginsData.find((p: any) => {
-          return p.plugin === plugin || 
-                 p.name === plugin ||
-                 (p.plugin && p.plugin.includes(plugin)) ||
-                 (plugin && plugin.includes(p.plugin)) ||
-                 (p.slug && p.slug === plugin.split('/')[0]);
-        });
-        console.log(`[PLUGIN UPDATE] Current plugin data fetched:`, currentPlugin ? 'YES' : 'NO');
+        if (Array.isArray(pluginsData)) {
+          currentPlugin = findPluginMatch(pluginsData, plugin);
+          console.log(`[PLUGIN UPDATE] Current plugin data fetched:`, currentPlugin ? 'YES' : 'NO');
+          if (currentPlugin) {
+            console.log(`[PLUGIN UPDATE] Current plugin details:`, {
+              name: currentPlugin.name,
+              version: currentPlugin.version,
+              plugin: currentPlugin.plugin,
+              active: currentPlugin.active
+            });
+          }
+        }
       } catch (pluginDataError) {
         console.error(`[PLUGIN UPDATE] Error fetching current plugin data:`, pluginDataError);
       }
 
-      // Enhanced version detection with better fallbacks
+      // Enhanced version detection
       let fromVersion = "unknown";
       let toVersion = "unknown";
       let itemName = plugin;
+      let actualPluginPath = plugin;
 
-      // Try to get version from pluginUpdate first
+      // Priority 1: Get data from pluginUpdate
       if (pluginUpdate) {
         fromVersion = pluginUpdate.current_version || pluginUpdate.version || fromVersion;
         toVersion = pluginUpdate.new_version || toVersion;
         itemName = pluginUpdate.name || pluginUpdate.plugin || itemName;
+        actualPluginPath = pluginUpdate.plugin || pluginUpdate.slug || actualPluginPath;
+        
+        console.log(`[PLUGIN UPDATE] From pluginUpdate - fromVersion: ${fromVersion}, toVersion: ${toVersion}`);
       }
 
-      // If still unknown, try from currentPlugin
+      // Priority 2: Get current version from currentPlugin if still unknown
       if (fromVersion === "unknown" && currentPlugin) {
         fromVersion = currentPlugin.version || currentPlugin.current_version || fromVersion;
         itemName = currentPlugin.name || currentPlugin.plugin || itemName;
+        actualPluginPath = currentPlugin.plugin || currentPlugin.slug || actualPluginPath;
+        
+        console.log(`[PLUGIN UPDATE] From currentPlugin - fromVersion: ${fromVersion}`);
       }
 
-      console.log(`[PLUGIN UPDATE] Version mapping: ${fromVersion} → ${toVersion}`);
-      console.log(`[PLUGIN UPDATE] Item name: ${itemName}`);
+      console.log(`[PLUGIN UPDATE] Final version mapping: ${fromVersion} → ${toVersion}`);
+      console.log(`[PLUGIN UPDATE] Final item name: ${itemName}`);
+      console.log(`[PLUGIN UPDATE] Final plugin path: ${actualPluginPath}`);
+
+      // Validate we have minimum required info
+      if (!pluginUpdate && fromVersion === "unknown") {
+        return res.status(400).json({ 
+          message: "Plugin not found in available updates or unable to determine current version",
+          plugin: plugin,
+          availableUpdates: updatesData?.plugins?.map(p => ({ name: p.name, plugin: p.plugin })) || []
+        });
+      }
       
       // Create initial log entry
-      console.log(`[PLUGIN UPDATE] Creating log entry...fromVersion → toVersion ${fromVersion} → ${toVersion}`);
-      const updateLog = await storage.createUpdateLog({
-        websiteId,
-        userId,
-        updateType: "plugin",
-        itemName,
-        itemSlug: plugin,
-        fromVersion,
-        toVersion,
-        updateStatus: "pending",
-        automatedUpdate: false
-      });
-      console.log(`[PLUGIN UPDATE] Log entry created with ID: ${updateLog.id}`);
+      console.log(`[PLUGIN UPDATE] Creating log entry...`);
+      let logId;
+      try {
+        const updateLogResult = await storage.createUpdateLog({
+          websiteId,
+          userId,
+          updateType: "plugin",
+          itemName,
+          itemSlug: actualPluginPath,
+          fromVersion,
+          toVersion,
+          updateStatus: "pending",
+          automatedUpdate: false
+        });
+        
+        // Handle different possible return formats
+        logId = typeof updateLogResult === 'object' ? 
+          (updateLogResult.id || updateLogResult.insertId || updateLogResult) : 
+          updateLogResult;
+          
+        console.log(`[PLUGIN UPDATE] Log entry created with ID: ${logId}`);
+        console.log(`[PLUGIN UPDATE] Full log result:`, updateLogResult);
+        
+        if (!logId) {
+          throw new Error('Failed to create update log - no valid ID returned');
+        }
+
+      } catch (logCreationError) {
+        console.error(`[PLUGIN UPDATE] Failed to create update log:`, logCreationError);
+        throw new Error(`Failed to create update log: ${logCreationError instanceof Error ? logCreationError.message : 'Unknown error'}`);
+      }
 
       try {
-        // Perform the update
-        const updateResult = await wrmClient.updateSinglePlugin(plugin);
-        const duration = Date.now() - startTime;
-
-        console.log(`Enhanced update result for ${plugin}:`, JSON.stringify(updateResult, null, 2));
-
-        let actualUpdateSuccess = updateResult.success;
+        // Perform the update with enhanced error handling
+        console.log(`[PLUGIN UPDATE] Starting plugin update for: ${actualPluginPath}`);
+        
+        let updateResult;
+        let actualUpdateSuccess = false;
+        let updateMessage = "Update failed";
         let actualNewVersion = toVersion;
         
-        // If the update succeeded, get the actual new version
-        if (actualUpdateSuccess) {
-          try {
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            const updatedPluginsData = await wrmClient.getPlugins();
-            const updatedPlugin = updatedPluginsData.find((p: any) => p.plugin === plugin || p.name === plugin);
-            if (updatedPlugin) {
-              actualNewVersion = updatedPlugin.version;
+        try {
+          updateResult = await wrmClient.updateSinglePlugin(actualPluginPath);
+          console.log(`[PLUGIN UPDATE] Raw update result:`, JSON.stringify(updateResult, null, 2));
+          
+          // Enhanced result parsing
+          if (updateResult) {
+            // Check for overall success
+            if (updateResult.success === true) {
+              actualUpdateSuccess = true;
+              updateMessage = "Plugin updated successfully";
+              
+              // Check plugin-specific results
+              if (updateResult.plugins && Array.isArray(updateResult.plugins)) {
+                const pluginResult = updateResult.plugins.find((p: any) => 
+                  p.plugin === actualPluginPath || p.plugin === plugin
+                );
+                if (pluginResult) {
+                  actualUpdateSuccess = pluginResult.success === true;
+                  updateMessage = pluginResult.message || updateMessage;
+                  console.log(`[PLUGIN UPDATE] Plugin-specific result:`, pluginResult);
+                }
+              }
+            } else if (updateResult.message) {
+              updateMessage = updateResult.message;
             }
-          } catch (versionCheckError) {
-            console.warn("Could not fetch updated version:", versionCheckError);
+          } else {
+            updateMessage = "No response from update API";
           }
+          
+        } catch (updateApiError) {
+          console.error(`[PLUGIN UPDATE] WRM API Error:`, updateApiError);
+          updateMessage = updateApiError instanceof Error ? updateApiError.message : "API call failed";
+          updateResult = { 
+            error: true, 
+            message: updateMessage,
+            originalError: updateApiError 
+          };
         }
         
-        // Update the existing log with success/failure status
-        await storage.updateUpdateLog(updateLog.id, {
+        const duration = Date.now() - startTime;
+        console.log(`[PLUGIN UPDATE] Update completed in ${duration}ms with result: ${actualUpdateSuccess ? 'SUCCESS' : 'FAILED'}`);
+        console.log(`[PLUGIN UPDATE] Update message: ${updateMessage}`);
+        
+        // If update claims success, verify by checking current version
+        if (actualUpdateSuccess && toVersion !== "unknown") {
+          console.log(`[PLUGIN UPDATE] Waiting 5 seconds before version verification...`);
+          await new Promise(resolve => setTimeout(resolve, 5000));
+          
+          try {
+            const updatedPluginsData = await wrmClient.getPlugins();
+            const updatedPlugin = findPluginMatch(updatedPluginsData, actualPluginPath);
+            
+            if (updatedPlugin && updatedPlugin.version) {
+              const verifiedVersion = updatedPlugin.version;
+              console.log(`[PLUGIN UPDATE] Version verification: expected ${toVersion}, found ${verifiedVersion}`);
+              
+              if (verifiedVersion === toVersion) {
+                actualNewVersion = verifiedVersion;
+                console.log(`[PLUGIN UPDATE] ✅ Version verification SUCCESSFUL: ${fromVersion} → ${verifiedVersion}`);
+              } else if (verifiedVersion !== fromVersion) {
+                // Version changed but not to expected version
+                actualNewVersion = verifiedVersion;
+                console.log(`[PLUGIN UPDATE] ⚠️ Version changed to unexpected version: ${fromVersion} → ${verifiedVersion} (expected ${toVersion})`);
+                updateMessage += ` (updated to ${verifiedVersion} instead of expected ${toVersion})`;
+              } else {
+                // Version didn't change
+                actualUpdateSuccess = false;
+                updateMessage = `Update completed but plugin version did not change (still ${verifiedVersion})`;
+                console.log(`[PLUGIN UPDATE] ❌ Version verification FAILED: version unchanged at ${verifiedVersion}`);
+              }
+            } else {
+              console.warn(`[PLUGIN UPDATE] Could not find updated plugin for verification: ${actualPluginPath}`);
+              updateMessage += " (could not verify new version)";
+            }
+          } catch (versionCheckError) {
+            console.warn("Could not verify updated version:", versionCheckError);
+            updateMessage += " (version verification failed)";
+          }
+        }
+
+        // Update the log with final results
+        console.log(`[PLUGIN UPDATE] Updating log ${logId} with final status: ${actualUpdateSuccess ? 'success' : 'failed'}`);
+        await storage.updateUpdateLog(logId, {
           updateStatus: actualUpdateSuccess ? "success" : "failed",
           updateData: updateResult,
           duration,
           toVersion: actualNewVersion,
-          errorMessage: actualUpdateSuccess ? undefined : "Update completed but plugin version did not change"
+          errorMessage: actualUpdateSuccess ? null : updateMessage
         });
+
+        // Send response
+        const responseMessage = actualUpdateSuccess 
+          ? `Plugin ${itemName} updated successfully from ${fromVersion} to ${actualNewVersion}`
+          : `Plugin ${itemName} update failed: ${updateMessage}`;
+          
+        console.log(`[PLUGIN UPDATE] Final response: ${responseMessage}`);
 
         res.json({ 
           success: actualUpdateSuccess, 
-          message: actualUpdateSuccess 
-            ? `Plugin ${plugin} updated successfully to version ${actualNewVersion}`
-            : `Plugin ${plugin} update failed - version did not change`,
-          updateResult,
-          logId: updateLog.id,
+          message: responseMessage,
+          updateResult: updateResult || {},
+          logId: logId,
           oldVersion: fromVersion,
           newVersion: actualNewVersion,
-          verified: true
+          pluginName: itemName,
+          pluginPath: actualPluginPath,
+          verified: true,
+          duration: duration
         });
+
       } catch (updateError) {
         const duration = Date.now() - startTime;
+        console.error(`[PLUGIN UPDATE] Update execution failed:`, updateError);
         
-        // Update the existing log with failure
-        await storage.updateUpdateLog(updateLog.id, {
+        // Update the log with failure
+        await storage.updateUpdateLog(logId, {
           updateStatus: "failed",
-          errorMessage: updateError instanceof Error ? updateError.message : "Unknown error",
-          duration
+          errorMessage: updateError instanceof Error ? updateError.message : "Unknown update error",
+          duration,
+          updateData: { error: updateError instanceof Error ? updateError.message : String(updateError) }
         });
 
         throw updateError;
       }
+
     } catch (error) {
-      console.error("Error updating plugin:", error);
+      console.error("[PLUGIN UPDATE] Critical error:", error);
       
       let errorMessage = "Unknown error";
       let statusCode = 500;
@@ -2762,6 +2901,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       res.status(statusCode).json({ 
+        success: false,
         message: `Plugin update failed: ${errorMessage}`,
         error: errorMessage,
         plugin: plugin,
