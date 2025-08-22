@@ -94,14 +94,19 @@ export default function WebsiteMaintenanceReports() {
 
   const generateMaintenanceReport = useMutation({
     mutationFn: async (params?: { dateFrom?: string; dateTo?: string }) => {
-      const response = await apiCall(`/api/websites/${websiteId}/maintenance-report`, {
-        method: 'POST',
-        body: JSON.stringify(params || {}),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      return response;
+      try {
+        const response = await apiCall(`/api/websites/${websiteId}/maintenance-report`, {
+          method: 'POST',
+          body: JSON.stringify(params || {}),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        return response;
+      } catch (error) {
+        console.error('Error generating maintenance report:', error);
+        throw error;
+      }
     },
     onSuccess: (data) => {
       toast({
@@ -126,22 +131,27 @@ export default function WebsiteMaintenanceReports() {
 
   // Helper function to get authentication token
   const getAuthToken = () => {
-    return localStorage.getItem('token');
+    return localStorage.getItem('auth_token');
   };
 
   // Download maintenance report mutation
   const downloadMaintenanceReport = useMutation({
     mutationFn: async (reportId: number) => {
-      // Get the authentication token from localStorage
-      const token = getAuthToken();
-      if (!token) {
-        throw new Error('Authentication token not found. Please log in again.');
+      try {
+        // Get the authentication token from localStorage
+        const token = getAuthToken();
+        if (!token) {
+          throw new Error('Authentication token not found. Please log in again.');
+        }
+        
+        // Open the PDF in a new tab for viewing/downloading with token
+        const url = `/api/websites/${websiteId}/maintenance-reports/${reportId}/pdf?token=${encodeURIComponent(token)}`;
+        window.open(url, '_blank');
+        return { success: true };
+      } catch (error) {
+        console.error('Error downloading maintenance report:', error);
+        throw error;
       }
-      
-      // Open the PDF in a new tab for viewing/downloading with token
-      const url = `/api/websites/${websiteId}/maintenance-reports/${reportId}/pdf?token=${token}`;
-      window.open(url, '_blank');
-      return { success: true };
     },
     onError: (error: any) => {
       toast({
@@ -155,16 +165,21 @@ export default function WebsiteMaintenanceReports() {
   // View maintenance report mutation
   const viewMaintenanceReport = useMutation({
     mutationFn: async (reportId: number) => {
-      // Get the authentication token from localStorage
-      const token = getAuthToken();
-      if (!token) {
-        throw new Error('Authentication token not found. Please log in again.');
+      try {
+        // Get the authentication token from localStorage
+        const token = getAuthToken();
+        if (!token) {
+          throw new Error('Authentication token not found. Please log in again.');
+        }
+        
+        // Open the PDF directly in a new tab with token
+        const url = `/api/websites/${websiteId}/maintenance-reports/${reportId}/pdf?token=${encodeURIComponent(token)}`;
+        window.open(url, '_blank');
+        return { success: true };
+      } catch (error) {
+        console.error('Error viewing maintenance report:', error);
+        throw error;
       }
-      
-      // Open the PDF directly in a new tab with token
-      const url = `/api/websites/${websiteId}/maintenance-reports/${reportId}/pdf?token=${token}`;
-      window.open(url, '_blank');
-      return { success: true };
     },
     onError: (error: any) => {
       toast({
