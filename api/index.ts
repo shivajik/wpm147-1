@@ -1865,6 +1865,24 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
 }
 
 // Main handler function
+// Debug logs storage for production debugging
+let debugLogs: any[] = [];
+const addDebugLog = (type: string, message: string, data?: any) => {
+  const logEntry = {
+    timestamp: new Date().toISOString(),
+    type,
+    message,
+    data: data ? JSON.stringify(data, null, 2) : undefined
+  };
+  debugLogs.push(logEntry);
+  console.log(`[${type}] ${message}`, data || '');
+  
+  // Keep only last 100 logs to prevent memory issues
+  if (debugLogs.length > 100) {
+    debugLogs = debugLogs.slice(-100);
+  }
+};
+
 export default async function handler(req: any, res: any) {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -1880,6 +1898,43 @@ export default async function handler(req: any, res: any) {
   
   // Log all API requests for debugging
   console.log(`[API] ${req.method} ${path}`);
+
+  // Debug endpoints - handle before authentication for easier testing
+  const debugLogsMatch = path.match(/^\/api\/websites\/(\d+)\/debug-logs$/);
+  if (debugLogsMatch) {
+    const websiteId = parseInt(debugLogsMatch[1]);
+    
+    if (req.method === 'GET') {
+      // Get debug logs
+      return res.status(200).json({
+        logs: debugLogs,
+        count: debugLogs.length,
+        timestamp: new Date().toISOString(),
+        websiteId: websiteId,
+        note: "Debug logs from plugin update process"
+      });
+    }
+    
+    if (req.method === 'DELETE') {
+      // Clear debug logs
+      debugLogs = [];
+      return res.status(200).json({ 
+        message: "Debug logs cleared", 
+        timestamp: new Date().toISOString(),
+        websiteId: websiteId
+      });
+    }
+  }
+
+  // Simple debug endpoint without authentication for testing
+  if (path === '/api/debug/logs' && req.method === 'GET') {
+    return res.status(200).json({
+      logs: debugLogs,
+      count: debugLogs.length,
+      timestamp: new Date().toISOString(),
+      note: "Public debug logs endpoint - use only for testing"
+    });
+  }
 
   try {
     // Health check endpoint
@@ -3874,6 +3929,10 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
       return res.status(400).json({ message: 'Plugin parameter is required' });
     }
 
+    // Clear previous debug logs for this session
+    debugLogs = [];
+    addDebugLog('PLUGIN UPDATE', 'Plugin update request received', { plugin, websiteId });
+
     const websiteResult = await db.select()
       .from(websites)
       .innerJoin(clients, eq(websites.clientId, clients.id))
@@ -3885,6 +3944,12 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
     }
     
     const website = websiteResult[0].websites;
+    addDebugLog('WEBSITE', 'Website data loaded', { 
+      name: website.name, 
+      url: website.url, 
+      hasApiKey: !!website.wrmApiKey 
+    });
+
     if (!website.wrmApiKey || !website.url) {
       return res.status(400).json({ message: 'WordPress connection not configured' });
     }
@@ -3909,24 +3974,80 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
     let currentPlugin: any = null;
     
     try {
+      addDebugLog('PLUGIN UPDATE', 'Fetching current plugin data before update...');
       // Get current plugin data before update
       const currentPluginsData = await wpClient.getPlugins();
       const currentPlugins = Array.isArray(currentPluginsData) ? currentPluginsData : [];
+      
+      addDebugLog('PLUGIN DATA', 'All current plugins', {
+        totalPlugins: currentPlugins.length,
+        plugins: currentPlugins.map(p => ({
+          plugin: p.plugin,
+          name: p.name,
+          version: p.version,
+          active: p.active
+        }))
+      });
+
       currentPlugin = currentPlugins.find((p: any) => p.plugin === plugin || p.slug === plugin);
+      addDebugLog('PLUGIN MATCH', 'Looking for plugin match', { 
+        targetPlugin: plugin,
+        foundPlugin: currentPlugin ? {
+          plugin: currentPlugin.plugin,
+          name: currentPlugin.name,
+          version: currentPlugin.version,
+          active: currentPlugin.active
+        } : null
+      });
+
       oldVersion = currentPlugin?.version || "unknown";
+      addDebugLog('VERSION DETECTION', 'Current version detected', { 
+        oldVersion,
+        pluginFound: !!currentPlugin
+      });
 
       // Perform update via WRM API (bulk update method)
+      addDebugLog('PLUGIN UPDATE', 'Starting plugin update process...');
       const updateResult = await wpClient.performUpdates([{ type: 'plugin', items: [plugin] }]);
+      addDebugLog('PLUGIN UPDATE', 'Update result received', updateResult);
       
       if (updateResult.success !== false) {
         // Wait for WordPress to process the update
+        addDebugLog('PLUGIN UPDATE', 'Waiting 3 seconds for WordPress to process update...');
         await new Promise(resolve => setTimeout(resolve, 3000));
         
         // Get updated plugin data
+        addDebugLog('PLUGIN UPDATE', 'Fetching updated plugin data...');
         const updatedPluginsData = await wpClient.getPlugins();
         const updatedPlugins = Array.isArray(updatedPluginsData) ? updatedPluginsData : [];
+        
+        addDebugLog('PLUGIN DATA', 'All updated plugins', {
+          totalPlugins: updatedPlugins.length,
+          plugins: updatedPlugins.map(p => ({
+            plugin: p.plugin,
+            name: p.name,
+            version: p.version,
+            active: p.active
+          }))
+        });
+        
         const updatedPlugin = updatedPlugins.find((p: any) => p.plugin === plugin || p.slug === plugin);
+        addDebugLog('PLUGIN MATCH', 'Updated plugin match result', { 
+          targetPlugin: plugin,
+          foundUpdatedPlugin: updatedPlugin ? {
+            plugin: updatedPlugin.plugin,
+            name: updatedPlugin.name,
+            version: updatedPlugin.version,
+            active: updatedPlugin.active
+          } : null
+        });
+        
         const newVersion = updatedPlugin?.version || oldVersion;
+        addDebugLog('VERSION DETECTION', 'Final version detection', { 
+          oldVersion,
+          newVersion,
+          versionChanged: newVersion !== oldVersion
+        });
         
         const duration = Math.round((Date.now() - startTime) / 1000);
         
@@ -3956,12 +4077,24 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
           console.warn("Failed to create plugin update notification:", notificationError);
         }
 
+        addDebugLog('PLUGIN UPDATE', 'Update completed successfully', {
+          plugin,
+          fromVersion: oldVersion,
+          toVersion: newVersion,
+          duration
+        });
+
         return res.status(200).json({
           success: true,
           message: `Plugin ${plugin} updated successfully`,
           fromVersion: oldVersion,
           toVersion: newVersion,
-          duration: duration
+          duration: duration,
+          debugInfo: {
+            logs: debugLogs,
+            logCount: debugLogs.length,
+            debugEndpoint: `/api/websites/${websiteId}/debug-logs`
+          }
         });
       } else {
         throw new Error(updateResult.message || 'Update failed');
