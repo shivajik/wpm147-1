@@ -1944,6 +1944,7 @@ export default async function handler(req: any, res: any) {
           'GET /api/websites/:id/wrm-themes',
           'GET /api/websites/:id/wrm-users',
           'POST /api/websites/:id/update-plugin',
+          'POST /api/websites/:id/plugins/update/',
           'POST /api/websites/:id/update-theme',
           'POST /api/websites/:id/update-wordpress',
           'POST /api/websites/:id/update-all',
