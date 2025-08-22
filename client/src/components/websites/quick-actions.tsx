@@ -181,16 +181,6 @@ export function QuickActions({ websiteId, websiteName, websiteUrl }: QuickAction
       isAction: false,
     },
     {
-      id: 'client-report',
-      label: 'Client Report',
-      icon: BarChart3,
-      description: 'Generate reports',
-      color: 'text-pink-600',
-      bgColor: 'bg-pink-50 hover:bg-pink-100',
-      onClick: () => handleAction('Generate Client Report', `/api/websites/${websiteId}/client-report`),
-      isAction: true,
-    },
-    {
       id: 'maintenance-report',
       label: 'Maintenance Report',
       icon: Wrench,
