@@ -93,11 +93,22 @@ export default function WebsiteMaintenanceReports() {
     },
   });
 
+  // Helper function to get authentication token
+  const getAuthToken = () => {
+    return localStorage.getItem('token');
+  };
+
   // Download maintenance report mutation
   const downloadMaintenanceReport = useMutation({
     mutationFn: async (reportId: number) => {
-      // Open the PDF in a new tab for viewing/downloading
-      const url = `/api/websites/${websiteId}/maintenance-reports/${reportId}/pdf`;
+      // Get the authentication token from localStorage
+      const token = getAuthToken();
+      if (!token) {
+        throw new Error('Authentication token not found. Please log in again.');
+      }
+      
+      // Open the PDF in a new tab for viewing/downloading with token
+      const url = `/api/websites/${websiteId}/maintenance-reports/${reportId}/pdf?token=${token}`;
       window.open(url, '_blank');
       return { success: true };
     },
@@ -113,14 +124,16 @@ export default function WebsiteMaintenanceReports() {
   // View maintenance report mutation
   const viewMaintenanceReport = useMutation({
     mutationFn: async (reportId: number) => {
-      const response = await apiCall(`/api/websites/${websiteId}/maintenance-reports/${reportId}`);
-      return response;
-    },
-    onSuccess: (data) => {
-      // For now, show the report data in the PDF viewer
-      // In a real implementation, you might navigate to a dedicated report view page
-      const url = `/api/websites/${websiteId}/maintenance-reports/${data.id}/pdf`;
+      // Get the authentication token from localStorage
+      const token = getAuthToken();
+      if (!token) {
+        throw new Error('Authentication token not found. Please log in again.');
+      }
+      
+      // Open the PDF directly in a new tab with token
+      const url = `/api/websites/${websiteId}/maintenance-reports/${reportId}/pdf?token=${token}`;
       window.open(url, '_blank');
+      return { success: true };
     },
     onError: (error: any) => {
       toast({

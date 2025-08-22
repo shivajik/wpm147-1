@@ -6887,12 +6887,34 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
     }
   });
 
-  // Download maintenance report as PDF/HTML
-  app.get("/api/websites/:id/maintenance-reports/:reportId/pdf", authenticateToken, async (req, res) => {
+  // Download maintenance report as PDF/HTML (supports token authentication)
+  app.get("/api/websites/:id/maintenance-reports/:reportId/pdf", async (req, res) => {
     try {
-      const userId = (req as AuthRequest).user!.id;
+      // Extract token from either Authorization header or query parameter (same as client reports)
+      let token = req.headers.authorization?.replace('Bearer ', '');
+      if (!token && req.query.token) {
+        token = req.query.token as string;
+      }
+      
+      if (!token) {
+        return res.status(401).json({ message: "Access token required" });
+      }
+      
+      // Verify JWT token
+      let userId: number;
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET) as { id: number; email: string };
+        userId = decoded.id;
+      } catch (error) {
+        return res.status(401).json({ message: "Invalid token" });
+      }
+      
       const websiteId = parseInt(req.params.id);
       const reportId = parseInt(req.params.reportId);
+      
+      if (isNaN(websiteId) || isNaN(reportId)) {
+        return res.status(400).json({ message: "Invalid website or report ID" });
+      }
       
       const website = await storage.getWebsite(websiteId, userId);
       if (!website) {
@@ -6910,6 +6932,19 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
         return res.status(403).json({ message: "Report does not belong to this website" });
       }
 
+      // Get client information for the report
+      let clientName = 'Valued Client';
+      try {
+        if (report.clientId) {
+          const client = await storage.getClient(report.clientId, userId);
+          if (client) {
+            clientName = client.name;
+          }
+        }
+      } catch (error) {
+        console.error(`[MAINTENANCE-PDF] Error fetching client data:`, error);
+      }
+
       // Generate HTML for the maintenance report
       const reportData = report.reportData as any || {};
       const maintenanceData = {
@@ -6918,7 +6953,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
         dateFrom: report.dateFrom.toISOString(),
         dateTo: report.dateTo.toISOString(),
         reportData: reportData,
-        clientName: 'Valued Client',
+        clientName,
         websiteName: website.name,
         websiteUrl: website.url,
         wpVersion: reportData.health?.wpVersion || 'Unknown',
