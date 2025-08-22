@@ -27,7 +27,8 @@ import {
   LinkIcon,
   Clock,
   TrendingUp,
-  Award
+  Award,
+  Wrench
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -187,6 +188,16 @@ export function QuickActions({ websiteId, websiteName, websiteUrl }: QuickAction
       color: 'text-pink-600',
       bgColor: 'bg-pink-50 hover:bg-pink-100',
       onClick: () => handleAction('Generate Client Report', `/api/websites/${websiteId}/client-report`),
+      isAction: true,
+    },
+    {
+      id: 'maintenance-report',
+      label: 'Maintenance Report',
+      icon: Wrench,
+      description: 'Website maintenance',
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50 hover:bg-orange-100',
+      onClick: () => handleAction('Generate Maintenance Report', `/api/websites/${websiteId}/maintenance-report`),
       isAction: true,
     },
     {
