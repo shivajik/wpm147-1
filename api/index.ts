@@ -973,8 +973,14 @@ const reportTemplateSchema = z.object({
   isDefault: z.boolean().default(false),
 });
 
-// JWT config
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key';
+// JWT config - use same logic as server files
+const JWT_SECRET = process.env.JWT_SECRET || (() => {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('JWT_SECRET environment variable must be set and at least 32 characters long in production');
+  }
+  // Development fallback - use the same consistent key as server files
+  return 'dev-secret-key-change-in-production-32chars';
+})();
 
 // WordPress Remote Manager Client Class
 class WPRemoteManagerClient {
@@ -4079,7 +4085,7 @@ if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') 
     };
 
     // Use the enhanced PDF generator for professional reports  
-    const { EnhancedPDFGenerator } = await import('../server/enhanced-pdf-generator.ts');
+    const { EnhancedPDFGenerator } = await import('../server/enhanced-pdf-generator.js');
     const pdfGenerator = new EnhancedPDFGenerator();
     const reportHtml = pdfGenerator.generateReportHTML(enhancedData);
     
