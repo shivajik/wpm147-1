@@ -48,15 +48,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     return res.status(200).json({
-      report: {
-        id: report.id,
-        title: report.title,
-        dateFrom: report.dateFrom,
-        dateTo: report.dateTo,
-        createdAt: report.createdAt,
-        reportType: report.reportType || 'maintenance',
-        reportData: report.reportData
-      }
+      id: report.id,
+      websiteId: websiteIdNum,
+      title: report.title,
+      reportType: 'maintenance' as const,
+      status: report.status as 'draft' | 'generated' | 'sent' | 'failed',
+      createdAt: report.createdAt,
+      generatedAt: report.generatedAt,
+      data: report.reportData,
+      dateFrom: report.dateFrom,
+      dateTo: report.dateTo
     });
 
   } catch (error) {

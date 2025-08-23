@@ -34,22 +34,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const allReports = await storage.getClientReports(userId);
     const maintenanceReports = allReports.filter(report => {
       const websiteIds = Array.isArray(report.websiteIds) ? report.websiteIds : [report.websiteIds];
-      return websiteIds.includes(websiteIdNum) && report.title.toLowerCase().includes('maintenance');
+      const isForThisWebsite = websiteIds.includes(websiteIdNum);
+      const isMaintenanceReport = 
+        report.title.toLowerCase().includes('maintenance') ||
+        (report.reportType && report.reportType.toLowerCase().includes('maintenance'));
+      
+      return isForThisWebsite && isMaintenanceReport;
     });
 
     // Sort by creation date (newest first)
     maintenanceReports.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-    return res.status(200).json({
-      reports: maintenanceReports.map(report => ({
+    return res.status(200).json(
+      maintenanceReports.map(report => ({
         id: report.id,
+        websiteId: websiteIdNum,
         title: report.title,
-        dateFrom: report.dateFrom,
-        dateTo: report.dateTo,
+        reportType: 'maintenance' as const,
+        status: report.status as 'draft' | 'generated' | 'sent' | 'failed',
         createdAt: report.createdAt,
-        reportType: report.reportType || 'maintenance'
+        generatedAt: report.generatedAt,
+        data: report.reportData,
+        dateFrom: report.dateFrom,
+        dateTo: report.dateTo
       }))
-    });
+    );
 
   } catch (error) {
     console.error('[MAINTENANCE-REPORTS-LIST] Error:', error);
