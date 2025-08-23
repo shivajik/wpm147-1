@@ -4,6 +4,7 @@ import postgres from 'postgres';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
+import { ManageWPStylePDFGenerator } from "../server/pdf-report-generator.js";
 import { eq, and, asc, desc, sql } from 'drizzle-orm';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
@@ -3889,6 +3890,150 @@ export default async function handler(req: any, res: any) {
         return res.status(500).json({ message: 'Failed to update plugin' });
       }
     }
+
+    
+// Download maintenance report as PDF/HTML
+if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') && 
+    path.endsWith('/pdf') && req.method === 'GET') {
+  try {
+    console.log('req',req)
+    const user = authenticateToken(req);
+    if (!user) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const pathParts = path.split('/');
+    const websiteId = parseInt(pathParts[3]);
+    const reportId = parseInt(pathParts[5]);
+    
+    if (isNaN(websiteId) || isNaN(reportId)) {
+      return res.status(400).json({ message: 'Invalid website ID or report ID' });
+    }
+
+    // Verify website ownership
+    const websiteResult = await db.select()
+      .from(websites)
+      .innerJoin(clients, eq(websites.clientId, clients.id))
+      .where(and(eq(websites.id, websiteId), eq(clients.userId, user.id)))
+      .limit(1);
+    
+    if (websiteResult.length === 0) {
+      return res.status(404).json({ message: "Website not found" });
+    }
+
+    const website = websiteResult[0].websites;
+
+    // Get the report
+    const reportResult = await db.select()
+      .from(clientReports)
+      .where(and(eq(clientReports.id, reportId), eq(clientReports.userId, user.id)))
+      .limit(1);
+    
+    if (reportResult.length === 0) {
+      return res.status(404).json({ message: "Report not found" });
+    }
+
+    const report = reportResult[0].client_reports;
+
+    // Verify this report belongs to the requested website
+    const websiteIds = Array.isArray(report.websiteIds) ? report.websiteIds : [report.websiteIds];
+    if (!websiteIds.includes(websiteId)) {
+      return res.status(403).json({ message: "Report does not belong to this website" });
+    }
+
+    // Generate HTML for the maintenance report
+    const reportData = report.reportData as any || {};
+    const maintenanceData = {
+      id: report.id,
+      title: report.title,
+      dateFrom: report.dateFrom?.toISOString() || new Date().toISOString(),
+      dateTo: report.dateTo?.toISOString() || new Date().toISOString(),
+      reportData: reportData,
+      clientName: 'Valued Client', // You might want to fetch the actual client name
+      websiteName: website.name,
+      websiteUrl: website.url,
+      wpVersion: reportData.health?.wpVersion || 'Unknown',
+      hasMaintenanceActivity: true
+    };
+
+    // Use the existing ManageWPStylePDFGenerator for consistency
+    const pdfGenerator = new ManageWPStylePDFGenerator();
+    const reportHtml = pdfGenerator.generateReportHTML(maintenanceData);
+    
+    res.setHeader('Content-Type', 'text/html');
+    res.setHeader('Content-Disposition', `inline; filename="maintenance-report-${reportId}.html"`);
+    return res.send(reportHtml);
+  } catch (error) {
+    console.error("Error serving maintenance report PDF:", error);
+    return res.status(500).json({ 
+      message: "Failed to generate maintenance report PDF",
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+}
+// Get a specific maintenance report (NEW - add this)
+if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') && 
+    !path.endsWith('/pdf') && !path.endsWith('/maintenance-reports') && req.method === 'GET') {
+  try {
+    const user = authenticateToken(req);
+    if (!user) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const pathParts = path.split('/');
+    const websiteId = parseInt(pathParts[3]);
+    const reportId = parseInt(pathParts[5]);
+    
+    if (isNaN(websiteId) || isNaN(reportId)) {
+      return res.status(400).json({ message: 'Invalid website ID or report ID' });
+    }
+
+    // Verify website ownership
+    const websiteResult = await db.select()
+      .from(websites)
+      .innerJoin(clients, eq(websites.clientId, clients.id))
+      .where(and(eq(websites.id, websiteId), eq(clients.userId, user.id)))
+      .limit(1);
+    
+    if (websiteResult.length === 0) {
+      return res.status(404).json({ message: "Website not found" });
+    }
+
+    // Get the report
+    const reportResult = await db.select()
+      .from(clientReports)
+      .where(and(eq(clientReports.id, reportId), eq(clientReports.userId, user.id)))
+      .limit(1);
+    
+    if (reportResult.length === 0) {
+      return res.status(404).json({ message: "Report not found" });
+    }
+
+    const report = reportResult[0];
+
+    // Verify this report belongs to the requested website
+    const websiteIds = Array.isArray(report.websiteIds) ? report.websiteIds : [report.websiteIds];
+    if (!websiteIds.includes(websiteId)) {
+      return res.status(403).json({ message: "Report does not belong to this website" });
+    }
+
+    return res.json({
+      id: report.id,
+      websiteId: websiteId,
+      title: report.title,
+      reportType: 'maintenance' as const,
+      status: report.status as 'draft' | 'generated' | 'sent' | 'failed',
+      createdAt: report.createdAt?.toISOString() || new Date().toISOString(),
+      generatedAt: report.generatedAt?.toISOString(),
+      data: report.reportData
+    });
+  } catch (error) {
+    console.error("Error fetching maintenance report:", error);
+    return res.status(500).json({ message: "Failed to fetch maintenance report" });
+  }
+}
+
+
  if (path.startsWith('/api/websites/') && path.endsWith('/client-report') && req.method === 'POST') {
     try {
       const user = authenticateToken(req);
