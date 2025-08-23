@@ -3902,6 +3902,7 @@ if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') 
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
+    const userId = user.id;
     const pathParts = path.split('/');
     const websiteId = parseInt(pathParts[3]);
     const reportId = parseInt(pathParts[5]);
@@ -3914,7 +3915,7 @@ if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') 
     const websiteResult = await db.select()
       .from(websites)
       .innerJoin(clients, eq(websites.clientId, clients.id))
-      .where(and(eq(websites.id, websiteId), eq(clients.userId, user.id)))
+      .where(and(eq(websites.id, websiteId), eq(clients.userId, userId)))
       .limit(1);
     
     if (websiteResult.length === 0) {
@@ -3926,14 +3927,14 @@ if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') 
     // Get the report
     const reportResult = await db.select()
       .from(clientReports)
-      .where(and(eq(clientReports.id, reportId), eq(clientReports.userId, user.id)))
+      .where(and(eq(clientReports.id, reportId), eq(clientReports.userId, userId)))
       .limit(1);
     
     if (reportResult.length === 0) {
       return res.status(404).json({ message: "Report not found" });
     }
 
-    const report = reportResult[0].client_reports;
+    const report = reportResult[0];
 
     // Verify this report belongs to the requested website
     const websiteIds = Array.isArray(report.websiteIds) ? report.websiteIds : [report.websiteIds];
@@ -3949,7 +3950,7 @@ if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') 
       dateFrom: report.dateFrom?.toISOString() || new Date().toISOString(),
       dateTo: report.dateTo?.toISOString() || new Date().toISOString(),
       reportData: reportData,
-      clientName: 'Valued Client', // You might want to fetch the actual client name
+      clientName: 'Valued Client',
       websiteName: website.name,
       websiteUrl: website.url,
       wpVersion: reportData.health?.wpVersion || 'Unknown',
