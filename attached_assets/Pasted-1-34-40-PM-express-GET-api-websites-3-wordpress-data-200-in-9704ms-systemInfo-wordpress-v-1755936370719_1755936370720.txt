@@ -1,0 +1,53 @@
+1:34:40 PM [express] GET /api/websites/3/wordpress-data 200 in 9704ms :: {"systemInfo":{"wordpress_v…
+1:35:31 PM [express] GET /api/websites/3/maintenance-reports/54 304 in 958ms :: {"id":54,"websiteId"…
+token in server/route.ts eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJkZW1vQHdwbWFpbnRlbmFuY2UuY29tIiwiaWF0IjoxNzU1OTM1MDQwLCJleHAiOjE3NTY1Mzk4NDB9.XII58fhrZYFpyYs9yPkIgfvQcUq3efIi3KgTAhv9pis
+JWT_SECRET from env: dev-secret-key-change-in-production-32chars
+JWT verification error: JsonWebTokenError: invalid signature
+    at C:\Users\kamri\Desktop\wpm147-1\node_modules\jsonwebtoken\verify.js:171:19
+    at getSecret (C:\Users\kamri\Desktop\wpm147-1\node_modules\jsonwebtoken\verify.js:97:14)
+    at module.exports [as verify] (C:\Users\kamri\Desktop\wpm147-1\node_modules\jsonwebtoken\verify.js:101:10)
+    at <anonymous> (C:\Users\kamri\Desktop\wpm147-1\server\routes.ts:6950:29)
+    at Layer.handle [as handle_request] (C:\Users\kamri\Desktop\wpm147-1\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Users\kamri\Desktop\wpm147-1\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (C:\Users\kamri\Desktop\wpm147-1\node_modules\express\lib\router\route.js:119:3)        
+    at Layer.handle [as handle_request] (C:\Users\kamri\Desktop\wpm147-1\node_modules\express\lib\router\layer.js:95:5)
+    at C:\Users\kamri\Desktop\wpm147-1\node_modules\express\lib\router\index.js:284:15
+    at param (C:\Users\kamri\Desktop\wpm147-1\node_modules\express\lib\router\index.js:365:14)
+    at param (C:\Users\kamri\Desktop\wpm147-1\node_modules\express\lib\router\index.js:376:14)
+    at param (C:\Users\kamri\Desktop\wpm147-1\node_modules\express\lib\router\index.js:376:14)
+    at Function.process_params (C:\Users\kamri\Desktop\wpm147-1\node_modules\express\lib\router\index.js:421:3)
+    at next (C:\Users\kamri\Desktop\wpm147-1\node_modules\express\lib\router\index.js:280:10)
+    at <anonymous> (C:\Users\kamri\Desktop\wpm147-1\server\index.ts:56:3)
+    at Layer.handle [as handle_request] (C:\Users\kamri\Desktop\wpm147-1\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\kamri\Desktop\wpm147-1\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\kamri\Desktop\wpm147-1\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\kamri\Desktop\wpm147-1\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\kamri\Desktop\wpm147-1\node_modules\express\lib\router\index.js:280:10)
+    at urlencodedParser (C:\Users\kamri\Desktop\wpm147-1\node_modules\body-parser\lib\types\urlencoded.js:94:7)
+    at Layer.handle [as handle_request] (C:\Users\kamri\Desktop\wpm147-1\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\kamri\Desktop\wpm147-1\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\kamri\Desktop\wpm147-1\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\kamri\Desktop\wpm147-1\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\kamri\Desktop\wpm147-1\node_modules\express\lib\router\index.js:280:10)
+    at jsonParser (C:\Users\kamri\Desktop\wpm147-1\node_modules\body-parser\lib\types\json.js:113:7)
+    at Layer.handle [as handle_request] (C:\Users\kamri\Desktop\wpm147-1\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\kamri\Desktop\wpm147-1\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\kamri\Desktop\wpm147-1\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\kamri\Desktop\wpm147-1\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\kamri\Desktop\wpm147-1\node_modules\express\lib\router\index.js:280:10)
+    at securityLogger (C:\Users\kamri\Desktop\wpm147-1\server\security-middleware.ts:209:12)
+    at Layer.handle [as handle_request] (C:\Users\kamri\Desktop\wpm147-1\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\kamri\Desktop\wpm147-1\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\kamri\Desktop\wpm147-1\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\kamri\Desktop\wpm147-1\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\kamri\Desktop\wpm147-1\node_modules\express\lib\router\index.js:280:10)
+    at sanitizeInput (C:\Users\kamri\Desktop\wpm147-1\server\security-middleware.ts:169:3)
+    at Layer.handle [as handle_request] (C:\Users\kamri\Desktop\wpm147-1\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\kamri\Desktop\wpm147-1\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\kamri\Desktop\wpm147-1\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\kamri\Desktop\wpm147-1\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\kamri\Desktop\wpm147-1\node_modules\express\lib\router\index.js:280:10)
+    at file:///C:/Users/kamri/Desktop/wpm147-1/node_modules/express-rate-limit/dist/index.mjs:835:7
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async file:///C:/Users/kamri/Desktop/wpm147-1/node_modules/express-rate-limit/dist/index.mjs:718:5     
+1:35:31 PM [express] GET /api/websites/3/maintenance-reports/54/pdf 401 in 8ms :: {"message":"Invali…

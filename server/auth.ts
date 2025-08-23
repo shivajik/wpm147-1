@@ -10,9 +10,9 @@ const JWT_SECRET = process.env.JWT_SECRET || (() => {
   if (process.env.NODE_ENV === 'production') {
     throw new Error('JWT_SECRET environment variable must be set and at least 32 characters long in production');
   }
-  // Development fallback - generate a secure random key
-  const devSecret = crypto.randomBytes(32).toString('hex');
-  console.warn('⚠️  WARNING: Using auto-generated JWT secret in development. Set JWT_SECRET environment variable for production!');
+  // Development fallback - use a consistent key so tokens don't become invalid on server restart
+  const devSecret = 'dev-secret-key-change-in-production-32chars';
+  console.warn('⚠️  WARNING: Using development JWT secret. Set JWT_SECRET environment variable for production!');
   return devSecret;
 })();
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';

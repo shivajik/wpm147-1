@@ -20,13 +20,16 @@ import { ManageWPStylePDFGenerator } from "./pdf-report-generator.js";
 import { EnhancedPDFGenerator } from "./enhanced-pdf-generator.js";
 import { authRateLimit } from "./security-middleware.js";
 import { SeoAnalyzer, type SeoAnalysisResult } from "./seo-analyzer.js";
+import crypto from "crypto";
 
 const JWT_SECRET = process.env.JWT_SECRET || (() => {
   if (process.env.NODE_ENV === 'production') {
-    throw new Error('JWT_SECRET environment variable is required in production');
+    throw new Error('JWT_SECRET environment variable must be set and at least 32 characters long in production');
   }
-  // Development fallback - use the same logic as auth.ts
-  return 'dev-secret-key-change-in-production-32chars';
+  // Development fallback - use the same consistent key as auth.ts
+  const devSecret = 'dev-secret-key-change-in-production-32chars';
+  console.warn('⚠️  WARNING: Using development JWT secret. Set JWT_SECRET environment variable for production!');
+  return devSecret;
 })();
 
 // Enhanced SEO Analysis Functions using comprehensive analyzer
