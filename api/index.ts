@@ -1646,8 +1646,14 @@ function generateToken(payload: { id: number; email: string }): string {
 
 // Authentication middleware function
 function authenticateToken(req: any): { id: number; email: string } | null {
+  // First try Authorization header
   const authHeader = req.headers.authorization;
-  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+  let token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+  
+  // If not found in header, try query parameter
+  if (!token && req.query && req.query.token) {
+    token = req.query.token as string;
+  }
 
   if (!token) {
     return null;
@@ -3896,7 +3902,6 @@ export default async function handler(req: any, res: any) {
 if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') && 
     path.endsWith('/pdf') && req.method === 'GET') {
   try {
-    console.log('req',req)
     const user = authenticateToken(req);
     if (!user) {
       return res.status(401).json({ message: 'Unauthorized' });
@@ -3947,8 +3952,8 @@ if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') 
     const maintenanceData = {
       id: report.id,
       title: report.title,
-      dateFrom: report.dateFrom?.toISOString() || new Date().toISOString(),
-      dateTo: report.dateTo?.toISOString() || new Date().toISOString(),
+      dateFrom: report.dateFrom || new Date(),
+      dateTo: report.dateTo || new Date(),
       reportData: reportData,
       clientName: 'Valued Client',
       websiteName: website.name,
