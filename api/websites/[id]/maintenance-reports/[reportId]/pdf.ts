@@ -1,3 +1,4 @@
+
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { getStorage } from '../../../../../server/storage.js';
 import { EnhancedPDFGenerator } from '../../../../../server/enhanced-pdf-generator.js';
@@ -46,16 +47,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(404).json({ message: 'Website not found' });
     }
 
-    // Get the specific report
-    const report = await storage.getClientReport(reportIdNum, userId);
-    if (!report) {
-      return res.status(404).json({ message: 'Report not found' });
-    }
+    // Get all client reports and find the specific maintenance report
+    const allReports = await storage.getClientReports(userId);
+    const report = allReports.find(r => {
+      if (r.id !== reportIdNum) return false;
+      
+      // Check if this report belongs to the requested website
+      const websiteIds = Array.isArray(r.websiteIds) ? r.websiteIds : [r.websiteIds];
+      if (!websiteIds.includes(websiteIdNum)) return false;
+      
+      // Check if it's a maintenance report
+      const isMaintenanceReport = 
+        r.title.toLowerCase().includes('maintenance') ||
+        (r.reportType && r.reportType.toLowerCase().includes('maintenance'));
+      
+      return isMaintenanceReport;
+    });
 
-    // Verify this report belongs to the requested website
-    const websiteIds = Array.isArray(report.websiteIds) ? report.websiteIds : [report.websiteIds];
-    if (!websiteIds.includes(websiteIdNum)) {
-      return res.status(403).json({ message: 'Report does not belong to this website' });
+    if (!report) {
+      return res.status(404).json({ message: 'Maintenance report not found' });
     }
 
     // Get client information for the report
