@@ -3994,7 +3994,7 @@ if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') 
         backupsCreated: reportData.backups?.total || 0,
         uptimePercentage: reportData.overview?.uptimePercentage || 99.9,
         analyticsChange: 0,
-        securityStatus: reportData.security?.status === 'good' ? 'safe' : (reportData.security?.vulnerabilities > 0 ? 'warning' : 'safe'),
+        securityStatus: (reportData.security?.status === 'good' ? 'safe' : (reportData.security?.vulnerabilities > 0 ? 'warning' : 'safe')) as 'safe' | 'warning' | 'critical',
         performanceScore: reportData.performance?.score || reportData.overview?.performanceScore || 85,
         seoScore: 0,
         keywordsTracked: 0
@@ -4048,7 +4048,7 @@ if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') 
         totalScans: reportData.security?.scanHistory?.length || 0,
         lastScan: {
           date: reportData.security?.lastScan || new Date().toISOString(),
-          status: reportData.security?.vulnerabilities === 0 ? 'clean' : 'issues',
+          status: (reportData.security?.vulnerabilities === 0 ? 'clean' : 'issues') as 'clean' | 'issues',
           malware: 'clean',
           webTrust: 'clean',
           vulnerabilities: reportData.security?.vulnerabilities || 0
@@ -4079,7 +4079,7 @@ if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') 
     };
 
     // Use the enhanced PDF generator for professional reports  
-    const { EnhancedPDFGenerator } = await import('../../server/enhanced-pdf-generator.js');
+    const { EnhancedPDFGenerator } = await import('../server/enhanced-pdf-generator.ts');
     const pdfGenerator = new EnhancedPDFGenerator();
     const reportHtml = pdfGenerator.generateReportHTML(enhancedData);
     

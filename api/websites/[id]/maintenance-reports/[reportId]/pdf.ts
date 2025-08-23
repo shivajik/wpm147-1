@@ -1,7 +1,7 @@
 
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { getStorage } from '../../../../../server/storage.js';
-import { EnhancedPDFGenerator } from '../../../../../server/enhanced-pdf-generator.js';
+// Enhanced PDF Generator imported dynamically below for Vercel compatibility
 import { AuthService } from '../../../../../server/auth.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -109,7 +109,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         backupsCreated: reportData.backups?.total || 0,
         uptimePercentage: reportData.overview?.uptimePercentage || 99.9,
         analyticsChange: 0,
-        securityStatus: reportData.security?.status === 'good' ? 'safe' : (reportData.security?.vulnerabilities > 0 ? 'warning' : 'safe'),
+        securityStatus: (reportData.security?.status === 'good' ? 'safe' : (reportData.security?.vulnerabilities > 0 ? 'warning' : 'safe')) as 'safe' | 'warning' | 'critical',
         performanceScore: reportData.performance?.score || reportData.overview?.performanceScore || 85,
         seoScore: 0,
         keywordsTracked: 0
@@ -163,7 +163,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         totalScans: reportData.security?.scanHistory?.length || 0,
         lastScan: {
           date: reportData.security?.lastScan || new Date().toISOString(),
-          status: reportData.security?.vulnerabilities === 0 ? 'clean' : 'issues',
+          status: (reportData.security?.vulnerabilities === 0 ? 'clean' : 'issues') as 'clean' | 'issues',
           malware: 'clean',
           webTrust: 'clean',
           vulnerabilities: reportData.security?.vulnerabilities || 0
@@ -194,7 +194,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     };
 
     // Use the enhanced PDF generator for professional reports
-    const pdfGenerator = new EnhancedPDFGenerator();
+    const { EnhancedPDFGenerator: EnhancedGenerator } = await import('../../../../../server/enhanced-pdf-generator.ts');
+    const pdfGenerator = new EnhancedGenerator();
     const reportHtml = pdfGenerator.generateReportHTML(enhancedData);
 
     // Generate filename
