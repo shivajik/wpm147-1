@@ -27,21 +27,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Use AuthService to verify token (same logic as main auth system)
     let userId: number;
     try {
-      console.log('[MAINTENANCE-PDF] Attempting to verify token:', token?.substring(0, 20) + '...');
-      console.log('[MAINTENANCE-PDF] JWT_SECRET exists:', !!process.env.JWT_SECRET);
-      console.log('[MAINTENANCE-PDF] JWT_SECRET preview:', process.env.JWT_SECRET?.substring(0, 10) + '...');
-      
       const decoded = AuthService.verifyToken(token);
-      console.log('[MAINTENANCE-PDF] Token verification result:', decoded ? 'SUCCESS' : 'FAILED');
-      
       if (!decoded || !decoded.id) {
-        console.error('[MAINTENANCE-PDF] Token verification failed: No decoded token or missing ID');
         return res.status(401).json({ message: 'Invalid or expired token' });
       }
       userId = decoded.id;
-      console.log('[MAINTENANCE-PDF] Successfully authenticated user ID:', userId);
     } catch (error) {
-      console.error('[MAINTENANCE-PDF] Token verification failed with exception:', error);
+      console.error('[MAINTENANCE-PDF] Token verification failed:', error);
       return res.status(401).json({ message: 'Invalid or expired token' });
     }
 

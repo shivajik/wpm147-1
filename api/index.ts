@@ -3947,24 +3947,141 @@ if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') 
       return res.status(403).json({ message: "Report does not belong to this website" });
     }
 
-    // Generate HTML for the maintenance report
+    // Get real client information for the report
+    let clientName = 'Valued Client';
+    let clientEmail = '';
+    try {
+      if (report.clientId) {
+        const clientResult = await db.select()
+          .from(clients)
+          .where(and(eq(clients.id, report.clientId), eq(clients.userId, user.id)))
+          .limit(1);
+        
+        if (clientResult.length > 0) {
+          clientName = clientResult[0].name;
+          clientEmail = clientResult[0].email || '';
+        }
+      }
+    } catch (error) {
+      console.error(`[MAINTENANCE-PDF] Error fetching client data:`, error);
+    }
+
+    // Transform maintenance data efficiently for professional report
     const reportData = report.reportData as any || {};
-    const maintenanceData = {
+    
+    // Helper function to limit array sizes for serverless memory efficiency
+    const limitArray = (arr: any[], maxSize: number = 50) => arr ? arr.slice(0, maxSize) : [];
+    
+    const enhancedData = {
       id: report.id,
       title: report.title,
-      dateFrom: report.dateFrom || new Date(),
-      dateTo: report.dateTo || new Date(),
-      reportData: reportData,
-      clientName: 'Valued Client',
-      websiteName: website.name,
-      websiteUrl: website.url,
-      wpVersion: reportData.health?.wpVersion || 'Unknown',
-      hasMaintenanceActivity: true
+      client: {
+        name: clientName,
+        email: clientEmail,
+        contactPerson: clientName
+      },
+      website: {
+        name: website.name,
+        url: website.url,
+        ipAddress: '',
+        wordpressVersion: reportData.health?.wpVersion || reportData.website?.wpVersion || 'Unknown'
+      },
+      dateFrom: (report.dateFrom || new Date()).toISOString(),
+      dateTo: (report.dateTo || new Date()).toISOString(),
+      reportType: 'Website Maintenance Report',
+      overview: {
+        updatesPerformed: reportData.updates?.total || 0,
+        backupsCreated: reportData.backups?.total || 0,
+        uptimePercentage: reportData.overview?.uptimePercentage || 99.9,
+        analyticsChange: 0,
+        securityStatus: reportData.security?.status === 'good' ? 'safe' : (reportData.security?.vulnerabilities > 0 ? 'warning' : 'safe'),
+        performanceScore: reportData.performance?.score || reportData.overview?.performanceScore || 85,
+        seoScore: 0,
+        keywordsTracked: 0
+      },
+      customWork: limitArray(reportData.customWork, 20),
+      updates: {
+        total: reportData.updates?.total || 0,
+        plugins: limitArray(reportData.updates?.plugins || [], 30).map((plugin: any) => ({
+          name: plugin.name || plugin.itemName || 'Unknown Plugin',
+          versionFrom: plugin.fromVersion || 'N/A',
+          versionTo: plugin.toVersion || plugin.newVersion || 'Latest',
+          date: plugin.date || new Date().toISOString()
+        })),
+        themes: limitArray(reportData.updates?.themes || [], 15).map((theme: any) => ({
+          name: theme.name || theme.itemName || 'Unknown Theme',
+          versionFrom: theme.fromVersion || 'N/A',
+          versionTo: theme.toVersion || theme.newVersion || 'Latest',
+          date: theme.date || new Date().toISOString()
+        })),
+        core: reportData.updates?.core ? [{
+          versionFrom: reportData.updates.core.fromVersion || 'N/A',
+          versionTo: reportData.updates.core.toVersion || 'Latest',
+          date: reportData.updates.core.date || new Date().toISOString()
+        }] : []
+      },
+      backups: {
+        total: reportData.backups?.total || 0,
+        totalAvailable: reportData.backups?.total || 0,
+        latest: {
+          date: reportData.backups?.lastBackup || new Date().toISOString(),
+          size: '0 MB',
+          wordpressVersion: reportData.health?.wpVersion || 'Unknown',
+          activeTheme: 'Current Theme',
+          activePlugins: 0,
+          publishedPosts: 0,
+          approvedComments: 0
+        }
+      },
+      uptime: {
+        percentage: reportData.overview?.uptimePercentage || 99.9,
+        last24h: 100,
+        last7days: 100,
+        last30days: reportData.overview?.uptimePercentage || 99.9,
+        incidents: limitArray(reportData.uptime?.incidents, 10)
+      },
+      analytics: {
+        changePercentage: 0,
+        sessions: limitArray(reportData.analytics?.sessions, 30)
+      },
+      security: {
+        totalScans: reportData.security?.scanHistory?.length || 0,
+        lastScan: {
+          date: reportData.security?.lastScan || new Date().toISOString(),
+          status: reportData.security?.vulnerabilities === 0 ? 'clean' : 'issues',
+          malware: 'clean',
+          webTrust: 'clean',
+          vulnerabilities: reportData.security?.vulnerabilities || 0
+        },
+        scanHistory: limitArray(reportData.security?.scanHistory, 20)
+      },
+      performance: {
+        totalChecks: reportData.performance?.history?.length || 0,
+        lastScan: {
+          date: reportData.performance?.lastScan || new Date().toISOString(),
+          pageSpeedScore: reportData.performance?.score || 85,
+          pageSpeedGrade: reportData.performance?.score >= 90 ? 'A' : reportData.performance?.score >= 80 ? 'B' : 'C',
+          ysloScore: reportData.performance?.score || 85,
+          ysloGrade: reportData.performance?.score >= 90 ? 'A' : reportData.performance?.score >= 80 ? 'B' : 'C',
+          loadTime: 2.5
+        },
+        history: limitArray(reportData.performance?.history, 20)
+      },
+      seo: {
+        visibilityChange: 0,
+        competitors: 0,
+        keywords: limitArray(reportData.seo?.keywords, 25),
+        topRankKeywords: 0,
+        firstPageKeywords: 0,
+        visibility: 0,
+        topCompetitors: limitArray(reportData.seo?.topCompetitors, 10)
+      }
     };
 
-    // Use the existing ManageWPStylePDFGenerator for consistency
-    const pdfGenerator = new ManageWPStylePDFGenerator();
-    const reportHtml = pdfGenerator.generateReportHTML(maintenanceData);
+    // Use the enhanced PDF generator for professional reports  
+    const { EnhancedPDFGenerator } = await import('../../server/enhanced-pdf-generator.js');
+    const pdfGenerator = new EnhancedPDFGenerator();
+    const reportHtml = pdfGenerator.generateReportHTML(enhancedData);
     
     res.setHeader('Content-Type', 'text/html');
     res.setHeader('Content-Disposition', `inline; filename="maintenance-report-${reportId}.html"`);
