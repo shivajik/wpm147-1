@@ -167,8 +167,8 @@ export function QuickActions({ websiteId, websiteName, websiteUrl }: QuickAction
       description: 'Monitor uptime',
       color: 'text-emerald-600',
       bgColor: 'bg-emerald-50 hover:bg-emerald-100',
-      onClick: () => handleAction('Uptime Check', `/api/websites/${websiteId}/uptime-check`),
-      isAction: true,
+      isComingSoon: true,
+      isAction: false,
     },
     {
       id: 'seo-ranking',
@@ -255,6 +255,31 @@ export function QuickActions({ websiteId, websiteName, websiteUrl }: QuickAction
                       </div>
                     </div>
                   </Link>
+                </Button>
+              );
+            }
+
+            if (!action.isAction && action.isComingSoon) {
+              // Coming soon item
+              return (
+                <Button
+                  key={action.id}
+                  variant="ghost"
+                  className={`justify-start h-auto p-3 ${action.bgColor} border border-transparent opacity-75 cursor-not-allowed`}
+                  disabled
+                >
+                  <div className="flex items-center gap-3 w-full">
+                    <div className={`p-2 rounded-lg bg-white dark:bg-slate-700 ${action.color}`}>
+                      <Icon className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <div className="font-medium text-sm">{action.label}</div>
+                      <div className="text-xs text-muted-foreground">{action.description}</div>
+                    </div>
+                    <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700 border-blue-200">
+                      Coming Soon
+                    </Badge>
+                  </div>
                 </Button>
               );
             }
