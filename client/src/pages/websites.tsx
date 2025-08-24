@@ -53,17 +53,12 @@ export default function Websites() {
   return (
     <AppLayout title="Websites">
       <div className="space-y-8">
-        {websitesLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        ) : (
-          <WebsiteCards 
-            websites={websites || []}
-            viewMode="grid"
-            showViewToggle={true}
-          />
-        )}
+        <WebsiteCards 
+          websites={websites || []}
+          viewMode="grid"
+          showViewToggle={true}
+          isLoading={websitesLoading}
+        />
         
         {/* Additional Website Management Tools */}
         {websites && websites.length > 0 && (

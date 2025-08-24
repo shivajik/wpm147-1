@@ -32,6 +32,7 @@ interface WebsiteCardsProps {
   viewMode?: 'grid' | 'list';
   onViewModeChange?: (mode: 'grid' | 'list') => void;
   showViewToggle?: boolean;
+  isLoading?: boolean;
 }
 
 interface WebsiteCardProps {
@@ -445,7 +446,8 @@ export default function WebsiteCards({
   websites, 
   viewMode = 'grid', 
   onViewModeChange,
-  showViewToggle = true 
+  showViewToggle = true,
+  isLoading = false 
 }: WebsiteCardsProps) {
   const [currentViewMode, setCurrentViewMode] = useState(viewMode);
 
@@ -454,6 +456,24 @@ export default function WebsiteCards({
     onViewModeChange?.(mode);
   };
 
+  // Show loading state if data is still being fetched
+  if (isLoading) {
+    return (
+      <div className="text-center py-12">
+        <div className="animate-spin h-12 w-12 text-slate-400 mx-auto mb-4">
+          <RefreshCw className="h-12 w-12" />
+        </div>
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
+          Loading websites...
+        </h3>
+        <p className="text-slate-500 dark:text-slate-400">
+          Please wait while we fetch your website data
+        </p>
+      </div>
+    );
+  }
+
+  // Only show empty state if not loading and no websites
   if (!websites || websites.length === 0) {
     return (
       <div className="text-center py-12">

@@ -57,7 +57,7 @@ export default function Dashboard() {
   }, [user, autoSync, toast]);
 
   // Fetch real data for dynamic content with optimized caching
-  const { data: websites = [] } = useQuery<Website[]>({ 
+  const { data: websites = [], isLoading: websitesLoading } = useQuery<Website[]>({ 
     queryKey: ['/api/websites'], 
     enabled: !!user,
     staleTime: 5 * 60 * 1000, // 5 minutes
