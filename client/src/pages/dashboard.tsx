@@ -262,18 +262,6 @@ export default function Dashboard() {
               </p>
             </div>
             
-            {/* View Mode and Add Website */}
-            <div className="flex items-center space-x-3">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsAddWebsiteDialogOpen(true)}
-                className="flex items-center space-x-2"
-              >
-                <Plus className="h-4 w-4" />
-                <span>Add Website</span>
-              </Button>
-            </div>
           </div>
 
           {/* Quick Navigation Actions */}
@@ -286,6 +274,23 @@ export default function Dashboard() {
                 </div>
                 <div className="flex items-center space-x-3">
                   <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsAddWebsiteDialogOpen(true)}
+                          className="flex items-center space-x-2 bg-white/80 hover:bg-white dark:bg-slate-800/80 dark:hover:bg-slate-800 border-blue-200 dark:border-blue-800 hover:border-blue-300 dark:hover:border-blue-700"
+                        >
+                          <Plus className="h-4 w-4 text-blue-600" />
+                          <span>Add Website</span>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Add a new WordPress website to monitor</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
