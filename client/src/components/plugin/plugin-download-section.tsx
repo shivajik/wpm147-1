@@ -10,17 +10,18 @@ export default function PluginDownloadSection() {
   const [copied, setCopied] = useState(false);
 
   const handleDownload = () => {
-    // Download the WP Remote Manager plugin
+    // Download the WP Remote Manager plugin with cache-busting filename
+    const timestamp = Date.now();
     const link = document.createElement('a');
-    link.href = '/wp-remote-manager-plugin.zip';
-    link.download = 'wp-remote-manager-plugin.zip';
+    link.href = `/wp-remote-manager-plugin-v3.2.3-latest.zip?v=${timestamp}`;
+    link.download = 'wp-remote-manager-plugin-v3.2.3-latest.zip';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     
     toast({
       title: "Download Started",
-      description: "WP Remote Manager plugin is being downloaded.",
+      description: "WP Remote Manager plugin v3.2.3 is being downloaded.",
     });
   };
 
