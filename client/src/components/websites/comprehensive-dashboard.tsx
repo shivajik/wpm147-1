@@ -208,9 +208,25 @@ const getDatabaseVersion = (version: string) => {
                   <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-12"></div>
                 ) : (
                   <p className="text-lg font-semibold text-green-600 dark:text-green-400">
-                    {(wpData as any)?.plugins ? Object.keys((wpData as any).plugins).length : 
-                     systemInfo?.plugins_count || 
-                     ((website as any)?.connectionStatus !== 'connected' ? 'Not Connected' : '--')}
+                    {(() => {
+                      // Check for pluginData array first (most common structure)
+                      if ((wpData as any)?.pluginData && Array.isArray((wpData as any).pluginData)) {
+                        return (wpData as any).pluginData.length;
+                      }
+                      
+                      // Fallback to plugins object structure
+                      if ((wpData as any)?.plugins) {
+                        return Object.keys((wpData as any).plugins).length;
+                      }
+                      
+                      // Fallback to systemInfo count (but only if > 0 since it seems unreliable)
+                      if (systemInfo?.plugins_count && systemInfo.plugins_count > 0) {
+                        return systemInfo.plugins_count;
+                      }
+                      
+                      // Final fallback based on connection status
+                      return ((website as any)?.connectionStatus !== 'connected' ? 'Not Connected' : '--');
+                    })()}
                   </p>
                 )}
                 <p className="text-xs text-gray-500 dark:text-gray-600 mt-1">
