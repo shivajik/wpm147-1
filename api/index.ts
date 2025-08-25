@@ -7110,7 +7110,7 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
       }
     }
 
-    // Get client report data endpoint
+    // Get client report data endpoint with comprehensive debug logging
     if (path.match(/^\/api\/client-reports\/\d+\/data$/) && req.method === 'GET') {
       const user = authenticateToken(req);
       if (!user) {
@@ -7118,8 +7118,15 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
       }
 
       const reportId = parseInt(path.split('/')[3]);
+      const debugLogs: string[] = [];
+      const startTime = Date.now();
+      
+      // Initialize debug logging
+      debugLogs.push(`[${new Date().toISOString()}] Starting client report data fetch for report ID: ${reportId}, user ID: ${user.id}`);
       
       try {
+        // Step 1: Fetch report record
+        debugLogs.push(`[${new Date().toISOString()}] Step 1: Fetching report record from database`);
         const report = await db
           .select()
           .from(clientReports)
@@ -7127,20 +7134,26 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
           .limit(1);
 
         if (report.length === 0) {
-          return res.status(404).json({ message: 'Client report not found' });
+          debugLogs.push(`[${new Date().toISOString()}] ERROR: Report not found for ID ${reportId} and user ${user.id}`);
+          return res.status(404).json({ 
+            message: 'Client report not found',
+            debugLogs,
+            executionTime: Date.now() - startTime
+          });
         }
 
         const reportRecord = report[0];
         const reportData = reportRecord.reportData as any || {};
+        debugLogs.push(`[${new Date().toISOString()}] Step 1 SUCCESS: Found report record - Title: "${reportRecord.title}", Client ID: ${reportRecord.clientId}, Website IDs: ${JSON.stringify(reportRecord.websiteIds)}`);
         
-        // Get additional data to complete the report
+        // Step 2: Fetch client information
         let clientName = null;
         let websiteName = null;
         let websiteUrl = null;
         let websiteData = {};
 
+        debugLogs.push(`[${new Date().toISOString()}] Step 2: Fetching client information for client ID: ${reportRecord.clientId}`);
         try {
-          // Get client information
           if (reportRecord.clientId) {
             const clientRecord = await db
               .select()
@@ -7150,11 +7163,23 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
             
             if (clientRecord.length > 0) {
               clientName = clientRecord[0].name;
+              debugLogs.push(`[${new Date().toISOString()}] Step 2 SUCCESS: Found client - Name: "${clientName}"`);
+            } else {
+              debugLogs.push(`[${new Date().toISOString()}] Step 2 WARNING: Client record not found for ID ${reportRecord.clientId}`);
             }
+          } else {
+            debugLogs.push(`[${new Date().toISOString()}] Step 2 SKIP: No client ID in report record`);
           }
+        } catch (clientError) {
+          debugLogs.push(`[${new Date().toISOString()}] Step 2 ERROR: Failed to fetch client data - ${clientError instanceof Error ? clientError.message : 'Unknown error'}`);
+        }
 
-          // Get website information
-          const websiteIds = Array.isArray(reportRecord.websiteIds) ? reportRecord.websiteIds : [];
+        // Step 3: Fetch website information
+        debugLogs.push(`[${new Date().toISOString()}] Step 3: Fetching website information`);
+        const websiteIds = Array.isArray(reportRecord.websiteIds) ? reportRecord.websiteIds : [];
+        debugLogs.push(`[${new Date().toISOString()}] Step 3: Processing ${websiteIds.length} website(s): ${JSON.stringify(websiteIds)}`);
+        
+        try {
           if (websiteIds.length > 0) {
             const websiteRecord = await db
               .select()
@@ -7166,43 +7191,54 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
               const website = websiteRecord[0];
               websiteName = website.name || null;
               websiteUrl = website.url || null;
+              debugLogs.push(`[${new Date().toISOString()}] Step 3 SUCCESS: Found website - Name: "${websiteName}", URL: "${websiteUrl}"`);
               
               // Parse WordPress data if available
               if (website.wpData) {
                 try {
                   websiteData = typeof website.wpData === 'string' ? JSON.parse(website.wpData) : website.wpData;
-                } catch (e) {
-                  console.log('Failed to parse website WP data:', e);
+                  const wpVersion = (websiteData as any)?.systemInfo?.wordpress_version || 'Unknown';
+                  const pluginCount = (websiteData as any)?.plugins?.length || 0;
+                  const themeCount = (websiteData as any)?.themes?.length || 0;
+                  debugLogs.push(`[${new Date().toISOString()}] Step 3 SUCCESS: Parsed WP data - Version: ${wpVersion}, Plugins: ${pluginCount}, Themes: ${themeCount}`);
+                } catch (parseError) {
+                  debugLogs.push(`[${new Date().toISOString()}] Step 3 WARNING: Failed to parse WP data - ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
                 }
+              } else {
+                debugLogs.push(`[${new Date().toISOString()}] Step 3 INFO: No WP data available for website`);
               }
+            } else {
+              debugLogs.push(`[${new Date().toISOString()}] Step 3 WARNING: Website record not found for ID ${websiteIds[0]}`);
             }
+          } else {
+            debugLogs.push(`[${new Date().toISOString()}] Step 3 SKIP: No website IDs in report record`);
           }
-        } catch (error) {
-          console.error('Error fetching client/website data for report:', error);
+        } catch (websiteError) {
+          debugLogs.push(`[${new Date().toISOString()}] Step 3 ERROR: Failed to fetch website data - ${websiteError instanceof Error ? websiteError.message : 'Unknown error'}`);
         }
 
-        // Fetch comprehensive real data like localhost does using fetchMaintenanceDataFromLogs
-        console.log(`[PRODUCTION_DEBUG] /data endpoint: Starting comprehensive real data fetch for report ${reportId}`);
-        const websiteIds = Array.isArray(reportRecord.websiteIds) ? reportRecord.websiteIds : [];
+        // Step 4: Fetch comprehensive maintenance data
+        debugLogs.push(`[${new Date().toISOString()}] Step 4: Starting comprehensive maintenance data fetch`);
         const dateFrom = reportRecord.dateFrom || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
         const dateTo = reportRecord.dateTo || new Date();
+        debugLogs.push(`[${new Date().toISOString()}] Step 4: Date range - From: ${dateFrom.toISOString()}, To: ${dateTo.toISOString()}`);
         
         let enhancedReportData = reportData;
+        let dataFetchMethod = 'none';
+        
         if (websiteIds.length > 0) {
+          // Try comprehensive maintenance data fetch first
           try {
-            // Use the same comprehensive data fetching function as used in generation
+            debugLogs.push(`[${new Date().toISOString()}] Step 4A: Attempting fetchMaintenanceDataFromLogs for websites: ${JSON.stringify(websiteIds)}`);
             const maintenanceData = await fetchMaintenanceDataFromLogs(websiteIds, user.id, dateFrom, dateTo);
-            console.log(`[PRODUCTION_DEBUG] /data endpoint: Retrieved maintenance data:`, {
-              updates: maintenanceData.updates?.total || 0,
-              performance: maintenanceData.performance?.totalChecks || 0,
-              security: maintenanceData.security?.totalScans || 0
-            });
+            dataFetchMethod = 'comprehensive';
+            
+            debugLogs.push(`[${new Date().toISOString()}] Step 4A SUCCESS: Retrieved maintenance data - Updates: ${maintenanceData.updates?.total || 0}, Performance: ${maintenanceData.performance?.totalChecks || 0}, Security: ${maintenanceData.security?.totalScans || 0}`);
             
             // Merge the comprehensive maintenance data with existing report data
             enhancedReportData = {
               ...reportData,
               ...maintenanceData,
-              // Preserve any existing overview data but update with real metrics
               overview: {
                 ...(reportData.overview || {}),
                 ...(maintenanceData.overview || {}),
@@ -7212,12 +7248,15 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
                 updatesPerformed: maintenanceData.updates?.total || 0
               }
             };
+            debugLogs.push(`[${new Date().toISOString()}] Step 4A SUCCESS: Enhanced report data merged`);
             
           } catch (dataError) {
-            console.error('[PRODUCTION_DEBUG] /data endpoint: Error fetching comprehensive maintenance data:', dataError);
+            debugLogs.push(`[${new Date().toISOString()}] Step 4A ERROR: fetchMaintenanceDataFromLogs failed - ${dataError instanceof Error ? dataError.message : 'Unknown error'}`);
+            
             // Fallback to basic database queries
             try {
-              console.log(`[PRODUCTION_DEBUG] /data endpoint: Falling back to basic queries for website ${websiteIds[0]}`);
+              debugLogs.push(`[${new Date().toISOString()}] Step 4B: Falling back to basic database queries for website ${websiteIds[0]}`);
+              dataFetchMethod = 'fallback';
               
               // Fetch basic performance scans
               const performanceScans = await db
@@ -7226,6 +7265,7 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
                 .where(eq(performanceScans.websiteId, websiteIds[0]))
                 .orderBy(desc(performanceScans.scanTimestamp))
                 .limit(10);
+              debugLogs.push(`[${new Date().toISOString()}] Step 4B: Found ${performanceScans.length} performance scans`);
               
               // Fetch basic security scans
               const securityScans = await db
@@ -7234,6 +7274,7 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
                 .where(eq(securityScanHistory.websiteId, websiteIds[0]))
                 .orderBy(desc(securityScanHistory.scanStartedAt))
                 .limit(10);
+              debugLogs.push(`[${new Date().toISOString()}] Step 4B: Found ${securityScans.length} security scans`);
               
               // Fetch update logs
               const websiteUpdateLogs = await db
@@ -7246,8 +7287,7 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
                   lte(updateLogs.createdAt, dateTo)
                 ))
                 .orderBy(desc(updateLogs.createdAt));
-              
-              console.log(`[PRODUCTION_DEBUG] /data endpoint: Fallback found - performance: ${performanceScans.length}, security: ${securityScans.length}, updates: ${websiteUpdateLogs.length}`);
+              debugLogs.push(`[${new Date().toISOString()}] Step 4B: Found ${websiteUpdateLogs.length} update logs in date range`);
               
               // Build enhanced data with fallback queries
               enhancedReportData = {
@@ -7291,42 +7331,49 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
                     name: log.itemName || 'Unknown Plugin',
                     versionFrom: log.fromVersion || 'Unknown',
                     versionTo: log.toVersion || 'Unknown',
-                    date: log.createdAt.toISOString(),
+                    date: log.createdAt ? log.createdAt.toISOString() : new Date().toISOString(),
                     status: log.updateStatus || 'completed'
                   })),
                   themes: websiteUpdateLogs.filter(log => log.updateType === 'theme').map(log => ({
                     name: log.itemName || 'Unknown Theme', 
                     versionFrom: log.fromVersion || 'Unknown',
                     versionTo: log.toVersion || 'Unknown',
-                    date: log.createdAt.toISOString(),
+                    date: log.createdAt ? log.createdAt.toISOString() : new Date().toISOString(),
                     status: log.updateStatus || 'completed'
                   })),
                   core: websiteUpdateLogs.filter(log => log.updateType === 'core').map(log => ({
                     versionFrom: log.fromVersion || 'Unknown',
                     versionTo: log.toVersion || 'Unknown',
-                    date: log.createdAt.toISOString(),
+                    date: log.createdAt ? log.createdAt.toISOString() : new Date().toISOString(),
                     status: log.updateStatus || 'completed'
                   }))
                 } : reportData.updates
               };
+              debugLogs.push(`[${new Date().toISOString()}] Step 4B SUCCESS: Fallback data structure built`);
+              
             } catch (fallbackError) {
-              console.error('[PRODUCTION_DEBUG] /data endpoint: Fallback queries also failed:', fallbackError);
+              debugLogs.push(`[${new Date().toISOString()}] Step 4B ERROR: Fallback queries also failed - ${fallbackError instanceof Error ? fallbackError.message : 'Unknown error'}`);
+              dataFetchMethod = 'failed';
             }
           }
+        } else {
+          debugLogs.push(`[${new Date().toISOString()}] Step 4 SKIP: No website IDs to process`);
+          dataFetchMethod = 'skipped';
         }
 
-        // Build the complete report data structure expected by frontend
+        // Step 5: Build the complete report data structure expected by frontend  
+        debugLogs.push(`[${new Date().toISOString()}] Step 5: Building complete report data structure`);
         const completeReportData = {
           id: reportRecord.id,
           title: reportRecord.title,
           client: {
-            name: clientName,
+            name: clientName || 'Unknown Client',
             email: 'N/A',
-            contactPerson: clientName
+            contactPerson: clientName || 'Unknown Client'
           },
           website: {
-            name: websiteName,
-            url: websiteUrl,
+            name: websiteName || 'Unknown Website',
+            url: websiteUrl || 'N/A',
             ipAddress: (websiteData as any)?.systemInfo?.ip_address || 'N/A',
             wordpressVersion: (websiteData as any)?.systemInfo?.wordpress_version || 'Unknown'
           },
@@ -7389,10 +7436,44 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
           status: reportRecord.status
         };
 
-        return res.status(200).json(completeReportData);
+        const executionTime = Date.now() - startTime;
+        debugLogs.push(`[${new Date().toISOString()}] SUCCESS: Client report data fetch completed in ${executionTime}ms`);
+        debugLogs.push(`[${new Date().toISOString()}] Data fetch method: ${dataFetchMethod}`);
+        debugLogs.push(`[${new Date().toISOString()}] Response structure built with ${Object.keys(completeReportData).length} top-level properties`);
+        
+        // Return the report data with comprehensive debug information
+        return res.status(200).json({
+          ...completeReportData,
+          _debug: {
+            logs: debugLogs,
+            executionTime,
+            dataFetchMethod,
+            timestamp: new Date().toISOString(),
+            reportId,
+            userId: user.id,
+            websiteCount: websiteIds.length,
+            clientFound: !!clientName,
+            websiteFound: !!websiteName
+          }
+        });
+        
       } catch (error) {
+        const executionTime = Date.now() - startTime;
+        debugLogs.push(`[${new Date().toISOString()}] FATAL ERROR: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        debugLogs.push(`[${new Date().toISOString()}] Stack trace: ${error instanceof Error ? error.stack || 'No stack trace' : 'N/A'}`);
+        
         console.error('Error fetching client report data:', error);
-        return res.status(500).json({ message: 'Failed to fetch client report data' });
+        return res.status(500).json({ 
+          message: 'Failed to fetch client report data',
+          error: error instanceof Error ? error.message : 'Unknown error',
+          _debug: {
+            logs: debugLogs,
+            executionTime,
+            timestamp: new Date().toISOString(),
+            reportId,
+            userId: user?.id || 'Unknown'
+          }
+        });
       }
     }
 
