@@ -7147,7 +7147,7 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
           .from(clientReports)
           .where(and(eq(clientReports.id, reportId), eq(clientReports.userId, user.id)))
           .limit(1);
-
+ 
         if (report.length === 0) {
           return res.status(404).json({ message: 'Client report not found' });
         }
