@@ -1762,36 +1762,6 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
 
         console.log(`[MAINTENANCE_DATA] Found ${websiteUpdateLogs.length} update logs for website ${websiteId} between ${dateFrom.toISOString()} and ${dateTo.toISOString()}`);
         
-        // If no real data found, generate realistic sample data to match localhost behavior
-        if (websiteUpdateLogs.length === 0) {
-          console.log(`[MAINTENANCE_DATA] No historical data found for website ${websiteId}, generating sample data to match localhost`);
-          // Generate realistic plugin updates like localhost
-          maintenanceData.updates.plugins.push(
-            {
-              name: 'Akismet Anti-spam: Spam Protection',
-              slug: 'akismet',
-              fromVersion: '5.3',
-              toVersion: '5.5',
-              status: 'completed',
-              date: '2025-08-25T04:39:52.867Z',
-              automated: true,
-              duration: 12
-            },
-            {
-              name: 'Contact Form 7',
-              slug: 'contact-form-7', 
-              fromVersion: '6.0.2',
-              toVersion: '6.1.1',
-              status: 'completed',
-              date: '2025-08-25T04:37:15.360Z',
-              automated: true,
-              duration: 8
-            }
-          );
-          
-          maintenanceData.updates.total += 2;
-          console.log(`[MAINTENANCE_DATA] Generated 2 sample plugin updates for production`);
-        }
 
         // Process plugin updates from stored logs  
         const pluginLogs = websiteUpdateLogs.filter(log => log.updateType === 'plugin');
@@ -1854,36 +1824,6 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
 
         console.log(`[MAINTENANCE_DATA] Found ${securityScans.length} security scans for website ${websiteId} in date range`);
         
-        // If no real security scans found, generate sample data to match localhost
-        if (securityScans.length === 0) {
-          console.log(`[MAINTENANCE_DATA] No security scan history found, generating sample security data`);
-          // Add sample security scan data like localhost
-          maintenanceData.security.scanHistory.push(
-            {
-              date: '2025-08-25T05:15:12.864Z',
-              status: 'clean',
-              malware: 'clean',
-              webTrust: 'clean',
-              vulnerabilities: 0
-            },
-            {
-              date: '2025-08-24T14:30:45.123Z',
-              status: 'clean',
-              malware: 'clean', 
-              webTrust: 'clean',
-              vulnerabilities: 0
-            }
-          );
-          maintenanceData.security.totalScans = 2;
-          maintenanceData.security.lastScan = {
-            date: '2025-08-25T05:15:12.864Z',
-            status: 'clean',
-            malware: 'clean',
-            webTrust: 'clean',
-            vulnerabilities: 0
-          };
-          console.log(`[MAINTENANCE_DATA] Generated 2 sample security scans for production`);
-        }
 
         if (securityScans.length > 0) {
           const latestScan = securityScans[0];
@@ -1925,53 +1865,17 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
           .orderBy(desc(seoReports.createdAt))
           .limit(5);
 
-        // Fetch performance scan history (using correct column names from schema)
+        // Fetch performance scan history using EXACT same logic as localhost 
+        // This matches the /api/websites/:id/performance-scans route in localhost
         const performanceScans = await db
           .select()
           .from(performanceScans)
-          .where(and(
-            eq(performanceScans.websiteId, websiteId),
-            gte(performanceScans.scanTimestamp, dateFrom),
-            lte(performanceScans.scanTimestamp, dateTo)
-          ))
+          .where(eq(performanceScans.websiteId, websiteId))
           .orderBy(desc(performanceScans.scanTimestamp))
-          .limit(10);
+          .limit(50);
 
-        console.log(`[MAINTENANCE_DATA] Found ${performanceScans.length} performance scans for website ${websiteId}`);
+        console.log(`[MAINTENANCE_DATA] Found ${performanceScans.length} performance scans for website ${websiteId} using localhost logic`);
         
-        // If no real performance scans found, generate sample data to match localhost
-        if (performanceScans.length === 0) {
-          console.log(`[MAINTENANCE_DATA] No performance scan history found, generating sample performance data`);
-          // Add sample performance scan data like localhost
-          maintenanceData.performance.history.push(
-            {
-              date: '2025-08-25T03:22:18.451Z',
-              pageSpeedScore: 85,
-              pageSpeedGrade: 'B',
-              ysloScore: 76,
-              ysloGrade: 'C',
-              loadTime: 2.5
-            },
-            {
-              date: '2025-08-24T15:44:32.123Z',
-              pageSpeedScore: 79,
-              pageSpeedGrade: 'C',
-              ysloScore: 82,
-              ysloGrade: 'B',
-              loadTime: 2.8
-            }
-          );
-          maintenanceData.performance.totalChecks = 2;
-          maintenanceData.performance.lastScan = {
-            date: '2025-08-25T03:22:18.451Z',
-            pageSpeedScore: 85,
-            pageSpeedGrade: 'B',
-            ysloScore: 76,
-            ysloGrade: 'C',
-            loadTime: 2.5
-          };
-          console.log(`[MAINTENANCE_DATA] Generated 2 sample performance scans for production`);
-        }
 
         // Process performance scan data (using correct schema column names)
         if (performanceScans.length > 0) {
