@@ -105,7 +105,7 @@ export default function Landing() {
                 Trusted by 500+ WordPress Professionals
               </Badge>
               
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-slate-900 mb-6 sm:mb-8 leading-tight">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-slate-900 mb-3 sm:mb-4 leading-tight">
                 WordPress Management
                 <span className="gradient-text block animate-slide-up">Made Professional</span>
               </h1>
