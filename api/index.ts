@@ -7605,7 +7605,7 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
                        vulnerabilities: 0
                      })),
             scanHistory: realSecurityHistory.length > 0 ? realSecurityHistory : (reportData.security?.scanHistory || [])
-          },
+          }, 
           // Use REAL performance data from ActivityLogger approach (same as localhost)
           performance: {
             totalChecks: realMaintenanceOverview?.performance?.scansCompleted || realPerformanceScans || reportData.performance?.totalChecks || 0,
