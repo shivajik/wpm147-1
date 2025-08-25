@@ -7181,75 +7181,137 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
           console.error('Error fetching client/website data for report:', error);
         }
 
-        // Fetch real performance and security data if available
-        let realPerformanceData = reportData.performance || { totalChecks: 0, history: [], lastScan: null };
-        let realSecurityData = reportData.security || { totalScans: 0, scanHistory: [], lastScan: null };
-        
+        // Fetch comprehensive real data like localhost does using fetchMaintenanceDataFromLogs
+        console.log(`[PRODUCTION_DEBUG] /data endpoint: Starting comprehensive real data fetch for report ${reportId}`);
         const websiteIds = Array.isArray(reportRecord.websiteIds) ? reportRecord.websiteIds : [];
+        const dateFrom = reportRecord.dateFrom || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        const dateTo = reportRecord.dateTo || new Date();
+        
+        let enhancedReportData = reportData;
         if (websiteIds.length > 0) {
           try {
-            console.log(`[PRODUCTION_DEBUG] /data endpoint: Fetching real data for website ${websiteIds[0]}`);
+            // Use the same comprehensive data fetching function as used in generation
+            const maintenanceData = await fetchMaintenanceDataFromLogs(websiteIds, user.id, dateFrom, dateTo);
+            console.log(`[PRODUCTION_DEBUG] /data endpoint: Retrieved maintenance data:`, {
+              updates: maintenanceData.updates?.total || 0,
+              performance: maintenanceData.performance?.totalChecks || 0,
+              security: maintenanceData.security?.totalScans || 0
+            });
             
-            // Fetch real performance scans from database
-            const performanceScans = await db
-              .select()
-              .from(performanceScans)
-              .where(eq(performanceScans.websiteId, websiteIds[0]))
-              .orderBy(desc(performanceScans.scanTimestamp))
-              .limit(10);
+            // Merge the comprehensive maintenance data with existing report data
+            enhancedReportData = {
+              ...reportData,
+              ...maintenanceData,
+              // Preserve any existing overview data but update with real metrics
+              overview: {
+                ...(reportData.overview || {}),
+                ...(maintenanceData.overview || {}),
+                performanceScore: maintenanceData.performance?.lastScan?.pageSpeedScore || reportData.overview?.performanceScore || 85,
+                securityStatus: maintenanceData.security?.totalScans > 0 ? 
+                  (maintenanceData.security.scanHistory?.[0]?.vulnerabilities > 0 ? 'warning' : 'safe') : 'safe',
+                updatesPerformed: maintenanceData.updates?.total || 0
+              }
+            };
             
-            console.log(`[PRODUCTION_DEBUG] /data endpoint: Found ${performanceScans.length} performance scans`);
-            
-            if (performanceScans.length > 0) {
-              realPerformanceData = {
-                totalChecks: performanceScans.length,
-                history: performanceScans.map(scan => ({
-                  date: scan.scanTimestamp.toISOString(),
-                  loadTime: scan.lcpScore ? scan.lcpScore / 1000 : 2.5,
-                  pageSpeed: scan.pagespeedScore,
-                  yslow: scan.yslowScore
-                })),
-                lastScan: {
-                  date: performanceScans[0].scanTimestamp.toISOString(),
-                  pageSpeedScore: performanceScans[0].pagespeedScore,
-                  pageSpeedGrade: performanceScans[0].pagespeedScore >= 90 ? 'A' : (performanceScans[0].pagespeedScore >= 80 ? 'B' : 'C'),
-                  ysloScore: performanceScans[0].yslowScore,
-                  ysloGrade: performanceScans[0].yslowScore >= 90 ? 'A' : (performanceScans[0].yslowScore >= 80 ? 'B' : 'C'),
-                  loadTime: performanceScans[0].lcpScore ? performanceScans[0].lcpScore / 1000 : 2.5
-                }
-              };
-            }
-            
-            // Fetch real security scans from database
-            const securityScans = await db
-              .select()
-              .from(securityScanHistory)
-              .where(eq(securityScanHistory.websiteId, websiteIds[0]))
-              .orderBy(desc(securityScanHistory.scanStartedAt))
-              .limit(10);
-            
-            console.log(`[PRODUCTION_DEBUG] /data endpoint: Found ${securityScans.length} security scans`);
-            
-            if (securityScans.length > 0) {
-              realSecurityData = {
-                totalScans: securityScans.length,
-                scanHistory: securityScans.map(scan => ({
-                  date: scan.scanStartedAt.toISOString(),
-                  malware: scan.malwareStatus || 'clean',
-                  vulnerabilities: (scan.coreVulnerabilities || 0) + (scan.pluginVulnerabilities || 0) + (scan.themeVulnerabilities || 0),
-                  webTrust: scan.threatLevel === 'low' ? 'clean' : (scan.threatLevel === 'medium' ? 'suspicious' : 'high risk')
-                })),
-                lastScan: {
-                  date: securityScans[0].scanStartedAt.toISOString(),
-                  status: securityScans[0].malwareStatus || 'clean',
-                  malware: securityScans[0].malwareStatus || 'clean',
-                  webTrust: securityScans[0].threatLevel === 'low' ? 'clean' : 'warning',
-                  vulnerabilities: (securityScans[0].coreVulnerabilities || 0) + (securityScans[0].pluginVulnerabilities || 0) + (securityScans[0].themeVulnerabilities || 0)
-                }
-              };
-            }
           } catch (dataError) {
-            console.error('[PRODUCTION_DEBUG] /data endpoint: Error fetching real scan data:', dataError);
+            console.error('[PRODUCTION_DEBUG] /data endpoint: Error fetching comprehensive maintenance data:', dataError);
+            // Fallback to basic database queries
+            try {
+              console.log(`[PRODUCTION_DEBUG] /data endpoint: Falling back to basic queries for website ${websiteIds[0]}`);
+              
+              // Fetch basic performance scans
+              const performanceScans = await db
+                .select()
+                .from(performanceScans)
+                .where(eq(performanceScans.websiteId, websiteIds[0]))
+                .orderBy(desc(performanceScans.scanTimestamp))
+                .limit(10);
+              
+              // Fetch basic security scans
+              const securityScans = await db
+                .select()
+                .from(securityScanHistory)
+                .where(eq(securityScanHistory.websiteId, websiteIds[0]))
+                .orderBy(desc(securityScanHistory.scanStartedAt))
+                .limit(10);
+              
+              // Fetch update logs
+              const websiteUpdateLogs = await db
+                .select()
+                .from(updateLogs)
+                .where(and(
+                  eq(updateLogs.websiteId, websiteIds[0]),
+                  eq(updateLogs.userId, user.id),
+                  gte(updateLogs.createdAt, dateFrom),
+                  lte(updateLogs.createdAt, dateTo)
+                ))
+                .orderBy(desc(updateLogs.createdAt));
+              
+              console.log(`[PRODUCTION_DEBUG] /data endpoint: Fallback found - performance: ${performanceScans.length}, security: ${securityScans.length}, updates: ${websiteUpdateLogs.length}`);
+              
+              // Build enhanced data with fallback queries
+              enhancedReportData = {
+                ...reportData,
+                performance: performanceScans.length > 0 ? {
+                  totalChecks: performanceScans.length,
+                  history: performanceScans.map(scan => ({
+                    date: scan.scanTimestamp.toISOString(),
+                    loadTime: scan.lcpScore ? scan.lcpScore / 1000 : 2.5,
+                    pageSpeed: scan.pagespeedScore,
+                    yslow: scan.yslowScore
+                  })),
+                  lastScan: {
+                    date: performanceScans[0].scanTimestamp.toISOString(),
+                    pageSpeedScore: performanceScans[0].pagespeedScore,
+                    pageSpeedGrade: performanceScans[0].pagespeedScore >= 90 ? 'A' : (performanceScans[0].pagespeedScore >= 80 ? 'B' : 'C'),
+                    ysloScore: performanceScans[0].yslowScore,
+                    ysloGrade: performanceScans[0].yslowScore >= 90 ? 'A' : (performanceScans[0].yslowScore >= 80 ? 'B' : 'C'),
+                    loadTime: performanceScans[0].lcpScore ? performanceScans[0].lcpScore / 1000 : 2.5
+                  }
+                } : reportData.performance,
+                security: securityScans.length > 0 ? {
+                  totalScans: securityScans.length,
+                  scanHistory: securityScans.map(scan => ({
+                    date: scan.scanStartedAt.toISOString(),
+                    malware: scan.malwareStatus || 'clean',
+                    vulnerabilities: (scan.coreVulnerabilities || 0) + (scan.pluginVulnerabilities || 0) + (scan.themeVulnerabilities || 0),
+                    webTrust: scan.threatLevel === 'low' ? 'clean' : (scan.threatLevel === 'medium' ? 'suspicious' : 'high risk')
+                  })),
+                  lastScan: {
+                    date: securityScans[0].scanStartedAt.toISOString(),
+                    status: securityScans[0].malwareStatus || 'clean',
+                    malware: securityScans[0].malwareStatus || 'clean',
+                    webTrust: securityScans[0].threatLevel === 'low' ? 'clean' : 'warning',
+                    vulnerabilities: (securityScans[0].coreVulnerabilities || 0) + (securityScans[0].pluginVulnerabilities || 0) + (securityScans[0].themeVulnerabilities || 0)
+                  }
+                } : reportData.security,
+                updates: websiteUpdateLogs.length > 0 ? {
+                  total: websiteUpdateLogs.length,
+                  plugins: websiteUpdateLogs.filter(log => log.updateType === 'plugin').map(log => ({
+                    name: log.itemName || 'Unknown Plugin',
+                    versionFrom: log.fromVersion || 'Unknown',
+                    versionTo: log.toVersion || 'Unknown',
+                    date: log.createdAt.toISOString(),
+                    status: log.updateStatus || 'completed'
+                  })),
+                  themes: websiteUpdateLogs.filter(log => log.updateType === 'theme').map(log => ({
+                    name: log.itemName || 'Unknown Theme', 
+                    versionFrom: log.fromVersion || 'Unknown',
+                    versionTo: log.toVersion || 'Unknown',
+                    date: log.createdAt.toISOString(),
+                    status: log.updateStatus || 'completed'
+                  })),
+                  core: websiteUpdateLogs.filter(log => log.updateType === 'core').map(log => ({
+                    versionFrom: log.fromVersion || 'Unknown',
+                    versionTo: log.toVersion || 'Unknown',
+                    date: log.createdAt.toISOString(),
+                    status: log.updateStatus || 'completed'
+                  }))
+                } : reportData.updates
+              };
+            } catch (fallbackError) {
+              console.error('[PRODUCTION_DEBUG] /data endpoint: Fallback queries also failed:', fallbackError);
+            }
           }
         }
 
@@ -7270,36 +7332,36 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
           },
           dateFrom: reportRecord.dateFrom ? new Date(reportRecord.dateFrom).toISOString() : new Date().toISOString(),
           dateTo: reportRecord.dateTo ? new Date(reportRecord.dateTo).toISOString() : new Date().toISOString(),
-          overview: reportData.overview || {
+          overview: enhancedReportData.overview || {
             updatesPerformed: 0,
             backupsCreated: 0,
             uptimePercentage: 100.0,
             analyticsChange: 0,
             securityStatus: 'safe',
-            performanceScore: realPerformanceData.lastScan?.pageSpeedScore || 85,
+            performanceScore: 85,
             seoScore: 92,
             keywordsTracked: 0
           },
-          updates: reportData.updates || {
+          updates: enhancedReportData.updates || {
             total: 0,
             plugins: [],
             themes: [],
             core: []
           },
-          backups: reportData.backups || {
+          backups: enhancedReportData.backups || {
             total: 0,
             totalAvailable: 0,
             latest: {
               date: new Date().toISOString(),
               size: '0 MB',
-              wordpressVersion: 'Unknown',
+              wordpressVersion: websiteData.systemInfo?.wordpress_version || 'Unknown',
               activeTheme: 'Unknown',
               activePlugins: 0,
               publishedPosts: 0,
               approvedComments: 0
             }
           },
-          security: realSecurityData.totalScans > 0 ? realSecurityData : {
+          security: enhancedReportData.security || {
             totalScans: 0,
             lastScan: {
               date: new Date().toISOString(),
@@ -7310,7 +7372,7 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
             },
             scanHistory: []
           },
-          performance: realPerformanceData.totalChecks > 0 ? realPerformanceData : {
+          performance: enhancedReportData.performance || {
             totalChecks: 0,
             lastScan: {
               date: new Date().toISOString(),
@@ -7322,7 +7384,7 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
             },
             history: []
           },
-          customWork: reportData.customWork || [],
+          customWork: enhancedReportData.customWork || [],
           generatedAt: reportRecord.generatedAt ? new Date(reportRecord.generatedAt).toISOString() : null,
           status: reportRecord.status
         };
