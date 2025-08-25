@@ -3774,22 +3774,8 @@ export default async function handler(req: any, res: any) {
           }
         }
         
-        // Return fallback user data
-        return res.status(200).json([
-          {
-            id: 1,
-            username: 'admin',
-            email: 'admin@example.com',
-            display_name: 'Administrator',
-            first_name: 'Site',
-            last_name: 'Administrator',
-            roles: ['administrator'],
-            registered_date: new Date().toISOString(),
-            last_login: new Date().toISOString(),
-            post_count: 0,
-            status: 'active'
-          }
-        ]);
+        // Return empty array when no real data available
+        return res.status(200).json([]);
       } catch (error) {
         console.error("Error fetching WRM users:", error);
         return res.status(500).json({ message: "Failed to fetch WRM users" });
@@ -5339,13 +5325,13 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
         
         const website = websiteResult[0].websites;
         
-        // Mock stats for now - in real implementation, these would come from monitoring services
+        // Return only real data from database
         return res.status(200).json({
-          uptime: website.uptime || "99.9%",
-          response_time: "245ms",
-          last_backup: website.lastBackup || new Date().toISOString(),
-          wordpress_version: website.wpVersion || "6.4",
-          health_score: 95
+          uptime: website.uptime || null,
+          response_time: null, // Only real monitoring data
+          last_backup: website.lastBackup || null,
+          wordpress_version: website.wpVersion || null,
+          health_score: null // Only real health data
         });
       } catch (error) {
         console.error("Error fetching website stats:", error);
@@ -7150,9 +7136,9 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
         const reportData = reportRecord.reportData as any || {};
         
         // Get additional data to complete the report
-        let clientName = 'Unknown Client';
-        let websiteName = 'Unknown Website';
-        let websiteUrl = 'https://example.com';
+        let clientName = null;
+        let websiteName = null;
+        let websiteUrl = null;
         let websiteData = {};
 
         try {
@@ -7180,8 +7166,8 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
             
             if (websiteRecord.length > 0) {
               const website = websiteRecord[0];
-              websiteName = website.name || 'Unknown Website';
-              websiteUrl = website.url || 'https://example.com';
+              websiteName = website.name || null;
+              websiteUrl = website.url || null;
               
               // Parse WordPress data if available
               if (website.wpData) {
