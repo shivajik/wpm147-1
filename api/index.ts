@@ -7283,7 +7283,7 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
           console.error(`[PRODUCTION-STEP4] Error fetching client email:`, error);
         }
 
-        // Fetch REAL performance scan history from database (like localhost does)
+        // Fetch REAL performance scan history from database using enhanced data fetching (like localhost does)
         let realPerformanceHistory = [];
         let realPerformanceScans = 0;
         try {
@@ -7291,23 +7291,26 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
           if (websiteIds.length > 0) {
             console.log(`[PRODUCTION-STEP4] Fetching real performance scans for website ${websiteIds[0]}`);
             
-            const performanceScans = await db
+            const performanceScanResults = await db
               .select()
               .from(performanceScans)
               .where(eq(performanceScans.websiteId, websiteIds[0]))
               .orderBy(desc(performanceScans.scanTimestamp))
               .limit(10);
             
-            console.log(`[PRODUCTION-STEP4] Found ${performanceScans.length} real performance scans`);
+            console.log(`[PRODUCTION-STEP4] Found ${performanceScanResults.length} real performance scans`);
             
-            realPerformanceHistory = performanceScans.map(scan => ({
+            // Enhanced performance data mapping with all required fields
+            realPerformanceHistory = performanceScanResults.map(scan => ({
               date: scan.scanTimestamp.toISOString(),
-              loadTime: (scan as any).loadTime || 2.5,
+              loadTime: scan.scanData?.yslow_metrics?.load_time ? scan.scanData.yslow_metrics.load_time / 1000 : (scan.lcpScore || 2.5),
               pageSpeedScore: scan.pagespeedScore || 85,
-              ysloScore: scan.yslowScore || 76
+              pageSpeedGrade: scan.pagespeedScore >= 90 ? 'A' : scan.pagespeedScore >= 80 ? 'B' : 'C',
+              ysloScore: scan.yslowScore || 76,
+              ysloGrade: scan.yslowScore >= 90 ? 'A' : scan.yslowScore >= 80 ? 'B' : 'C'
             }));
             
-            realPerformanceScans = performanceScans.length;
+            realPerformanceScans = performanceScanResults.length;
           }
         } catch (error) {
           console.error(`[PRODUCTION-STEP4] Error fetching real performance history:`, error);
@@ -7360,31 +7363,57 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
             
             console.log(`[PRODUCTION-STEP4] Found ${updateHistory.length} real update logs`);
             
-            // Process plugin updates
+            // Process plugin updates with enhanced name cleaning (like localhost does)
             const pluginUpdates = updateHistory.filter(log => log.updateType === 'plugin');
-            realUpdateHistory.plugins = pluginUpdates.map(log => ({
-              name: log.itemName || 'Unknown Plugin',
-              slug: log.itemSlug || 'unknown',
-              fromVersion: log.fromVersion || '0.0.0',
-              toVersion: log.toVersion || '0.0.0',
-              status: log.updateStatus,
-              date: log.createdAt ? log.createdAt.toISOString() : new Date().toISOString(),
-              automated: log.automatedUpdate || false,
-              duration: log.duration || 0
-            }));
+            realUpdateHistory.plugins = pluginUpdates.map(log => {
+              let enhancedName = log.itemName || 'Unknown Plugin';
+              
+              // Clean plugin names that might be file paths (same logic as localhost)
+              if (enhancedName.includes('/') || enhancedName.includes('.php')) {
+                const parts = enhancedName.split('/');
+                if (parts.length > 1) {
+                  enhancedName = parts[0]; // Get plugin directory name
+                }
+                enhancedName = enhancedName.replace(/\.php$/, '').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+              }
+              
+              return {
+                name: enhancedName,
+                slug: log.itemSlug || 'unknown',
+                fromVersion: log.fromVersion || '0.0.0',
+                toVersion: log.toVersion || '0.0.0',
+                status: log.updateStatus,
+                date: log.createdAt ? log.createdAt.toISOString() : new Date().toISOString(),
+                automated: log.automatedUpdate || false,
+                duration: log.duration || 0
+              };
+            });
             
-            // Process theme updates
+            // Process theme updates with enhanced name cleaning (like localhost does)
             const themeUpdates = updateHistory.filter(log => log.updateType === 'theme');
-            realUpdateHistory.themes = themeUpdates.map(log => ({
-              name: log.itemName || 'Unknown Theme',
-              slug: log.itemSlug || 'unknown',
-              fromVersion: log.fromVersion || '0.0.0',
-              toVersion: log.toVersion || '0.0.0',
-              status: log.updateStatus,
-              date: log.createdAt ? log.createdAt.toISOString() : new Date().toISOString(),
-              automated: log.automatedUpdate || false,
-              duration: log.duration || 0
-            }));
+            realUpdateHistory.themes = themeUpdates.map(log => {
+              let enhancedName = log.itemName || 'Unknown Theme';
+              
+              // Clean theme names that might be file paths (same logic as localhost)
+              if (enhancedName.includes('/') || enhancedName.includes('.php')) {
+                const parts = enhancedName.split('/');
+                if (parts.length > 1) {
+                  enhancedName = parts[0]; // Get theme directory name
+                }
+                enhancedName = enhancedName.replace(/\.php$/, '').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+              }
+              
+              return {
+                name: enhancedName,
+                slug: log.itemSlug || 'unknown',
+                fromVersion: log.fromVersion || '0.0.0',
+                toVersion: log.toVersion || '0.0.0',
+                status: log.updateStatus,
+                date: log.createdAt ? log.createdAt.toISOString() : new Date().toISOString(),
+                automated: log.automatedUpdate || false,
+                duration: log.duration || 0
+              };
+            });
             
             // Process core updates
             const coreUpdates = updateHistory.filter(log => log.updateType === 'wordpress');
@@ -7433,11 +7462,31 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
             seoScore: reportData.seo?.overallScore || 92,
             keywordsTracked: reportData.seo?.keywords?.length || 0
           },
-          // Use REAL updates data from database
+          // Use REAL updates data from database with proper version display
           updates: {
             total: realUpdateHistory.total,
-            plugins: realUpdateHistory.plugins.length > 0 ? realUpdateHistory.plugins : (reportData.updates?.plugins || []),
-            themes: realUpdateHistory.themes.length > 0 ? realUpdateHistory.themes : (reportData.updates?.themes || []),
+            plugins: realUpdateHistory.plugins.length > 0 ? realUpdateHistory.plugins : 
+                    (reportData.updates?.plugins || []).map((plugin: any) => ({
+                      ...plugin,
+                      // Ensure version fields are properly mapped for display
+                      fromVersion: plugin.versionFrom || plugin.fromVersion || 'Unknown',
+                      toVersion: plugin.versionTo || plugin.toVersion || 'Latest',
+                      // Clean up name if it's a file path
+                      name: plugin.name && (plugin.name.includes('/') || plugin.name.includes('.php')) ? 
+                        plugin.name.split('/')[0].replace(/\.php$/, '').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 
+                        plugin.name || 'Unknown Plugin'
+                    })),
+            themes: realUpdateHistory.themes.length > 0 ? realUpdateHistory.themes : 
+                   (reportData.updates?.themes || []).map((theme: any) => ({
+                     ...theme,
+                     // Ensure version fields are properly mapped for display
+                     fromVersion: theme.versionFrom || theme.fromVersion || 'Unknown',
+                     toVersion: theme.versionTo || theme.toVersion || 'Latest',
+                     // Clean up name if it's a file path
+                     name: theme.name && (theme.name.includes('/') || theme.name.includes('.php')) ? 
+                       theme.name.split('/')[0].replace(/\.php$/, '').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 
+                       theme.name || 'Unknown Theme'
+                   })),
             core: realUpdateHistory.core.length > 0 ? realUpdateHistory.core : (reportData.updates?.core || [])
           },
           // Use stored backups data with real WordPress version
@@ -7468,17 +7517,17 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
                      }),
             scanHistory: realSecurityHistory.length > 0 ? realSecurityHistory : (reportData.security?.scanHistory || [])
           },
-          // Use REAL performance data from database queries
+          // Use REAL performance data from database queries with enhanced fallbacks
           performance: {
             totalChecks: realPerformanceScans || reportData.performance?.totalChecks || 0,
             lastScan: realPerformanceHistory.length > 0 ? {
               date: realPerformanceHistory[0].date,
               pageSpeedScore: realPerformanceHistory[0].pageSpeedScore,
-              pageSpeedGrade: realPerformanceHistory[0].pageSpeedScore >= 90 ? 'A' : 
-                            realPerformanceHistory[0].pageSpeedScore >= 80 ? 'B' : 'C',
+              pageSpeedGrade: realPerformanceHistory[0].pageSpeedGrade || (realPerformanceHistory[0].pageSpeedScore >= 90 ? 'A' : 
+                            realPerformanceHistory[0].pageSpeedScore >= 80 ? 'B' : 'C'),
               ysloScore: realPerformanceHistory[0].ysloScore,
-              ysloGrade: realPerformanceHistory[0].ysloScore >= 90 ? 'A' : 
-                       realPerformanceHistory[0].ysloScore >= 80 ? 'B' : 'C',
+              ysloGrade: realPerformanceHistory[0].ysloGrade || (realPerformanceHistory[0].ysloScore >= 90 ? 'A' : 
+                       realPerformanceHistory[0].ysloScore >= 80 ? 'B' : 'C'),
               loadTime: realPerformanceHistory[0].loadTime
             } : (reportData.performance?.lastScan || {
               date: new Date().toISOString(),
@@ -7505,7 +7554,11 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
           realSecurityScans,
           realPerformanceScans,
           realSecurityHistoryLength: realSecurityHistory.length,
-          realPerformanceHistoryLength: realPerformanceHistory.length
+          realPerformanceHistoryLength: realPerformanceHistory.length,
+          pluginUpdatesCount: completeReportData.updates.plugins.length,
+          themeUpdatesCount: completeReportData.updates.themes.length,
+          hasPerformanceHistory: completeReportData.performance.history.length > 0,
+          performanceTotalChecks: completeReportData.performance.totalChecks
         });
 
         console.log(`[PRODUCTION-STEP4] Sending complete report data with ${Object.keys(completeReportData).length} top-level properties`);
