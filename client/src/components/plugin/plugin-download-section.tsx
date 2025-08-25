@@ -10,25 +10,25 @@ export default function PluginDownloadSection() {
   const [copied, setCopied] = useState(false);
 
   const handleDownload = () => {
-    // Download the WP Remote Manager plugin with cache-busting filename
+    // Download the WP Remote Manager plugin as PHP file (no zip needed)
     const timestamp = Date.now();
     const link = document.createElement('a');
-    link.href = `/wp-remote-manager-plugin-v3.2.3-latest.zip?v=${timestamp}`;
-    link.download = 'wp-remote-manager-plugin-v3.2.3-latest.zip';
+    link.href = `/wp-remote-manager-enhanced-users-v3.2.3-comments-revisions.php?v=${timestamp}`;
+    link.download = 'wp-remote-manager-enhanced-users-v3.2.3-comments-revisions.php';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     
     toast({
       title: "Download Started",
-      description: "WP Remote Manager plugin v3.2.3 is being downloaded.",
+      description: "WP Remote Manager plugin v3.2.3 PHP file is being downloaded.",
     });
   };
 
   const handleCopyInstallInstructions = () => {
-    const instructions = `1. Download Plugin
-2. Goto Plugin and upload
-3. Activate
+    const instructions = `1. Download Plugin PHP file
+2. Upload the PHP file to wp-content/plugins/
+3. Activate in WordPress admin
 4. Go to Settings → Remote Manager and Generate new secure API key and add to your AIO Webcare dashboard`;
 
     navigator.clipboard.writeText(instructions).then(() => {
@@ -81,15 +81,15 @@ export default function PluginDownloadSection() {
           <ol className="space-y-2 text-sm text-muted-foreground">
             <li className="flex gap-2">
               <span className="font-medium text-blue-600 dark:text-blue-400 min-w-[1.2rem]">1.</span>
-              Download Plugin
+              Download Plugin PHP file
             </li>
             <li className="flex gap-2">
               <span className="font-medium text-blue-600 dark:text-blue-400 min-w-[1.2rem]">2.</span>
-              Goto Plugin and upload
+              Upload the PHP file to <code className="px-1 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs">wp-content/plugins/</code>
             </li>
             <li className="flex gap-2">
               <span className="font-medium text-blue-600 dark:text-blue-400 min-w-[1.2rem]">3.</span>
-              Activate
+              Activate in WordPress admin
             </li>
             <li className="flex gap-2">
               <span className="font-medium text-blue-600 dark:text-blue-400 min-w-[1.2rem]">4.</span>
@@ -106,7 +106,7 @@ export default function PluginDownloadSection() {
             data-testid="button-download-plugin"
           >
             <Download className="h-4 w-4 mr-2" />
-            Download Plugin
+            Download Plugin (PHP File)
           </Button>
         </div>
 
