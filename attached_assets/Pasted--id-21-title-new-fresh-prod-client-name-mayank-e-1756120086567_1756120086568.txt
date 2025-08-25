@@ -1,0 +1,103 @@
+{
+    "id": 21,
+    "title": "new fresh prod ",
+    "client": {
+        "name": "mayank",
+        "email": "N/A",
+        "contactPerson": "mayank"
+    },
+    "website": {
+        "name": "KSoft Solution",
+        "url": "https://ksoftsolution.com/",
+        "ipAddress": "N/A",
+        "wordpressVersion": "Unknown"
+    },
+    "dateFrom": "2025-07-26T00:00:00.000Z",
+    "dateTo": "2025-08-25T00:00:00.000Z",
+    "overview": {
+        "seoScore": 92,
+        "backupsCreated": 4,
+        "securityStatus": "safe",
+        "analyticsChange": 0,
+        "keywordsTracked": 0,
+        "performanceScore": 85,
+        "updatesPerformed": 4,
+        "uptimePercentage": 100
+    },
+    "updates": {
+        "core": [],
+        "total": 4,
+        "themes": [],
+        "plugins": [
+            {
+                "date": "2025-07-26T00:00:00.000Z",
+                "name": "Akismet Anti-Spam",
+                "slug": "akismet",
+                "status": "success",
+                "duration": 15,
+                "automated": true,
+                "toVersion": "5.1.1",
+                "fromVersion": "5.1.0"
+            },
+            {
+                "date": "2025-08-02T00:00:00.000Z",
+                "name": "Yoast SEO",
+                "slug": "wordpress-seo",
+                "status": "success",
+                "duration": 15,
+                "automated": true,
+                "toVersion": "5.1.1",
+                "fromVersion": "5.1.0"
+            },
+            {
+                "date": "2025-08-09T00:00:00.000Z",
+                "name": "WooCommerce",
+                "slug": "woocommerce",
+                "status": "success",
+                "duration": 15,
+                "automated": true,
+                "toVersion": "5.1.1",
+                "fromVersion": "5.1.0"
+            }
+        ]
+    },
+    "backups": {
+        "total": 4,
+        "latest": {
+            "date": "2025-08-25T11:03:52.913Z",
+            "size": "0 MB",
+            "activeTheme": "Unknown",
+            "activePlugins": 0,
+            "publishedPosts": 0,
+            "approvedComments": 0,
+            "wordpressVersion": "Unknown"
+        },
+        "totalAvailable": 7
+    },
+    "security": {
+        "lastScan": {
+            "date": "2025-08-25T11:03:52.913Z",
+            "status": "clean",
+            "malware": "clean",
+            "webTrust": "clean",
+            "vulnerabilities": 0
+        },
+        "totalScans": 0,
+        "scanHistory": []
+    },
+    "performance": {
+        "history": [],
+        "lastScan": {
+            "date": "2025-08-25T11:03:52.913Z",
+            "loadTime": 2.5,
+            "ysloGrade": "C",
+            "ysloScore": 76,
+            "pageSpeedGrade": "B",
+            "pageSpeedScore": 85
+        },
+        "totalChecks": 0
+    },
+    "customWork": [],
+    "generatedAt": "2025-08-25T11:03:53.359Z",
+    "status": "generated"
+}
