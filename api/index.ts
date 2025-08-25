@@ -1964,41 +1964,8 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
       }
     }
 
-    // Calculate summary statistics and ensure minimum data for meaningful reports
+    // Calculate summary statistics - only use real data
     maintenanceData.backups.total = maintenanceData.overview.backupsCreated;
-    
-    // Ensure we have meaningful data even if database is sparse
-    if (maintenanceData.updates.total === 0 && websiteIds.length > 0) {
-      // Generate some realistic maintenance activity for the period
-      const daysDiff = Math.ceil((dateTo.getTime() - dateFrom.getTime()) / (1000 * 60 * 60 * 24));
-      if (daysDiff > 7) {
-        // For longer periods, assume some maintenance activity occurred
-        maintenanceData.overview.updatesPerformed = Math.floor(daysDiff / 7); // About 1 update per week
-        maintenanceData.updates.total = maintenanceData.overview.updatesPerformed;
-        
-        // Add some example plugin updates
-        for (let i = 0; i < Math.min(3, maintenanceData.overview.updatesPerformed); i++) {
-          maintenanceData.updates.plugins.push({
-            name: ['Akismet Anti-Spam', 'Yoast SEO', 'WooCommerce'][i % 3],
-            slug: ['akismet', 'wordpress-seo', 'woocommerce'][i % 3],
-            fromVersion: '5.1.0',
-            toVersion: '5.1.1',
-            status: 'success',
-            date: new Date(dateFrom.getTime() + (i * 7 * 24 * 60 * 60 * 1000)).toISOString(),
-            automated: true,
-            duration: 15
-          });
-        }
-      }
-    }
-    
-    // Ensure minimum backup activity
-    if (maintenanceData.overview.backupsCreated === 0 && websiteIds.length > 0) {
-      const daysDiff = Math.ceil((dateTo.getTime() - dateFrom.getTime()) / (1000 * 60 * 60 * 24));
-      maintenanceData.overview.backupsCreated = Math.max(1, Math.floor(daysDiff / 7));
-      maintenanceData.backups.total = maintenanceData.overview.backupsCreated;
-      maintenanceData.backups.totalAvailable = maintenanceData.overview.backupsCreated + 3;
-    }
     
     console.log(`[MAINTENANCE_DATA] Generated maintenance data summary:`, {
       totalWebsites: websiteIds.length,
