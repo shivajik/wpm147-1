@@ -1903,7 +1903,7 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
         if (websiteSeoReports.length > 0) {
           const latestSeoReport = websiteSeoReports[0];
           maintenanceData.overview.seoScore = latestSeoReport.overallScore || 92;
-          maintenanceData.overview.performanceScore = latestSeoReport.userExperienceScore || latestPerformanceScan?.pagespeedScore || 85;
+          maintenanceData.overview.performanceScore = latestSeoReport.userExperienceScore || (performanceScans.length > 0 ? performanceScans[0].pagespeedScore : 85);
         }
 
         // Fetch real WordPress data for backup and uptime information
