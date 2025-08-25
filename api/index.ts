@@ -5,7 +5,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { ManageWPStylePDFGenerator } from "../server/pdf-report-generator.js";
-import { eq, and, asc, desc, sql } from 'drizzle-orm';
+import { eq, and, asc, desc, sql, gte, lte } from 'drizzle-orm';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { 
@@ -7323,7 +7323,58 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
         
         // Generate a unique share token
         const shareToken = `report_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        
+  
+        // Prepare report data with activity logs if requested
+        let reportDataWithActivities = validatedData.reportData;
+
+        // If includeActivityLog is enabled, collect activity data for each website
+        if (validatedData.reportData?.includeActivityLog && validatedData.websiteIds?.length > 0) {
+          try {
+            // Dynamically import ActivityLogger to avoid circular dependencies
+            const { ActivityLogger } = await import("../server/activity-logger.js");
+
+            const activityLogs = [];
+            for (const websiteId of validatedData.websiteIds) {
+              const activities = await ActivityLogger.getActivityLogs(
+                websiteId,
+                validatedData.dateFrom!,
+                validatedData.dateTo!
+              );
+              const summary = await ActivityLogger.getActivitySummary(
+                websiteId,
+                validatedData.dateFrom!,
+                validatedData.dateTo!
+              );
+              const overview = await ActivityLogger.getMaintenanceOverview(
+                websiteId,
+                validatedData.dateFrom!,
+                validatedData.dateTo!
+              );
+
+              activityLogs.push({
+                websiteId,
+                activities,
+                summary,
+                overview
+              });
+            }
+
+            // Add activity logs to report data
+            reportDataWithActivities = {
+              ...validatedData.reportData,
+              activityLogs
+            };
+          } catch (activityError) {
+            console.error('Error fetching activity logs:', activityError);
+            // Continue without activity logs rather than failing the entire request
+            reportDataWithActivities = {
+              ...validatedData.reportData,
+              activityLogs: [],
+              activityLogError: 'Failed to fetch activity data'
+            };
+          }
+        }
+      
         const newReport = await db.insert(clientReports).values({
           userId: user.id,
           title: validatedData.title,
@@ -7333,7 +7384,7 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
           dateTo: validatedData.dateTo,
           templateId: validatedData.templateId,
           status: validatedData.status,
-          reportData: validatedData.reportData,
+          reportData: reportDataWithActivities, // Use the enriched data
           emailRecipients: validatedData.emailRecipients,
           isScheduled: validatedData.isScheduled,
           scheduleFrequency: validatedData.scheduleFrequency,
@@ -7351,6 +7402,47 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
         return res.status(500).json({ message: 'Failed to create client report' });
       }
     }
+    // OLD CODE OF GENERATE  REPORT
+    
+    // if (path === '/api/client-reports' && req.method === 'POST') {
+    //   const user = authenticateToken(req);
+    //   if (!user) {
+    //     return res.status(401).json({ message: 'Authentication required' });
+    //   }
+
+    //   try {
+    //     const validatedData = clientReportSchema.parse(req.body);
+        
+    //     // Generate a unique share token
+    //     const shareToken = `report_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        
+    //     const newReport = await db.insert(clientReports).values({
+    //       userId: user.id,
+    //       title: validatedData.title,
+    //       clientId: validatedData.clientId,
+    //       websiteIds: validatedData.websiteIds,
+    //       dateFrom: validatedData.dateFrom,
+    //       dateTo: validatedData.dateTo,
+    //       templateId: validatedData.templateId,
+    //       status: validatedData.status,
+    //       reportData: validatedData.reportData,
+    //       emailRecipients: validatedData.emailRecipients,
+    //       isScheduled: validatedData.isScheduled,
+    //       scheduleFrequency: validatedData.scheduleFrequency,
+    //       shareToken: shareToken,
+    //       createdAt: new Date(),
+    //       updatedAt: new Date()
+    //     }).returning();
+
+    //     return res.status(201).json(newReport[0]);
+    //   } catch (error) {
+    //     if (error instanceof z.ZodError) {
+    //       return res.status(400).json({ message: 'Invalid report data', errors: error.errors });
+    //     }
+    //     console.error('Error creating client report:', error);
+    //     return res.status(500).json({ message: 'Failed to create client report' });
+    //   }
+    // }
 
     // Update client report
     if (path.match(/^\/api\/client-reports\/\d+$/) && req.method === 'PUT') {
