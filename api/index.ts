@@ -1863,41 +1863,39 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
           .orderBy(desc(seoReports.createdAt))
           .limit(5);
 
-        // Fetch performance scan history
+        // Fetch performance scan history (using correct column names from schema)
         const performanceScans = await db
           .select()
           .from(performanceScans)
           .where(and(
             eq(performanceScans.websiteId, websiteId),
-            eq(performanceScans.userId, userId),
-            gte(performanceScans.createdAt, dateFrom),
-            lte(performanceScans.createdAt, dateTo)
+            gte(performanceScans.scanTimestamp, dateFrom),
+            lte(performanceScans.scanTimestamp, dateTo)
           ))
-          .orderBy(desc(performanceScans.createdAt))
+          .orderBy(desc(performanceScans.scanTimestamp))
           .limit(10);
 
         console.log(`[MAINTENANCE_DATA] Found ${performanceScans.length} performance scans for website ${websiteId}`);
 
-        // Process performance scan data
+        // Process performance scan data (using correct schema column names)
         if (performanceScans.length > 0) {
           const latestPerformanceScan = performanceScans[0];
           maintenanceData.performance.totalChecks = performanceScans.length;
           maintenanceData.performance.lastScan = {
-            date: latestPerformanceScan.createdAt ? new Date(latestPerformanceScan.createdAt).toISOString() : new Date().toISOString(),
-            pageSpeedScore: latestPerformanceScan.performanceScore || 85,
-            pageSpeedGrade: (latestPerformanceScan.performanceScore || 85) >= 90 ? 'A' : (latestPerformanceScan.performanceScore || 85) >= 80 ? 'B' : 'C',
-            ysloScore: latestPerformanceScan.performanceScore || 85,
-            ysloGrade: (latestPerformanceScan.performanceScore || 85) >= 90 ? 'A' : (latestPerformanceScan.performanceScore || 85) >= 80 ? 'B' : 'C',
-            loadTime: latestPerformanceScan.pageLoadTime || 2.5
+            date: latestPerformanceScan.scanTimestamp.toISOString(),
+            pageSpeedScore: latestPerformanceScan.pagespeedScore,
+            pageSpeedGrade: latestPerformanceScan.pagespeedScore >= 90 ? 'A' : latestPerformanceScan.pagespeedScore >= 80 ? 'B' : 'C',
+            ysloScore: latestPerformanceScan.yslowScore,
+            ysloGrade: latestPerformanceScan.yslowScore >= 90 ? 'A' : latestPerformanceScan.yslowScore >= 80 ? 'B' : 'C',
+            loadTime: latestPerformanceScan.scanData?.yslow_metrics?.load_time ? latestPerformanceScan.scanData.yslow_metrics.load_time / 1000 : (latestPerformanceScan.lcpScore || 2.5)
           };
 
-          // Generate performance history from scans
+          // Generate performance history from scans (using real schema data)
           maintenanceData.performance.history = performanceScans.map(scan => ({
-            date: scan.createdAt ? new Date(scan.createdAt).toISOString() : new Date().toISOString(),
-            pageSpeed: scan.performanceScore || 85,
-            yslow: scan.performanceScore || 85,
-            loadTime: scan.pageLoadTime || 2.5,
-            mobileFriendly: scan.mobileFriendly || true
+            date: scan.scanTimestamp.toISOString(),
+            loadTime: scan.scanData?.yslow_metrics?.load_time ? scan.scanData.yslow_metrics.load_time / 1000 : (scan.lcpScore || 2.5),
+            pageSpeedScore: scan.pagespeedScore,
+            ysloScore: scan.yslowScore
           }));
         }
 
@@ -1905,7 +1903,7 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
         if (websiteSeoReports.length > 0) {
           const latestSeoReport = websiteSeoReports[0];
           maintenanceData.overview.seoScore = latestSeoReport.overallScore || 92;
-          maintenanceData.overview.performanceScore = latestSeoReport.userExperienceScore || latestPerformanceScan?.performanceScore || 85;
+          maintenanceData.overview.performanceScore = latestSeoReport.userExperienceScore || latestPerformanceScan?.pagespeedScore || 85;
         }
 
         // Fetch real WordPress data for backup and uptime information
@@ -1950,8 +1948,8 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
             
             // Track analytics change based on performance improvements
             if (performanceScans.length > 1) {
-              const latestScore = performanceScans[0].performanceScore || 0;
-              const previousScore = performanceScans[1].performanceScore || 0;
+              const latestScore = performanceScans[0].pagespeedScore || 0;
+              const previousScore = performanceScans[1].pagespeedScore || 0;
               maintenanceData.overview.analyticsChange = latestScore - previousScore;
             }
           }
