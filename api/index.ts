@@ -7181,6 +7181,78 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
           console.error('Error fetching client/website data for report:', error);
         }
 
+        // Fetch real performance and security data if available
+        let realPerformanceData = reportData.performance || { totalChecks: 0, history: [], lastScan: null };
+        let realSecurityData = reportData.security || { totalScans: 0, scanHistory: [], lastScan: null };
+        
+        const websiteIds = Array.isArray(reportRecord.websiteIds) ? reportRecord.websiteIds : [];
+        if (websiteIds.length > 0) {
+          try {
+            console.log(`[PRODUCTION_DEBUG] /data endpoint: Fetching real data for website ${websiteIds[0]}`);
+            
+            // Fetch real performance scans from database
+            const performanceScans = await db
+              .select()
+              .from(performanceScans)
+              .where(eq(performanceScans.websiteId, websiteIds[0]))
+              .orderBy(desc(performanceScans.scanTimestamp))
+              .limit(10);
+            
+            console.log(`[PRODUCTION_DEBUG] /data endpoint: Found ${performanceScans.length} performance scans`);
+            
+            if (performanceScans.length > 0) {
+              realPerformanceData = {
+                totalChecks: performanceScans.length,
+                history: performanceScans.map(scan => ({
+                  date: scan.scanTimestamp.toISOString(),
+                  loadTime: scan.lcpScore ? scan.lcpScore / 1000 : 2.5,
+                  pageSpeed: scan.pagespeedScore,
+                  yslow: scan.yslowScore
+                })),
+                lastScan: {
+                  date: performanceScans[0].scanTimestamp.toISOString(),
+                  pageSpeedScore: performanceScans[0].pagespeedScore,
+                  pageSpeedGrade: performanceScans[0].pagespeedScore >= 90 ? 'A' : (performanceScans[0].pagespeedScore >= 80 ? 'B' : 'C'),
+                  ysloScore: performanceScans[0].yslowScore,
+                  ysloGrade: performanceScans[0].yslowScore >= 90 ? 'A' : (performanceScans[0].yslowScore >= 80 ? 'B' : 'C'),
+                  loadTime: performanceScans[0].lcpScore ? performanceScans[0].lcpScore / 1000 : 2.5
+                }
+              };
+            }
+            
+            // Fetch real security scans from database
+            const securityScans = await db
+              .select()
+              .from(securityScanHistory)
+              .where(eq(securityScanHistory.websiteId, websiteIds[0]))
+              .orderBy(desc(securityScanHistory.scanStartedAt))
+              .limit(10);
+            
+            console.log(`[PRODUCTION_DEBUG] /data endpoint: Found ${securityScans.length} security scans`);
+            
+            if (securityScans.length > 0) {
+              realSecurityData = {
+                totalScans: securityScans.length,
+                scanHistory: securityScans.map(scan => ({
+                  date: scan.scanStartedAt.toISOString(),
+                  malware: scan.malwareStatus || 'clean',
+                  vulnerabilities: (scan.coreVulnerabilities || 0) + (scan.pluginVulnerabilities || 0) + (scan.themeVulnerabilities || 0),
+                  webTrust: scan.threatLevel === 'low' ? 'clean' : (scan.threatLevel === 'medium' ? 'suspicious' : 'high risk')
+                })),
+                lastScan: {
+                  date: securityScans[0].scanStartedAt.toISOString(),
+                  status: securityScans[0].malwareStatus || 'clean',
+                  malware: securityScans[0].malwareStatus || 'clean',
+                  webTrust: securityScans[0].threatLevel === 'low' ? 'clean' : 'warning',
+                  vulnerabilities: (securityScans[0].coreVulnerabilities || 0) + (securityScans[0].pluginVulnerabilities || 0) + (securityScans[0].themeVulnerabilities || 0)
+                }
+              };
+            }
+          } catch (dataError) {
+            console.error('[PRODUCTION_DEBUG] /data endpoint: Error fetching real scan data:', dataError);
+          }
+        }
+
         // Build the complete report data structure expected by frontend
         const completeReportData = {
           id: reportRecord.id,
@@ -7204,7 +7276,7 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
             uptimePercentage: 100.0,
             analyticsChange: 0,
             securityStatus: 'safe',
-            performanceScore: 85,
+            performanceScore: realPerformanceData.lastScan?.pageSpeedScore || 85,
             seoScore: 92,
             keywordsTracked: 0
           },
@@ -7227,7 +7299,7 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
               approvedComments: 0
             }
           },
-          security: reportData.security || {
+          security: realSecurityData.totalScans > 0 ? realSecurityData : {
             totalScans: 0,
             lastScan: {
               date: new Date().toISOString(),
@@ -7238,7 +7310,7 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
             },
             scanHistory: []
           },
-          performance: reportData.performance || {
+          performance: realPerformanceData.totalChecks > 0 ? realPerformanceData : {
             totalChecks: 0,
             lastScan: {
               date: new Date().toISOString(),
@@ -7599,6 +7671,7 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
           const websiteIds = Array.isArray(reportRecord.websiteIds) ? reportRecord.websiteIds : [];
           
           if (websiteIds.length > 0) {
+            console.log(`[PRODUCTION_DEBUG] Fetching security scans for website ${websiteIds[0]}`);
             // Fetch security scan history
             const securityScans = await db
               .select()
@@ -7606,14 +7679,19 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
               .where(eq(securityScanHistory.websiteId, websiteIds[0]))
               .orderBy(desc(securityScanHistory.scanStartedAt))
               .limit(10);
+            
+            console.log(`[PRODUCTION_DEBUG] Found ${securityScans.length} security scans`);
               
-            // Fetch performance scan history (using SEO reports as proxy for now)
+            console.log(`[PRODUCTION_DEBUG] Fetching real performance scans for website ${websiteIds[0]}`);
+            // Fetch real performance scan history from performanceScans table
             const performanceScans = await db
               .select()
-              .from(seoReports)
-              .where(eq(seoReports.websiteId, websiteIds[0]))
-              .orderBy(desc(seoReports.generatedAt))
+              .from(performanceScans)
+              .where(eq(performanceScans.websiteId, websiteIds[0]))
+              .orderBy(desc(performanceScans.scanTimestamp))
               .limit(10);
+            
+            console.log(`[PRODUCTION_DEBUG] Found ${performanceScans.length} performance scans`);
               
             // Fetch update logs
             const websiteUpdateLogs = await db
@@ -7652,19 +7730,28 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
               },
               performance: {
                 totalChecks: performanceScans.length,
-                history: performanceScans.map(scan => ({
-                  date: (scan.generatedAt || new Date()).toISOString(),
-                  loadTime: 2.5 + Math.random() * 2,
-                  pageSpeed: scan.userExperienceScore || 85,
-                  yslow: scan.technicalScore || 76
-                })),
+                history: performanceScans.map(scan => {
+                  console.log(`[PRODUCTION_DEBUG] Processing performance scan:`, {
+                    id: scan.id,
+                    scanTimestamp: scan.scanTimestamp,
+                    pagespeedScore: scan.pagespeedScore,
+                    yslowScore: scan.yslowScore,
+                    lcpScore: scan.lcpScore
+                  });
+                  return {
+                    date: scan.scanTimestamp.toISOString(),
+                    loadTime: scan.lcpScore ? scan.lcpScore / 1000 : 2.5, // Convert LCP from ms to seconds
+                    pageSpeed: scan.pagespeedScore,
+                    yslow: scan.yslowScore
+                  };
+                }),
                 lastScan: performanceScans.length > 0 ? {
-                  date: (performanceScans[0].generatedAt || new Date()).toISOString(),
-                  pageSpeedScore: performanceScans[0].userExperienceScore || 85,
-                  pageSpeedGrade: 'B',
-                  ysloScore: performanceScans[0].technicalScore || 76,
-                  ysloGrade: 'C',
-                  loadTime: 2.5 + Math.random() * 2
+                  date: performanceScans[0].scanTimestamp.toISOString(),
+                  pageSpeedScore: performanceScans[0].pagespeedScore,
+                  pageSpeedGrade: performanceScans[0].pagespeedScore >= 90 ? 'A' : (performanceScans[0].pagespeedScore >= 80 ? 'B' : 'C'),
+                  ysloScore: performanceScans[0].yslowScore,
+                  ysloGrade: performanceScans[0].yslowScore >= 90 ? 'A' : (performanceScans[0].yslowScore >= 80 ? 'B' : 'C'),
+                  loadTime: performanceScans[0].lcpScore ? performanceScans[0].lcpScore / 1000 : 2.5
                 } : {
                   date: new Date().toISOString(),
                   pageSpeedScore: 85,
