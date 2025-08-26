@@ -6999,19 +6999,31 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
       
       // Helper function to extract plugin name from different formats
       const extractPluginName = (plugin: any): string => {
-        if (plugin.name && plugin.name !== plugin.slug) {
-          return plugin.name;
+        // If it's a slug like "tablepress/tablepress.php", convert to readable name
+        if (plugin.name && plugin.name.includes('/') && plugin.name.includes('.php')) {
+          const pluginSlug = plugin.name.split('/')[0];
+          // Convert common plugin slugs to readable names
+          const pluginNameMap: { [key: string]: string } = {
+            'tablepress': 'TablePress',
+            'all-in-one-wp-migration': 'All-in-One WP Migration',
+            'contact-form-7': 'Contact Form 7',
+            'yoast-seo': 'Yoast SEO',
+            'elementor': 'Elementor',
+            'woocommerce': 'WooCommerce',
+            'jetpack': 'Jetpack',
+            'wordfence': 'Wordfence Security'
+          };
+          return pluginNameMap[pluginSlug] || pluginSlug.charAt(0).toUpperCase() + pluginSlug.slice(1);
         }
-        if (plugin.slug) {
-          // Convert slug like "tablepress/tablepress.php" to "TablePress"
-          const pluginName = plugin.slug.split('/')[0];
-          return pluginName.charAt(0).toUpperCase() + pluginName.slice(1);
+        // If it already looks like a proper name, use it
+        if (plugin.name && !plugin.name.includes('/')) {
+          return plugin.name;
         }
         return plugin.itemName || 'Unknown Plugin';
       };
       
-      // Detect data format and handle both localhost and production structures
-      const isProductionFormat = reportData.client || reportData.website?.name;
+      // Detect data format - localhost has simpler structure, production has enhanced client/website data
+      const isProductionFormat = reportData.client || (reportData.website?.name && !reportData.health);
       
       const enhancedData = {
         id: report.id,
@@ -7025,7 +7037,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
           name: reportData.website?.name || website.name,
           url: reportData.website?.url || website.url,
           ipAddress: reportData.website?.ipAddress || website.ipAddress || 'Unknown',
-          wordpressVersion: reportData.website?.wordpressVersion || reportData.health?.wpVersion || reportData.website?.wpVersion || 'Unknown'
+          wordpressVersion: reportData.website?.wordpressVersion || reportData.health?.wpVersion || 'Unknown'
         },
         dateFrom: reportData.dateFrom || report.dateFrom.toISOString(),
         dateTo: reportData.dateTo || report.dateTo.toISOString(),
@@ -7057,12 +7069,13 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
                 duration: plugin.duration || 0
               };
             } else {
-              // Localhost format - transform to match production structure
+              // Localhost format - transform plugin slug to readable name
+              const pluginName = extractPluginName(plugin);
               return {
-                name: extractPluginName(plugin),
-                slug: plugin.name || plugin.slug,
+                name: pluginName,
+                slug: plugin.name,
                 fromVersion: plugin.fromVersion || 'N/A',
-                toVersion: plugin.toVersion || plugin.newVersion || 'Latest',
+                toVersion: plugin.toVersion || 'Latest',
                 status: plugin.status || 'success',
                 date: plugin.date || new Date().toISOString(),
                 automated: false,
@@ -7114,9 +7127,15 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
             malware: 'clean',
             vulnerabilities: reportData.security?.vulnerabilities || 0,
             webTrust: 'clean',
-            status: reportData.security?.vulnerabilities === 0 ? 'clean' : 'issues'
+            status: reportData.security?.status || (reportData.security?.vulnerabilities === 0 ? 'clean' : 'issues')
           },
-          scanHistory: limitArray(reportData.security?.scanHistory, 20)
+          scanHistory: limitArray(reportData.security?.scanHistory, 20).map((scan: any) => ({
+            date: scan.date,
+            malware: 'clean',
+            vulnerabilities: scan.vulnerabilities || 0,
+            webTrust: 'clean',
+            status: scan.status || 'clean'
+          }))
         },
         performance: isProductionFormat ? reportData.performance : {
           totalChecks: reportData.performance?.history?.length || 0,
