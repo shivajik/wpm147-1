@@ -1,0 +1,57 @@
+
+const viewMaintenanceReport = useMutation({
+    mutationFn: async (reportId: number) => {
+      return validateAuthAndOpenPDF(reportId, 'view');
+    },
+    onError: (error: any) => {
+      toast({
+        title: "View Failed",
+        description: error.message || "Failed to view maintenance report",
+        variant: "destructive",
+      });
+    },
+  });
+  const validateAuthAndOpenPDF = async (reportId: number, action: 'download' | 'view') => {
+    const token = getAuthToken();
+    if (!token) {
+      throw new Error('Authentication required. Please log in again.');
+    }
+
+    // First, validate the token by making a test API call to the report endpoint
+    try {
+      const response = await apiCall(`/api/websites/${websiteId}/maintenance-reports/${reportId}`);
+      if (!response) {
+        throw new Error('Report not found or access denied.');
+      }
+    } catch (error: any) {
+      // If we get a 401 or authentication error, don't try to open the PDF
+      if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+        throw new Error('Your session has expired. Please log in again.');
+      }
+      // For other errors, still try to open the PDF as it might be a different issue
+      console.warn('Report validation failed, but attempting PDF generation:', error);
+    }
+
+    // If validation passes or fails non-auth related, try to open the PDF
+    const url = `/api/websites/${websiteId}/maintenance-reports/${reportId}/pdf?token=${encodeURIComponent(token)}`;
+    const newWindow = window.open(url, '_blank');
+    
+    // Check if popup was blocked
+    if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+      throw new Error('Popup blocked. Please allow popups for this site and try again.');
+    }
+
+    return { success: true };
+  };
+
+
+<Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => viewMaintenanceReport.mutate(report.id)}
+                                    disabled={viewMaintenanceReport.isPending}
+                                    data-testid={`button-view-report-${report.id}`}
+                                  >
+                                    <Eye className="w-3 h-3 mr-1" />
+                                    View
+                                  </Button>
