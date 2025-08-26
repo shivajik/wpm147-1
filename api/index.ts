@@ -4885,17 +4885,17 @@ if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') 
       try {
         const performanceScansData = await db.select()
           .from(performanceScansTable)
-          .where(and(eq(performanceScansTable.websiteId, websiteId), eq(performanceScansTable.userId, user.id)))
-          .orderBy(desc(performanceScansTable.createdAt))
+          .where(eq(performanceScansTable.websiteId, websiteId))
+          .orderBy(desc(performanceScansTable.scanTimestamp))
           .limit(10);
           
         if (performanceScansData && performanceScansData.length > 0) {
           const latestScan = performanceScansData[0];
-          maintenanceData.performance.lastScan = latestScan.createdAt?.toISOString() || null;
+          maintenanceData.performance.lastScan = latestScan.scanTimestamp?.toISOString() || null;
           maintenanceData.performance.score = latestScan.pagespeedScore;
           maintenanceData.performance.metrics = latestScan.scanData || {};
           maintenanceData.performance.history = performanceScansData.slice(0, 10).map(scan => ({
-            date: scan.scanTimestamp.toISOString(),
+            date: scan.scanTimestamp?.toISOString() || new Date().toISOString(),
             score: scan.pagespeedScore
           }));
           maintenanceData.overview.performanceScore = latestScan.pagespeedScore;
