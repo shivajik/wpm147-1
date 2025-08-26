@@ -5,7 +5,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { ManageWPStylePDFGenerator } from "../server/pdf-report-generator.js";
-import { eq, and, asc, desc, sql } from 'drizzle-orm';
+import { eq, and, asc, desc, sql, gte, lte } from 'drizzle-orm';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { 
@@ -22,15 +22,15 @@ import {
 
 // Import shared schema tables
 import { 
-  users,
-  clients, 
-  websites, 
-  updateLogs, 
-  securityScanHistory as securityScans, 
-  performanceScans,
-  clientReports,
-  seoReports,
-  linkScanHistory 
+  users as usersTable,
+  clients as clientsTable, 
+  websites as websitesTable, 
+  updateLogs as updateLogsTable, 
+  securityScanHistory as securityScansTable, 
+  performanceScans as performanceScansTable,
+  clientReports as clientReportsTable,
+  seoReports as seoReportsTable,
+  linkScanHistory as linkScanHistoryTable 
 } from '../shared/schema.js';
 
 // Import WP Remote Manager Client
@@ -4833,7 +4833,10 @@ if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') 
       // Try to get real data if website is connected
       if (website.wrmApiKey && website.connectionStatus === 'connected') {
         try {
-          const wrmClient = new WPRemoteManagerClient(website.url, website.wrmApiKey);
+          const wrmClient = new WPRemoteManagerClient({
+            url: website.url,
+            apiKey: website.wrmApiKey
+          });
 
           // Get updates data
           const updates = await wrmClient.getUpdates();
@@ -4858,9 +4861,9 @@ if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') 
       // Get recent security scans
       try {
         const securityScans = await db.select()
-          .from(securityScans)
-          .where(and(eq(securityScans.websiteId, websiteId), eq(securityScans.userId, user.id)))
-          .orderBy(desc(securityScans.createdAt))
+          .from(securityScansTable)
+          .where(and(eq(securityScansTable.websiteId, websiteId), eq(securityScansTable.userId, user.id)))
+          .orderBy(desc(securityScansTable.createdAt))
           .limit(10);
           
         if (securityScans && securityScans.length > 0) {
@@ -4881,9 +4884,9 @@ if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') 
       // Get recent performance scans
       try {
         const performanceScansData = await db.select()
-          .from(performanceScans)
-          .where(and(eq(performanceScans.websiteId, websiteId), eq(performanceScans.userId, user.id)))
-          .orderBy(desc(performanceScans.createdAt))
+          .from(performanceScansTable)
+          .where(and(eq(performanceScansTable.websiteId, websiteId), eq(performanceScansTable.userId, user.id)))
+          .orderBy(desc(performanceScansTable.createdAt))
           .limit(10);
           
         if (performanceScansData && performanceScansData.length > 0) {
@@ -4905,9 +4908,9 @@ if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') 
       try {
         console.log(`[MAINTENANCE-REPORT] Fetching update logs for website ${websiteId} from ${reportDateFrom.toISOString()} to ${reportDateTo.toISOString()}`);
         const updateLogsData = await db.select()
-          .from(updateLogs)
-          .where(and(eq(updateLogs.websiteId, websiteId), eq(updateLogs.userId, user.id)))
-          .orderBy(desc(updateLogs.createdAt))
+          .from(updateLogsTable)
+          .where(and(eq(updateLogsTable.websiteId, websiteId), eq(updateLogsTable.userId, user.id)))
+          .orderBy(desc(updateLogsTable.createdAt))
           .limit(200); // Get more logs to filter from
           
         if (updateLogsData && updateLogsData.length > 0) {
@@ -4964,7 +4967,7 @@ if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') 
       // Store the maintenance report in the database as a client report
       const reportTitle = `Maintenance Report - ${website.name} - ${reportDateFrom.toLocaleDateString()} to ${reportDateTo.toLocaleDateString()}`;
       
-      const storedReport = await db.insert(clientReports).values({
+      const storedReport = await db.insert(clientReportsTable).values({
         userId: user.id,
         title: reportTitle,
         clientId: website.clientId,
