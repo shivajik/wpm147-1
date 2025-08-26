@@ -1,0 +1,90 @@
+my localhost response that is correctly visible in page and it written code in server/routes.ts  6935 to 7182
+{
+  "id": 51,
+  "websiteId": 2,
+  "title": "Maintenance Report - Varun Seeds - 13/8/2025 to 28/8/2025",
+  "reportType": "maintenance",
+  "status": "generated",
+  "createdAt": "2025-08-26T13:20:20.253Z",
+  "generatedAt": "2025-08-26T13:20:20.745Z",
+  "data": {
+    "health": {
+      "wpVersion": "6.8.2",
+      "phpVersion": "8.2.25",
+      "overallScore": 85
+    },
+    "backups": {
+      "total": 0,
+      "status": "none",
+      "lastBackup": null
+    },
+    "updates": {
+      "total": 2,
+      "plugins": [
+        {
+          "date": "2025-08-26T08:26:13.037Z",
+          "name": "tablepress/tablepress.php",
+          "status": "success",
+          "toVersion": "3.2",
+          "fromVersion": "3.1"
+        }
+      ],
+      "wordpress": { "update_available": false }
+    },
+    "website": {
+      "id": 2,
+      "url": "https://varunseeds.com/",
+      "name": "Varun Seeds",
+      "status": "connected",
+      "lastSync": "2025-08-26T13:19:34.361Z"
+    },
+    "overview": {
+      "backupsCreated": 0,
+      "securityStatus": "safe",
+      "performanceScore": 71,
+      "updatesPerformed": 2,
+      "uptimePercentage": 99.9
+    },
+    "security": {
+      "status": "good",
+      "lastScan": "2025-08-26T08:26:46.748Z",
+      "scanHistory": [
+        {
+          "date": "2025-08-26T08:26:46.748Z",
+          "status": "clean",
+          "vulnerabilities": 0
+        }
+      ],
+      "vulnerabilities": 0
+    },
+    "performance": {
+      "score": 71,
+      "history": [
+        { "date": "2025-08-26T08:27:09.164Z", "score": 71 }
+      ],
+      "metrics": {
+        "yslow_metrics": {
+          "requests": 23,
+          "load_time": 1000,
+          "page_size": 236,
+          "response_time": 407
+        },
+        "pagespeed_metrics": {
+          "speed_index": 2143.5,
+          "first_input_delay": 234.75,
+          "total_blocking_time": 268.67,
+          "first_contentful_paint": 940,
+          "cumulative_layout_shift": 0.21,
+          "largest_contentful_paint": 1747
+        },
+        "lighthouse_metrics": {
+          "seo_score": 76,
+          "performance_score": 71,
+          "accessibility_score": 76,
+          "best_practices_score": 78
+        }
+      },
+      "lastScan": "2025-08-26T08:27:09.164Z"
+    }
+  }
+}
