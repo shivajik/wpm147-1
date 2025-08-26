@@ -62,8 +62,8 @@ interface ClientReportData {
     total: number;
     plugins: Array<{
       name: string;
-      versionFrom: string;
-      versionTo: string;
+      fromVersion: string;
+      toVersion: string;
       date: string;
     }>;
     themes: Array<{
@@ -623,7 +623,7 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
                         {reportData.updates.plugins.map((plugin, index) => (
                           <tr key={index} className="border-b">
                             <td className="p-2">{plugin.name}</td>
-                            <td className="p-2">{plugin.versionFrom} → {plugin.versionTo}</td>
+                            <td className="p-2">{plugin.fromVersion} → {plugin.toVersion}</td>
                             <td className="p-2">{formatDate(plugin.date)}</td>
                           </tr>
                         ))}

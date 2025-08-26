@@ -36,8 +36,8 @@ interface ClientReportData {
     total: number;
     plugins: Array<{
       name: string;
-      versionFrom: string;
-      versionTo: string;
+      fromVersion: string;
+      toVersion: string;
       date: string;
     }>;
     themes: Array<{
@@ -917,7 +917,7 @@ export class EnhancedPDFGenerator {
               ${reportData.updates.plugins.map(plugin => `
                 <tr>
                   <td>${plugin.name}</td>
-                  <td>${plugin.versionFrom} → ${plugin.versionTo}</td>
+                  <td>${plugin.fromVersion} → ${plugin.toVersion}</td>
                   <td>${this.formatDate(plugin.date)}</td>
                 </tr>
               `).join('')}
