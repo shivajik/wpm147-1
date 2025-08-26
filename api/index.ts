@@ -8377,7 +8377,7 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
             const pdfBuffer = await htmlPdf.generatePdf({ content: reportHtml }, options);
             
             res.setHeader('Content-Type', 'application/pdf');
-            res.setHeader('Content-Disposition', `attachment; filename="report-${reportId}.pdf"`);
+            res.setHeader('Content-Disposition', `inline; filename="report-${reportId}.pdf"`);
             return res.send(pdfBuffer);
           } catch (pdfError) {
             console.error('PDF generation failed in serverless function:', pdfError);
