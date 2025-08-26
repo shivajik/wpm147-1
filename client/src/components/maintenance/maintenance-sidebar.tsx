@@ -1,5 +1,4 @@
 import { QuickActions } from '@/components/websites/quick-actions';
-import { WordPressHealthStatus } from '@/components/websites/wordpress-health-status';
 
 interface MaintenanceSidebarProps {
   websiteId: number;
@@ -17,9 +16,6 @@ export function MaintenanceSidebar({ websiteId, websiteName, websiteUrl }: Maint
           websiteName={websiteName}
           websiteUrl={websiteUrl}
         />
-        
-        {/* WordPress Health Status */}
-        <WordPressHealthStatus websiteId={websiteId} />
       </div>
     </div>
   );
