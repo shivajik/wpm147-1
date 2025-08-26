@@ -6997,61 +6997,99 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
       // Helper function to limit array sizes for serverless memory efficiency
       const limitArray = (arr: any[], maxSize: number = 50) => arr ? arr.slice(0, maxSize) : [];
       
+      // Helper function to extract plugin name from different formats
+      const extractPluginName = (plugin: any): string => {
+        if (plugin.name && plugin.name !== plugin.slug) {
+          return plugin.name;
+        }
+        if (plugin.slug) {
+          // Convert slug like "tablepress/tablepress.php" to "TablePress"
+          const pluginName = plugin.slug.split('/')[0];
+          return pluginName.charAt(0).toUpperCase() + pluginName.slice(1);
+        }
+        return plugin.itemName || 'Unknown Plugin';
+      };
+      
+      // Detect data format and handle both localhost and production structures
+      const isProductionFormat = reportData.client || reportData.website?.name;
+      
       const enhancedData = {
         id: report.id,
         title: report.title,
         client: {
-          name: clientName,
-          email: '',
-          contactPerson: clientName
+          name: reportData.client?.name || clientName,
+          email: reportData.client?.email || '',
+          contactPerson: reportData.client?.contactPerson || reportData.client?.name || clientName
         },
         website: {
-          name: website.name,
-          url: website.url,
-          ipAddress: website.ipAddress || '',
-          wordpressVersion: reportData.health?.wpVersion || reportData.website?.wpVersion || 'Unknown'
+          name: reportData.website?.name || website.name,
+          url: reportData.website?.url || website.url,
+          ipAddress: reportData.website?.ipAddress || website.ipAddress || 'Unknown',
+          wordpressVersion: reportData.website?.wordpressVersion || reportData.health?.wpVersion || reportData.website?.wpVersion || 'Unknown'
         },
-        dateFrom: report.dateFrom.toISOString(),
-        dateTo: report.dateTo.toISOString(),
+        dateFrom: reportData.dateFrom || report.dateFrom.toISOString(),
+        dateTo: reportData.dateTo || report.dateTo.toISOString(),
         reportType: 'Website Maintenance Report',
-        overview: {
+        overview: isProductionFormat ? reportData.overview : {
           updatesPerformed: reportData.updates?.total || 0,
           backupsCreated: reportData.backups?.total || 0,
           uptimePercentage: reportData.overview?.uptimePercentage || 99.9,
-          analyticsChange: 0,
-          securityStatus: reportData.security?.status === 'good' ? 'safe' : (reportData.security?.vulnerabilities > 0 ? 'warning' : 'safe'),
-          performanceScore: reportData.performance?.score || reportData.overview?.performanceScore || 85,
-          seoScore: 0,
-          keywordsTracked: 0
+          analyticsChange: reportData.overview?.analyticsChange || 0,
+          securityStatus: reportData.overview?.securityStatus || (reportData.security?.status === 'good' ? 'safe' : (reportData.security?.vulnerabilities > 0 ? 'warning' : 'safe')),
+          performanceScore: reportData.overview?.performanceScore || reportData.performance?.score || 85,
+          seoScore: reportData.overview?.seoScore || 0,
+          keywordsTracked: reportData.overview?.keywordsTracked || 0
         },
         customWork: limitArray(reportData.customWork, 20),
         updates: {
           total: reportData.updates?.total || 0,
-          plugins: limitArray(reportData.updates?.plugins || [], 30).map((plugin: any) => ({
-            name: plugin.name || plugin.itemName || 'Unknown Plugin',
-            versionFrom: plugin.fromVersion || 'N/A',
-            versionTo: plugin.toVersion || plugin.newVersion || 'Latest',
-            date: plugin.date || new Date().toISOString()
-          })),
+          plugins: limitArray(reportData.updates?.plugins || [], 30).map((plugin: any) => {
+            if (isProductionFormat) {
+              // Production format - use existing structure
+              return {
+                name: plugin.name || extractPluginName(plugin),
+                slug: plugin.slug,
+                fromVersion: plugin.fromVersion,
+                toVersion: plugin.toVersion,
+                status: plugin.status,
+                date: plugin.date,
+                automated: plugin.automated || false,
+                duration: plugin.duration || 0
+              };
+            } else {
+              // Localhost format - transform to match production structure
+              return {
+                name: extractPluginName(plugin),
+                slug: plugin.name || plugin.slug,
+                fromVersion: plugin.fromVersion || 'N/A',
+                toVersion: plugin.toVersion || plugin.newVersion || 'Latest',
+                status: plugin.status || 'success',
+                date: plugin.date || new Date().toISOString(),
+                automated: false,
+                duration: 7
+              };
+            }
+          }),
           themes: limitArray(reportData.updates?.themes || [], 15).map((theme: any) => ({
             name: theme.name || theme.itemName || 'Unknown Theme',
-            versionFrom: theme.fromVersion || 'N/A',
-            versionTo: theme.toVersion || theme.newVersion || 'Latest',
+            fromVersion: theme.fromVersion || theme.versionFrom || 'N/A',
+            toVersion: theme.toVersion || theme.versionTo || theme.newVersion || 'Latest',
+            status: theme.status || 'success',
             date: theme.date || new Date().toISOString()
           })),
           core: reportData.updates?.core ? [{
-            versionFrom: reportData.updates.core.fromVersion || 'N/A',
-            versionTo: reportData.updates.core.toVersion || 'Latest',
+            fromVersion: reportData.updates.core.fromVersion || reportData.updates.core.versionFrom || 'N/A',
+            toVersion: reportData.updates.core.toVersion || reportData.updates.core.versionTo || 'Latest',
             date: reportData.updates.core.date || new Date().toISOString()
           }] : []
         },
-        backups: {
+        backups: isProductionFormat ? reportData.backups : {
           total: reportData.backups?.total || 0,
           totalAvailable: reportData.backups?.total || 0,
           latest: {
             date: reportData.backups?.lastBackup || new Date().toISOString(),
             size: '0 MB',
-            wordpressVersion: reportData.health?.wpVersion || 'Unknown',
+            wordpressVersion: reportData.website?.wordpressVersion || reportData.health?.wpVersion || 'Unknown',
             activeTheme: 'Current Theme',
             activePlugins: 0,
             publishedPosts: 0,
@@ -7066,21 +7104,21 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
           incidents: limitArray(reportData.uptime?.incidents, 10)
         },
         analytics: {
-          changePercentage: 0,
+          changePercentage: reportData.overview?.analyticsChange || 0,
           sessions: limitArray(reportData.analytics?.sessions, 30)
         },
-        security: {
+        security: isProductionFormat ? reportData.security : {
           totalScans: reportData.security?.scanHistory?.length || 0,
           lastScan: {
             date: reportData.security?.lastScan || new Date().toISOString(),
-            status: reportData.security?.vulnerabilities === 0 ? 'clean' : 'issues',
             malware: 'clean',
+            vulnerabilities: reportData.security?.vulnerabilities || 0,
             webTrust: 'clean',
-            vulnerabilities: reportData.security?.vulnerabilities || 0
+            status: reportData.security?.vulnerabilities === 0 ? 'clean' : 'issues'
           },
           scanHistory: limitArray(reportData.security?.scanHistory, 20)
         },
-        performance: {
+        performance: isProductionFormat ? reportData.performance : {
           totalChecks: reportData.performance?.history?.length || 0,
           lastScan: {
             date: reportData.performance?.lastScan || new Date().toISOString(),
@@ -7088,9 +7126,16 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
             pageSpeedGrade: reportData.performance?.score >= 90 ? 'A' : reportData.performance?.score >= 80 ? 'B' : 'C',
             ysloScore: reportData.performance?.score || 85,
             ysloGrade: reportData.performance?.score >= 90 ? 'A' : reportData.performance?.score >= 80 ? 'B' : 'C',
-            loadTime: 2.5
+            loadTime: reportData.performance?.metrics?.yslow_metrics?.load_time ? reportData.performance.metrics.yslow_metrics.load_time / 1000 : 2.5
           },
-          history: limitArray(reportData.performance?.history, 20)
+          history: limitArray(reportData.performance?.history, 20).map((item: any) => ({
+            date: item.date,
+            loadTime: item.loadTime || (item.load_time ? item.load_time / 1000 : 2.5),
+            pageSpeedScore: item.pageSpeedScore || item.score || 85,
+            pageSpeedGrade: (item.pageSpeedScore || item.score || 85) >= 90 ? 'A' : (item.pageSpeedScore || item.score || 85) >= 80 ? 'B' : 'C',
+            ysloScore: item.ysloScore || item.score || 85,
+            ysloGrade: (item.ysloScore || item.score || 85) >= 90 ? 'A' : (item.ysloScore || item.score || 85) >= 80 ? 'B' : 'C'
+          }))
         },
         seo: {
           visibilityChange: 0,
