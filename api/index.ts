@@ -1386,8 +1386,8 @@ function generateDetailedReportHTML(reportData: any): string {
   const pluginUpdates = (reportData.updates?.plugins || []).slice(0, 5).map(plugin => `
     <tr>
       <td>${plugin.name}</td>
-      <td>${plugin.versionFrom}</td>
-      <td>${plugin.versionTo}</td>
+      <td>${plugin.fromVersion}</td>
+      <td>${plugin.toVersion}</td>
       <td>${formatDate(plugin.date)}</td>
       <td><span class="status-good">${plugin.status || 'completed'}</span></td>
     </tr>
