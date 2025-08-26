@@ -20,6 +20,22 @@ import {
   jsonb 
 } from 'drizzle-orm/pg-core';
 
+// Import shared schema tables
+import { 
+  users,
+  clients, 
+  websites, 
+  updateLogs, 
+  securityScanHistory as securityScans, 
+  performanceScans,
+  clientReports,
+  seoReports,
+  linkScanHistory 
+} from '../shared/schema.js';
+
+// Import WP Remote Manager Client
+import { WPRemoteManagerClient } from '../server/wp-remote-manager-client.js';
+
 // Vercel-compatible SEO Analyzer for real data analysis
 class VercelSeoAnalyzer {
   private timeout: number = 15000; // 15 seconds for Vercel serverless
@@ -4837,6 +4853,112 @@ if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') 
         } catch (wrmError) {
           console.log(`[MAINTENANCE-REPORT] Could not fetch live data for website ${websiteId}:`, wrmError);
         }
+      }
+
+      // Get recent security scans
+      try {
+        const securityScans = await db.select()
+          .from(securityScans)
+          .where(and(eq(securityScans.websiteId, websiteId), eq(securityScans.userId, user.id)))
+          .orderBy(desc(securityScans.createdAt))
+          .limit(10);
+          
+        if (securityScans && securityScans.length > 0) {
+          const latestScan = securityScans[0];
+          maintenanceData.security.lastScan = latestScan.createdAt?.toISOString() || null;
+          maintenanceData.security.vulnerabilities = (latestScan.coreVulnerabilities || 0) + (latestScan.pluginVulnerabilities || 0) + (latestScan.themeVulnerabilities || 0);
+          maintenanceData.security.status = latestScan.threatsDetected === 0 ? 'good' : 'issues';
+          maintenanceData.security.scanHistory = securityScans.map(scan => ({
+            date: scan.createdAt?.toISOString() || new Date().toISOString(),
+            status: scan.scanStatus === 'completed' ? 'clean' : 'issues',
+            vulnerabilities: (scan.coreVulnerabilities || 0) + (scan.pluginVulnerabilities || 0) + (scan.themeVulnerabilities || 0)
+          }));
+        }
+      } catch (securityError) {
+        console.log(`[MAINTENANCE-REPORT] Could not fetch security data for website ${websiteId}:`, securityError);
+      }
+
+      // Get recent performance scans
+      try {
+        const performanceScansData = await db.select()
+          .from(performanceScans)
+          .where(and(eq(performanceScans.websiteId, websiteId), eq(performanceScans.userId, user.id)))
+          .orderBy(desc(performanceScans.createdAt))
+          .limit(10);
+          
+        if (performanceScansData && performanceScansData.length > 0) {
+          const latestScan = performanceScansData[0];
+          maintenanceData.performance.lastScan = latestScan.createdAt?.toISOString() || null;
+          maintenanceData.performance.score = latestScan.pagespeedScore;
+          maintenanceData.performance.metrics = latestScan.scanData || {};
+          maintenanceData.performance.history = performanceScansData.slice(0, 10).map(scan => ({
+            date: scan.scanTimestamp.toISOString(),
+            score: scan.pagespeedScore
+          }));
+          maintenanceData.overview.performanceScore = latestScan.pagespeedScore;
+        }
+      } catch (performanceError) {
+        console.log(`[MAINTENANCE-REPORT] Could not fetch performance data for website ${websiteId}:`, performanceError);
+      }
+
+      // Get update logs for the specified date range
+      try {
+        console.log(`[MAINTENANCE-REPORT] Fetching update logs for website ${websiteId} from ${reportDateFrom.toISOString()} to ${reportDateTo.toISOString()}`);
+        const updateLogsData = await db.select()
+          .from(updateLogs)
+          .where(and(eq(updateLogs.websiteId, websiteId), eq(updateLogs.userId, user.id)))
+          .orderBy(desc(updateLogs.createdAt))
+          .limit(200); // Get more logs to filter from
+          
+        if (updateLogsData && updateLogsData.length > 0) {
+          // Filter logs within the specified date range
+          const dateFilteredLogs = updateLogsData.filter(log => {
+            const logDate = new Date(log.createdAt);
+            return logDate >= reportDateFrom && logDate <= reportDateTo;
+          });
+          
+          maintenanceData.overview.updatesPerformed = dateFilteredLogs.length;
+          
+          // Filter by type and limit for display
+          const recentPluginUpdates = dateFilteredLogs.filter(log => log.updateType === 'plugin').slice(0, 10);
+          const recentThemeUpdates = dateFilteredLogs.filter(log => log.updateType === 'theme').slice(0, 10);
+          const recentCoreUpdates = dateFilteredLogs.filter(log => log.updateType === 'core').slice(0, 10);
+          
+          if (recentPluginUpdates.length > 0) {
+            maintenanceData.updates.plugins = recentPluginUpdates.map(log => ({
+              name: log.itemName,
+              fromVersion: log.fromVersion || 'Unknown',
+              toVersion: log.toVersion || 'Latest',
+              date: new Date(log.createdAt).toISOString(),
+              status: log.updateStatus
+            }));
+          }
+          
+          if (recentThemeUpdates.length > 0) {
+            maintenanceData.updates.themes = recentThemeUpdates.map(log => ({
+              name: log.itemName,
+              fromVersion: log.fromVersion || 'Unknown',
+              toVersion: log.toVersion || 'Latest',
+              date: new Date(log.createdAt).toISOString(),
+              status: log.updateStatus
+            }));
+          }
+          
+          if (recentCoreUpdates.length > 0) {
+            maintenanceData.updates.core = recentCoreUpdates.map(log => ({
+              name: 'WordPress Core',
+              fromVersion: log.fromVersion || 'Unknown',
+              toVersion: log.toVersion || 'Latest',
+              date: new Date(log.createdAt).toISOString(),
+              status: log.updateStatus
+            }));
+          }
+          
+          // Update total count based on filtered data
+          maintenanceData.updates.total = recentPluginUpdates.length + recentThemeUpdates.length + recentCoreUpdates.length;
+        }
+      } catch (updateError) {
+        console.log(`[MAINTENANCE-REPORT] Could not fetch update logs for website ${websiteId}:`, updateError);
       }
 
       // Store the maintenance report in the database as a client report
