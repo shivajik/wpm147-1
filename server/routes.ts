@@ -6917,15 +6917,285 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
         return res.status(403).json({ message: "Report does not belong to this website" });
       }
 
+      const reportData = report.reportData as any || {};
+      
+      // Get additional data to complete the report (same logic as production API)
+      let clientName = 'Unknown Client';
+      let clientEmail = 'N/A';
+      let websiteName = 'Unknown Website';
+      let websiteUrl = 'https://example.com';
+      let realIpAddress = 'Unknown';
+      let realWordPressVersion = 'Unknown';
+
+      try {
+        // Get client information
+        if (report.clientId) {
+          const client = await storage.getClient(report.clientId, userId);
+          if (client) {
+            clientName = client.name;
+            clientEmail = client.email || 'N/A';
+          }
+        }
+
+        // Get website information
+        if (website) {
+          websiteName = website.name || 'Unknown Website';
+          websiteUrl = website.url || 'https://example.com';
+          realWordPressVersion = website.wpVersion || 'Unknown';
+          
+          // Parse WordPress data if available
+          if (website.wpData) {
+            try {
+              const websiteData = typeof website.wpData === 'string' ? JSON.parse(website.wpData) : website.wpData;
+              if ((websiteData as any).systemInfo) {
+                const systemInfo = (websiteData as any).systemInfo;
+                realIpAddress = systemInfo.ip_address || systemInfo.server_ip || 'Unknown';
+                realWordPressVersion = systemInfo.wordpress_version || systemInfo.wp_version || realWordPressVersion;
+              }
+            } catch (e) {
+              console.log(`Failed to parse website WP data:`, e);
+            }
+          }
+        }
+      } catch (error) {
+        console.error(`Error fetching client/website data for report:`, error);
+      }
+
+      // Get real performance scan history from database
+      let realPerformanceHistory = [];
+      let realPerformanceScans = 0;
+      try {
+        const performanceScans = await storage.getPerformanceScans(websiteId, 10);
+        realPerformanceHistory = performanceScans.map(scan => ({
+          date: scan.scanTimestamp.toISOString(),
+          loadTime: scan.scanData?.yslow_metrics?.load_time ? scan.scanData.yslow_metrics.load_time / 1000 : (scan.lcpScore || 2.5),
+          pageSpeedScore: scan.pagespeedScore || 85,
+          pageSpeedGrade: scan.pagespeedScore >= 90 ? 'A' : scan.pagespeedScore >= 80 ? 'B' : 'C',
+          ysloScore: scan.yslowScore || 76,
+          ysloGrade: scan.yslowScore >= 90 ? 'A' : scan.yslowScore >= 80 ? 'B' : 'C'
+        }));
+        realPerformanceScans = performanceScans.length;
+      } catch (error) {
+        console.error(`Error fetching real performance history:`, error);
+      }
+
+      // Get real security scan history from database
+      let realSecurityHistory = [];
+      let realSecurityScans = 0;
+      try {
+        const securityScans = await storage.getSecurityScans(websiteId, 10);
+        realSecurityHistory = securityScans.map(scan => ({
+          date: scan.scanStartedAt.toISOString(),
+          malware: scan.malwareStatus || 'clean',
+          vulnerabilities: (scan.coreVulnerabilities || 0) + (scan.pluginVulnerabilities || 0) + (scan.themeVulnerabilities || 0),
+          webTrust: scan.threatLevel === 'low' ? 'clean' : (scan.threatLevel === 'medium' ? 'warning' : 'high risk'),
+          status: scan.malwareStatus === 'clean' && scan.threatsDetected === 0 ? 'clean' : 'issues'
+        }));
+        realSecurityScans = securityScans.length;
+      } catch (error) {
+        console.error(`Error fetching real security history:`, error);
+      }
+
+      // Get real update logs from database
+      let realUpdateHistory = { plugins: [], themes: [], core: [], total: 0 };
+      try {
+        const updateLogs = await storage.getUpdateLogs(websiteId, 20);
+        
+        // Process plugin updates with enhanced name cleaning
+        const pluginUpdates = updateLogs.filter(log => log.updateType === 'plugin');
+        realUpdateHistory.plugins = pluginUpdates.map(log => {
+          let enhancedName = log.itemName || 'Unknown Plugin';
+          
+          // Clean plugin names that might be file paths
+          if (enhancedName.includes('/') || enhancedName.includes('.php')) {
+            const parts = enhancedName.split('/');
+            if (parts.length > 1) {
+              enhancedName = parts[0]; // Get plugin directory name
+            }
+            enhancedName = enhancedName.replace(/\.php$/, '').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+          }
+          
+          return {
+            name: enhancedName,
+            slug: log.itemSlug || 'unknown',
+            fromVersion: log.fromVersion || '0.0.0',
+            toVersion: log.toVersion || '0.0.0',
+            status: log.updateStatus || 'success',
+            date: log.createdAt ? log.createdAt.toISOString() : new Date().toISOString(),
+            automated: log.automatedUpdate || false,
+            duration: log.duration || 0
+          };
+        });
+        
+        // Process theme updates with enhanced name cleaning
+        const themeUpdates = updateLogs.filter(log => log.updateType === 'theme');
+        realUpdateHistory.themes = themeUpdates.map(log => {
+          let enhancedName = log.itemName || 'Unknown Theme';
+          
+          // Clean theme names that might be file paths
+          if (enhancedName.includes('/') || enhancedName.includes('.php')) {
+            const parts = enhancedName.split('/');
+            if (parts.length > 1) {
+              enhancedName = parts[0]; // Get theme directory name
+            }
+            enhancedName = enhancedName.replace(/\.php$/, '').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+          }
+          
+          return {
+            name: enhancedName,
+            slug: log.itemSlug || 'unknown',
+            fromVersion: log.fromVersion || '0.0.0',
+            toVersion: log.toVersion || '0.0.0',
+            status: log.updateStatus || 'success',
+            date: log.createdAt ? log.createdAt.toISOString() : new Date().toISOString(),
+            automated: log.automatedUpdate || false,
+            duration: log.duration || 0
+          };
+        });
+        
+        // Process core updates
+        const coreUpdates = updateLogs.filter(log => log.updateType === 'wordpress');
+        realUpdateHistory.core = coreUpdates.map(log => ({
+          fromVersion: log.fromVersion || '0.0.0',
+          toVersion: log.toVersion || '0.0.0',
+          status: log.updateStatus || 'success',
+          date: log.createdAt ? log.createdAt.toISOString() : new Date().toISOString(),
+          automated: log.automatedUpdate || false,
+          duration: log.duration || 0
+        }));
+        
+        realUpdateHistory.total = updateLogs.length;
+      } catch (error) {
+        console.error(`Error fetching real update history:`, error);
+      }
+
+      // Build the complete report data structure with REAL data to match production format
+      const completeReportData = {
+        id: report.id,
+        title: report.title,
+        client: {
+          name: clientName,
+          email: clientEmail,
+          contactPerson: clientName
+        },
+        website: {
+          name: websiteName,
+          url: websiteUrl,
+          ipAddress: realIpAddress,
+          wordpressVersion: realWordPressVersion
+        },
+        dateFrom: report.dateFrom ? report.dateFrom.toISOString() : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+        dateTo: report.dateTo ? report.dateTo.toISOString() : new Date().toISOString(),
+        overview: {
+          updatesPerformed: realUpdateHistory.total || reportData.updates?.total || 0,
+          backupsCreated: reportData.backups?.total || 0,
+          uptimePercentage: reportData.uptime?.percentage || 99.9,
+          analyticsChange: reportData.analytics?.changePercentage || 0,
+          securityStatus: realSecurityHistory.some(scan => scan.status === 'issues') ? 'warning' : 'safe',
+          performanceScore: realPerformanceHistory.length > 0 ? realPerformanceHistory[0].pageSpeedScore : 
+                           (reportData.performance?.lastScan?.pageSpeedScore || reportData.performance?.score || 85),
+          seoScore: reportData.seo?.overallScore || 92,
+          keywordsTracked: reportData.seo?.keywords?.length || 0
+        },
+        updates: {
+          total: realUpdateHistory.total,
+          plugins: realUpdateHistory.plugins.length > 0 ? realUpdateHistory.plugins : 
+                  (reportData.updates?.plugins || []).map((plugin: any) => ({
+                    name: plugin.name && (plugin.name.includes('/') || plugin.name.includes('.php')) ? 
+                      plugin.name.split('/')[0].replace(/\.php$/, '').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 
+                      plugin.name || 'Unknown Plugin',
+                    slug: plugin.slug || plugin.name || 'unknown',
+                    fromVersion: plugin.versionFrom || plugin.fromVersion || '0.0.0',
+                    toVersion: plugin.versionTo || plugin.toVersion || '0.0.0',
+                    status: plugin.status || 'success',
+                    date: plugin.date || new Date().toISOString(),
+                    automated: plugin.automated || false,
+                    duration: plugin.duration || 0
+                  })),
+          themes: realUpdateHistory.themes.length > 0 ? realUpdateHistory.themes : 
+                 (reportData.updates?.themes || []).map((theme: any) => ({
+                   name: theme.name && (theme.name.includes('/') || theme.name.includes('.php')) ? 
+                     theme.name.split('/')[0].replace(/\.php$/, '').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 
+                     theme.name || 'Unknown Theme',
+                   slug: theme.slug || theme.name || 'unknown',
+                   fromVersion: theme.versionFrom || theme.fromVersion || '0.0.0',
+                   toVersion: theme.versionTo || theme.toVersion || '0.0.0',
+                   status: theme.status || 'success',
+                   date: theme.date || new Date().toISOString(),
+                   automated: theme.automated || false,
+                   duration: theme.duration || 0
+                 })),
+          core: realUpdateHistory.core.length > 0 ? realUpdateHistory.core : 
+               (reportData.updates?.core || []).map((core: any) => ({
+                 fromVersion: core.versionFrom || core.fromVersion || '0.0.0',
+                 toVersion: core.versionTo || core.toVersion || '0.0.0',
+                 status: core.status || 'success',
+                 date: core.date || new Date().toISOString(),
+                 automated: core.automated || false,
+                 duration: core.duration || 0
+               }))
+        },
+        backups: {
+          total: reportData.backups?.total || 0,
+          totalAvailable: reportData.backups?.totalAvailable || 0,
+          latest: {
+            ...(reportData.backups?.latest || {}),
+            date: reportData.backups?.latest?.date || new Date().toISOString(),
+            size: reportData.backups?.latest?.size || '0 MB',
+            wordpressVersion: realWordPressVersion,
+            activeTheme: reportData.backups?.latest?.activeTheme || 'Current Theme',
+            activePlugins: reportData.backups?.latest?.activePlugins || 0,
+            publishedPosts: reportData.backups?.latest?.publishedPosts || 0,
+            approvedComments: reportData.backups?.latest?.approvedComments || 0
+          }
+        },
+        security: {
+          totalScans: realSecurityScans || reportData.security?.totalScans || 0,
+          lastScan: realSecurityHistory.length > 0 ? realSecurityHistory[0] : 
+                   (reportData.security?.lastScan || {
+                     date: new Date().toISOString(),
+                     status: 'clean',
+                     malware: 'clean',
+                     webTrust: 'clean',
+                     vulnerabilities: 0
+                   }),
+          scanHistory: realSecurityHistory.length > 0 ? realSecurityHistory : (reportData.security?.scanHistory || [])
+        }, 
+        performance: {
+          totalChecks: realPerformanceScans || reportData.performance?.totalChecks || 0,
+          lastScan: realPerformanceHistory.length > 0 ? {
+            date: realPerformanceHistory[0].date,
+            pageSpeedScore: realPerformanceHistory[0].pageSpeedScore,
+            pageSpeedGrade: realPerformanceHistory[0].pageSpeedGrade || (realPerformanceHistory[0].pageSpeedScore >= 90 ? 'A' : 
+                          realPerformanceHistory[0].pageSpeedScore >= 80 ? 'B' : 'C'),
+            ysloScore: realPerformanceHistory[0].ysloScore,
+            ysloGrade: realPerformanceHistory[0].ysloGrade || (realPerformanceHistory[0].ysloScore >= 90 ? 'A' : 
+                     realPerformanceHistory[0].ysloScore >= 80 ? 'B' : 'C'),
+            loadTime: realPerformanceHistory[0].loadTime
+          } : (reportData.performance?.lastScan || {
+            date: new Date().toISOString(),
+            pageSpeedScore: reportData.performance?.score || 85,
+            pageSpeedGrade: (reportData.performance?.score || 85) >= 90 ? 'A' : (reportData.performance?.score || 85) >= 80 ? 'B' : 'C',
+            ysloScore: reportData.performance?.score || 76,
+            ysloGrade: (reportData.performance?.score || 76) >= 90 ? 'A' : (reportData.performance?.score || 76) >= 80 ? 'B' : 'C',
+            loadTime: reportData.performance?.metrics?.yslow_metrics?.load_time ? reportData.performance.metrics.yslow_metrics.load_time / 1000 : 2.5
+          }),
+          history: realPerformanceHistory.length > 0 ? realPerformanceHistory : (reportData.performance?.history || [])
+        },
+        customWork: reportData.customWork || [],
+        generatedAt: report.generatedAt ? report.generatedAt.toISOString() : null,
+        status: report.status
+      };
+
       res.json({
         id: report.id,
         websiteId: websiteId,
         title: report.title,
-        reportType: 'maintenance',
-        status: report.status,
-        createdAt: report.createdAt?.toISOString(),
+        reportType: 'maintenance' as const,
+        status: report.status as 'draft' | 'generated' | 'sent' | 'failed',
+        createdAt: report.createdAt?.toISOString() || new Date().toISOString(),
         generatedAt: report.generatedAt?.toISOString(),
-        data: report.reportData
+        data: completeReportData // Return the enriched data instead of raw reportData
       });
     } catch (error) {
       console.error("Error fetching maintenance report:", error);
