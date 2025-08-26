@@ -52,18 +52,59 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       await storage.updateWebsite(websiteIdNum, { clientId }, userId);
     }
 
-    // Fetch real WordPress data
+    // Fetch real WordPress data - using EXACT format as localhost
     let reportData: any = {
       website: {
+        id: websiteIdNum,
         name: website.name,
         url: website.url,
-        wpVersion: 'Unknown'
+        status: website.connectionStatus || 'unknown',
+        lastSync: website.lastSync?.toISOString() || new Date().toISOString()
       },
-      updates: { total: 0, plugins: [], themes: [], core: null },
-      backups: { total: 0, lastBackup: new Date().toISOString() },
-      security: { status: 'good', vulnerabilities: 0, lastScan: new Date().toISOString() },
-      performance: { score: 85, lastScan: new Date().toISOString() },
-      overview: { uptimePercentage: 99.9, performanceScore: 85 }
+      
+      updates: { 
+        plugins: [], 
+        themes: [], 
+        wordpress: null,
+        total: 0 
+      },
+      
+      security: { 
+        lastScan: new Date().toISOString(),
+        vulnerabilities: 0,
+        status: 'good',
+        scanHistory: []
+      },
+      
+      performance: { 
+        lastScan: new Date().toISOString(),
+        score: 85,
+        metrics: {},
+        history: []
+      },
+      
+      backups: { 
+        lastBackup: website.lastBackup?.toISOString() || null,
+        status: website.lastBackup ? 'current' : 'none',
+        total: 0 
+      },
+      
+      health: {
+        wpVersion: website.wpVersion || 'Unknown',
+        phpVersion: 'Unknown',
+        overallScore: 85
+      },
+      
+      overview: { 
+        updatesPerformed: 0,
+        backupsCreated: 0,
+        uptimePercentage: 99.9,
+        securityStatus: 'safe' as 'safe' | 'warning' | 'critical',
+        performanceScore: 85
+      },
+      
+      generatedAt: new Date().toISOString(),
+      reportType: 'maintenance'
     };
 
     // Try to fetch real data if API key is available
@@ -101,9 +142,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               lastScan: new Date().toISOString()
             },
             overview: {
+              updatesPerformed: 0,
+              backupsCreated: 0,
               uptimePercentage: 99.9,
+              securityStatus: 'safe' as 'safe' | 'warning' | 'critical',
               performanceScore: 85
             },
+            
+            generatedAt: new Date().toISOString(),
+            reportType: 'maintenance',
             health: {
               wpVersion: wordpressData.systemInfo?.wordpress_version || 'Unknown'
             }
@@ -131,13 +178,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }, userId);
 
     return res.status(201).json({
+      success: true,
       message: 'Maintenance report generated successfully',
+      reportId: newReport.id,
       report: {
         id: newReport.id,
+        websiteId: websiteIdNum,
         title: newReport.title,
-        dateFrom: newReport.dateFrom,
-        dateTo: newReport.dateTo,
-        createdAt: newReport.createdAt
+        reportType: 'maintenance',
+        status: 'generated',
+        createdAt: newReport.createdAt?.toISOString(),
+        generatedAt: newReport.generatedAt?.toISOString(),
+        data: reportData
       }
     });
 
