@@ -4492,8 +4492,8 @@ if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') 
         ipAddress: realIpAddress,
         wordpressVersion: realWordPressVersion
       },
-      dateFrom: reportRecord.dateFrom ? new Date(reportRecord.dateFrom).toISOString() : new Date().toISOString(),
-      dateTo: reportRecord.dateTo ? new Date(reportRecord.dateTo).toISOString() : new Date().toISOString(),
+      dateFrom: reportRecord.dateFrom ? reportRecord.dateFrom.toISOString() : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+      dateTo: reportRecord.dateTo ? reportRecord.dateTo.toISOString() : new Date().toISOString(),
       overview: {
         updatesPerformed: realUpdateHistory.total || reportData.updates?.total || 0,
         backupsCreated: reportData.backups?.total || 0,
@@ -4509,23 +4509,39 @@ if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') 
         total: realUpdateHistory.total,
         plugins: realUpdateHistory.plugins.length > 0 ? realUpdateHistory.plugins : 
                 (reportData.updates?.plugins || []).map((plugin: any) => ({
-                  ...plugin,
-                  fromVersion: plugin.versionFrom || plugin.fromVersion || 'Unknown',
-                  toVersion: plugin.versionTo || plugin.toVersion || 'Latest',
                   name: plugin.name && (plugin.name.includes('/') || plugin.name.includes('.php')) ? 
                     plugin.name.split('/')[0].replace(/\.php$/, '').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 
-                    plugin.name || 'Unknown Plugin'
+                    plugin.name || 'Unknown Plugin',
+                  slug: plugin.slug || 'unknown',
+                  fromVersion: plugin.versionFrom || plugin.fromVersion || '0.0.0',
+                  toVersion: plugin.versionTo || plugin.toVersion || '0.0.0',
+                  status: plugin.status || 'success',
+                  date: plugin.date || new Date().toISOString(),
+                  automated: plugin.automated || false,
+                  duration: plugin.duration || 0
                 })),
         themes: realUpdateHistory.themes.length > 0 ? realUpdateHistory.themes : 
                (reportData.updates?.themes || []).map((theme: any) => ({
-                 ...theme,
-                 fromVersion: theme.versionFrom || theme.fromVersion || 'Unknown',
-                 toVersion: theme.versionTo || theme.toVersion || 'Latest',
                  name: theme.name && (theme.name.includes('/') || theme.name.includes('.php')) ? 
                    theme.name.split('/')[0].replace(/\.php$/, '').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 
-                   theme.name || 'Unknown Theme'
+                   theme.name || 'Unknown Theme',
+                 slug: theme.slug || 'unknown',
+                 fromVersion: theme.versionFrom || theme.fromVersion || '0.0.0',
+                 toVersion: theme.versionTo || theme.toVersion || '0.0.0',
+                 status: theme.status || 'success',
+                 date: theme.date || new Date().toISOString(),
+                 automated: theme.automated || false,
+                 duration: theme.duration || 0
                })),
-        core: realUpdateHistory.core.length > 0 ? realUpdateHistory.core : (reportData.updates?.core || [])
+        core: realUpdateHistory.core.length > 0 ? realUpdateHistory.core : 
+             (reportData.updates?.core || []).map((core: any) => ({
+               fromVersion: core.versionFrom || core.fromVersion || '0.0.0',
+               toVersion: core.versionTo || core.toVersion || '0.0.0',
+               status: core.status || 'success',
+               date: core.date || new Date().toISOString(),
+               automated: core.automated || false,
+               duration: core.duration || 0
+             }))
       },
       backups: {
         total: reportData.backups?.total || 0,
