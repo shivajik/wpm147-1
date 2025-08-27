@@ -1542,34 +1542,19 @@ class WPRemoteManagerClient {
   } = {}): Promise<CommentsStats> {
     try {
       const response = await this.makeRequest('/comments', params);
-      
+      console.log('[WPRemoteManagerClient] Raw response:', response);
+
       if (response?.success) {
         return response.data;
       }
-      
-      // Fallback data structure
-      return {
-        total_comments: 0,
-        approved_comments: 0,
-        pending_comments: 0,
-        spam_comments: 0,
-        trash_comments: 0,
-        recent_comments: []
-      };
+
+      throw new Error(`Unexpected response: ${JSON.stringify(response)}`);
     } catch (error: any) {
-      console.error('WP Remote Manager Comments Error:', error);
-      
-      // Return fallback comments data with realistic structure
-      return {
-        total_comments: 0,
-        approved_comments: 0,
-        pending_comments: 0,
-        spam_comments: 0,
-        trash_comments: 0,
-        recent_comments: []
-      };
+      console.error('WP Remote Manager Comments Error:', error?.response || error?.message || error);
+      throw error; // don’t swallow the error
     }
   }
+
 
   /**
    * Delete WordPress comments
