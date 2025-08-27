@@ -9780,7 +9780,7 @@ if (path.match(/^\/api\/websites\/\d+\/comments$/) && req.method === 'GET') {
        if (commentsData.debugLog) {
         debugLog.push(...commentsData.debugLog);
         // Remove debugLog from the response data to avoid duplication
-        delete commentsData.debugLog;
+        // delete commentsData.debugLog;
       }
       debugLog.push(`[DEBUG] Comments Data received: ${commentsData ? 'exists' : 'null/undefined'}`);
       debugLog.push(`[DEBUG] WRM client response type: ${typeof commentsData}`);
