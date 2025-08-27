@@ -1542,64 +1542,53 @@ async getComments(params: {
   post_id?: number;
   per_page?: number;
   page?: number;
-} = {}): Promise<CommentsStats> {
-  const debugInfo = {
-    method: 'getComments',
-    params: params,
-    url: this.credentials?.url,
-    timestamp: new Date().toISOString()
-  };
-
+} = {}): Promise<CommentsStats & { debugLog?: string[] }> {
+  const debugLog: string[] = [];
+  
   try {
-    console.log('[WPRemoteManagerClient] Starting getComments request:', debugInfo);
-    
+    debugLog.push(`[WPRemoteManagerClient] Starting getComments request with params: ${JSON.stringify(params)}`);
+    debugLog.push(`[WPRemoteManagerClient] URL: ${this.credentials?.url}`);
+    debugLog.push(`[WPRemoteManagerClient] Timestamp: ${new Date().toISOString()}`);
+
     // Validate credentials
     if (!this.credentials?.url || !this.credentials?.apiKey) {
       const error = new Error('Invalid credentials: URL or API key missing');
-      console.error('[WPRemoteManagerClient] Credential validation failed:', {
-        hasUrl: !!this.credentials?.url,
-        hasApiKey: !!this.credentials?.apiKey,
-        credentials: this.credentials
-      });
+      debugLog.push(`[WPRemoteManagerClient] Credential validation failed: hasUrl=${!!this.credentials?.url}, hasApiKey=${!!this.credentials?.apiKey}`);
       throw error;
     }
 
-    console.log('[WPRemoteManagerClient] Making request to /comments endpoint...');
+    debugLog.push(`[WPRemoteManagerClient] Making request to /comments endpoint...`);
     
     let response;
     try {
       response = await this.makeRequest('/comments', params);
-      console.log('[WPRemoteManagerClient] Raw response received:', {
-        responseType: typeof response,
-        responseKeys: response ? Object.keys(response) : null,
-        responseSuccess: response?.success,
-        fullResponse: JSON.stringify(response, null, 2).substring(0, 1000) + (JSON.stringify(response, null, 2).length > 1000 ? '...' : '')
-      });
-    } catch (requestError) {
-      console.error('[WPRemoteManagerClient] makeRequest failed:', {
-        error: requestError.message,
-        stack: requestError.stack,
-        response: requestError.response?.data || requestError.response || null,
-        status: requestError.response?.status,
-        statusText: requestError.response?.statusText
-      });
+      debugLog.push(`[WPRemoteManagerClient] Raw response received: ${typeof response}`);
+      debugLog.push(`[WPRemoteManagerClient] Response keys: ${response ? Object.keys(response).join(', ') : 'null'}`);
+      debugLog.push(`[WPRemoteManagerClient] Response success: ${response?.success}`);
+      
+      if (response) {
+        const responsePreview = JSON.stringify(response, null, 2).substring(0, 1000);
+        debugLog.push(`[WPRemoteManagerClient] Response preview: ${responsePreview}${JSON.stringify(response, null, 2).length > 1000 ? '...' : ''}`);
+      }
+    } catch (requestError: any) {
+      debugLog.push(`[WPRemoteManagerClient] makeRequest failed: ${requestError.message}`);
+      debugLog.push(`[WPRemoteManagerClient] Error stack: ${requestError.stack}`);
+      debugLog.push(`[WPRemoteManagerClient] Response status: ${requestError.response?.status}`);
+      debugLog.push(`[WPRemoteManagerClient] Response statusText: ${requestError.response?.statusText}`);
       throw requestError;
     }
 
     // Enhanced response validation
     if (!response) {
       const error = new Error('No response received from WordPress Remote Manager');
-      console.error('[WPRemoteManagerClient] No response error');
+      debugLog.push(`[WPRemoteManagerClient] No response error`);
       throw error;
     }
 
     if (response.success === false) {
       const errorMessage = response.message || response.error || 'Unknown error from WordPress Remote Manager';
-      console.error('[WPRemoteManagerClient] API returned success=false:', {
-        message: response.message,
-        error: response.error,
-        fullResponse: response
-      });
+      debugLog.push(`[WPRemoteManagerClient] API returned success=false: ${errorMessage}`);
+      debugLog.push(`[WPRemoteManagerClient] Full error response: ${JSON.stringify(response)}`);
       throw new Error(`WordPress Remote Manager API error: ${errorMessage}`);
     }
 
@@ -1607,46 +1596,39 @@ async getComments(params: {
       // The API response structure is different - data is at root level, not in data property
       const responseData = response;
       
-      console.log('[WPRemoteManagerClient] Success response with data:', {
-        dataType: typeof responseData,
-        dataKeys: responseData ? Object.keys(responseData) : null,
-        totalComments: responseData.total_comments,
-        recentCommentsCount: responseData.recent_comments?.length || 0
-      });
+      debugLog.push(`[WPRemoteManagerClient] Success response with data`);
+      debugLog.push(`[WPRemoteManagerClient] Data type: ${typeof responseData}`);
+      debugLog.push(`[WPRemoteManagerClient] Data keys: ${Object.keys(responseData).join(', ')}`);
+      debugLog.push(`[WPRemoteManagerClient] Total comments: ${responseData.total_comments}`);
+      debugLog.push(`[WPRemoteManagerClient] Recent comments count: ${responseData.recent_comments?.length || 0}`);
       
-      return responseData;
+      // Return the response data with debug log included
+      return {
+        ...responseData,
+        debugLog
+      };
     }
 
     // Handle unexpected response format
-    console.error('[WPRemoteManagerClient] Unexpected response format:', {
-      hasSuccess: 'success' in response,
-      successValue: response.success,
-      responseStructure: Object.keys(response)
-    });
+    debugLog.push(`[WPRemoteManagerClient] Unexpected response format`);
+    debugLog.push(`[WPRemoteManagerClient] Has success property: ${'success' in response}`);
+    debugLog.push(`[WPRemoteManagerClient] Success value: ${response.success}`);
+    debugLog.push(`[WPRemoteManagerClient] Response structure: ${Object.keys(response).join(', ')}`);
     
     throw new Error(`Unexpected response format from WordPress Remote Manager: ${JSON.stringify(response)}`);
 
   } catch (error: any) {
-    const errorInfo = {
-      originalError: error.message,
-      stack: error.stack,
-      response: error.response?.data || null,
-      status: error.response?.status || null,
-      config: error.config ? {
-        method: error.config.method,
-        url: error.config.url,
-        headers: error.config.headers
-      } : null
-    };
-    
-    console.error('[WPRemoteManagerClient] Comments Error Details:', errorInfo);
+    debugLog.push(`[WPRemoteManagerClient] Comments Error: ${error.message}`);
+    debugLog.push(`[WPRemoteManagerClient] Error stack: ${error.stack}`);
+    debugLog.push(`[WPRemoteManagerClient] Response data: ${error.response?.data ? JSON.stringify(error.response.data) : 'null'}`);
+    debugLog.push(`[WPRemoteManagerClient] Status: ${error.response?.status || 'null'}`);
     
     // Create a more informative error
     const enhancedError = new Error(`WordPress Remote Manager Comments Error: ${error.message}`);
     enhancedError.name = error.name;
     enhancedError.stack = error.stack;
     enhancedError.originalError = error;
-    enhancedError.debugInfo = errorInfo;
+    enhancedError.debugLog = debugLog;
     
     throw enhancedError;
   }
@@ -9795,14 +9777,29 @@ if (path.match(/^\/api\/websites\/\d+\/comments$/) && req.method === 'GET') {
     let commentsData;
     try {
       commentsData = await wrmClient.getComments(params);
-  debugLog.push('[DEBUG] Comments Data:', commentsData); 
+       if (commentsData.debugLog) {
+        debugLog.push(...commentsData.debugLog);
+        // Remove debugLog from the response data to avoid duplication
+        delete commentsData.debugLog;
+      }
+      debugLog.push(`[DEBUG] Comments Data received: ${commentsData ? 'exists' : 'null/undefined'}`);
       debugLog.push(`[DEBUG] WRM client response type: ${typeof commentsData}`);
-      debugLog.push(`[DEBUG] WRM client response keys: ${commentsData ? Object.keys(commentsData) : 'null'}`);
-      debugLog.push(`[DEBUG] WRM client response: ${JSON.stringify(commentsData, null, 2).substring(0, 500)}...`);
-    } catch (wrmError) {
+      
+      if (commentsData) {
+        debugLog.push(`[DEBUG] WRM client response keys: ${Object.keys(commentsData).join(', ')}`);
+        const responseString = JSON.stringify(commentsData, null, 2);
+        debugLog.push(`[DEBUG] WRM client response: ${responseString.substring(0, Math.min(500, responseString.length))}${responseString.length > 500 ? '...' : ''}`);
+      } else {
+        debugLog.push(`[DEBUG] WRM client response is null/undefined`);
+      }
+    } catch (wrmError: any) {
       debugLog.push(`[DEBUG] WRM client error: ${wrmError.message}`);
       debugLog.push(`[DEBUG] WRM client error stack: ${wrmError.stack}`);
-      debugLog.push(`[DEBUG] WRM client error details: ${JSON.stringify(wrmError, null, 2)}`);
+      debugLog.push(`[DEBUG] WRM client error details: ${JSON.stringify({
+        message: wrmError.message,
+        name: wrmError.name,
+        code: wrmError.code
+      }, null, 2)}`);
       
       return res.status(502).json({
         message: `WordPress Remote Manager error: ${wrmError.message}`,
@@ -9830,7 +9827,7 @@ if (path.match(/^\/api\/websites\/\d+\/comments$/) && req.method === 'GET') {
     if (commentsData.error) {
       debugLog.push(`[DEBUG] CommentsData contains error: ${JSON.stringify(commentsData.error)}`);
       return res.status(502).json({
-        message: `WordPress API error: ${commentsData.error}`,
+        message: `WordPress API error: ${commentsData.message || commentsData.error}`,
         debug: debugLog,
         error_data: commentsData
       });
@@ -9891,10 +9888,14 @@ if (path.match(/^\/api\/websites\/\d+\/comments$/) && req.method === 'GET') {
       debug: debugLog // Include debug info in successful responses too
     });
     
-  } catch (error) {
+  } catch (error: any) {
     debugLog.push(`[DEBUG] Unexpected error: ${error.message}`);
     debugLog.push(`[DEBUG] Error stack: ${error.stack}`);
-    debugLog.push(`[DEBUG] Error details: ${JSON.stringify(error, null, 2)}`);
+    debugLog.push(`[DEBUG] Error details: ${JSON.stringify({
+      message: error.message,
+      name: error.name,
+      code: error.code
+    }, null, 2)}`);
     
     console.error("Error fetching WordPress comments:", error);
     return res.status(500).json({ 
