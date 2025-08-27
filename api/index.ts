@@ -1573,7 +1573,6 @@ async getComments(params: {
         responseType: typeof response,
         responseKeys: response ? Object.keys(response) : null,
         responseSuccess: response?.success,
-        responseData: response?.data ? 'present' : 'missing',
         fullResponse: JSON.stringify(response, null, 2).substring(0, 1000) + (JSON.stringify(response, null, 2).length > 1000 ? '...' : '')
       });
     } catch (requestError) {
@@ -1605,19 +1604,17 @@ async getComments(params: {
     }
 
     if (response.success === true) {
-      if (!response.data) {
-        console.error('[WPRemoteManagerClient] Success response but no data:', response);
-        throw new Error('WordPress Remote Manager returned success but no data');
-      }
+      // The API response structure is different - data is at root level, not in data property
+      const responseData = response;
       
       console.log('[WPRemoteManagerClient] Success response with data:', {
-        dataType: typeof response.data,
-        dataKeys: response.data ? Object.keys(response.data) : null,
-        totalComments: response.data.total_comments,
-        recentCommentsCount: response.data.recent_comments?.length || 0
+        dataType: typeof responseData,
+        dataKeys: responseData ? Object.keys(responseData) : null,
+        totalComments: responseData.total_comments,
+        recentCommentsCount: responseData.recent_comments?.length || 0
       });
       
-      return response.data;
+      return responseData;
     }
 
     // Handle unexpected response format
