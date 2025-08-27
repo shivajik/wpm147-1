@@ -5,7 +5,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { ManageWPStylePDFGenerator } from "../server/pdf-report-generator.js";
-import { eq, and, asc, desc, sql, gte, lte } from 'drizzle-orm';
+import { eq, and, asc, desc, sql, gte, lte, inArray } from 'drizzle-orm';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { 
@@ -7507,54 +7507,64 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
       }
 
       try {
-        const reports = await db
-          .select()
+        // First get all reports with client data in a single query
+        const reportsWithClients = await db
+          .select({
+            report: clientReports,
+            clientName: clients.name
+          })
           .from(clientReports)
+          .leftJoin(clients, and(
+            eq(clientReports.clientId, clients.id),
+            eq(clients.userId, user.id)
+          ))
           .where(eq(clientReports.userId, user.id))
           .orderBy(desc(clientReports.createdAt));
 
-        // Enrich each report with client and website information
-        const enrichedReports = await Promise.all(reports.map(async (report) => {
-          let clientName = 'N/A';
+        // Get unique client IDs to fetch website data efficiently
+        const clientIds = [...new Set(reportsWithClients
+          .map(r => r.report.clientId)
+          .filter(id => id !== null))];
+
+        // Fetch all relevant websites in one query
+        const websitesData = clientIds.length > 0 ? await db
+          .select({
+            id: websites.id,
+            name: websites.name,
+            clientId: websites.clientId
+          })
+          .from(websites)
+          .where(inArray(websites.clientId, clientIds)) : [];
+
+        // Create a lookup map for websites
+        const websiteMap = new Map();
+        websitesData.forEach(website => {
+          if (!websiteMap.has(website.clientId)) {
+            websiteMap.set(website.clientId, []);
+          }
+          websiteMap.get(website.clientId).push(website);
+        });
+
+        // Transform the results with website names
+        const enrichedReports = reportsWithClients.map(row => {
           let websiteName = 'N/A';
           
-          try {
-            // Fetch client information if clientId exists
-            if (report.clientId) {
-              const clientRecord = await db
-                .select()
-                .from(clients)
-                .where(and(eq(clients.id, report.clientId), eq(clients.userId, user.id)))
-                .limit(1);
-              
-              if (clientRecord.length > 0) {
-                clientName = clientRecord[0].name || 'Valued Client';
-              }
+          // Get website name from the first website ID if available
+          const websiteIds = Array.isArray(row.report.websiteIds) ? row.report.websiteIds : [];
+          if (websiteIds.length > 0 && row.report.clientId) {
+            const clientWebsites = websiteMap.get(row.report.clientId) || [];
+            const website = clientWebsites.find(w => w.id === websiteIds[0]);
+            if (website) {
+              websiteName = website.name || 'Website';
             }
-            
-            // Fetch website information if websiteIds exist
-            const websiteIds = Array.isArray(report.websiteIds) ? report.websiteIds : [];
-            if (websiteIds.length > 0) {
-              const websiteRecord = await db
-                .select()
-                .from(websites)
-                .where(and(eq(websites.id, websiteIds[0]), eq(websites.clientId, report.clientId)))
-                .limit(1);
-              
-              if (websiteRecord.length > 0) {
-                websiteName = websiteRecord[0].name || 'Website';
-              }
-            }
-          } catch (error) {
-            console.error(`Error fetching client/website data for report ${report.id}:`, error);
           }
-          
+
           return {
-            ...report,
-            clientName,
+            ...row.report,
+            clientName: row.clientName || 'N/A',
             websiteName
           };
-        }));
+        });
 
         return res.status(200).json(enrichedReports);
       } catch (error) {
