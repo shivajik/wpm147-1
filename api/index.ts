@@ -1010,14 +1010,11 @@ class VercelWPRemoteManagerClient {
       
     } catch (error: any) {
       console.log('[VERCEL-WRM] All comment endpoints failed:', error.message);
-      return {
-        total_comments: 0,
-        approved_comments: 0,
-        pending_comments: 0,
-        spam_comments: 0,
-        trash_comments: 0,
-        recent_comments: []
-      };
+       return {
+      error: true,
+      message: error.message || 'Failed to fetch comments',
+      stack:  error.stack
+    };
     }
   }
 
@@ -9687,14 +9684,9 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
         
         // Ensure we always return valid JSON
         if (!commentsData || commentsData === null || commentsData === undefined) {
-          console.warn('[VERCEL Comments] No data received, returning fallback');
-          return res.status(200).json({
-            total_comments: 0,
-            approved_comments: 0,
-            pending_comments: 0,
-            spam_comments: 0,
-            trash_comments: 0,
-            recent_comments: []
+          console.error('[VERCEL Comments] No data received from WordPress Remote Manager');
+          return res.status(502).json({
+            message: "Failed to fetch comments data from WordPress site"
           });
         }
         
