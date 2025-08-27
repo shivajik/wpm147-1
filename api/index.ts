@@ -9798,7 +9798,8 @@ if (path.match(/^\/api\/websites\/\d+\/comments$/) && req.method === 'GET') {
     let commentsData;
     try {
       commentsData = await wrmClient.getComments(params);
-      debugLog.push(`[DEBUG] WRM client response received, type: ${typeof commentsData}`);
+  console.log('[DEBUG] Comments Data:', commentsData); 
+      debugLog.push(`[DEBUG] WRM client response type: ${typeof commentsData}`);
       debugLog.push(`[DEBUG] WRM client response keys: ${commentsData ? Object.keys(commentsData) : 'null'}`);
       debugLog.push(`[DEBUG] WRM client response: ${JSON.stringify(commentsData, null, 2).substring(0, 500)}...`);
     } catch (wrmError) {
