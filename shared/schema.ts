@@ -1258,3 +1258,51 @@ export interface SeoAnalysisResult {
     error?: string;
   };
 }
+
+// WordPress Comments Management Types
+export interface CommentsStats {
+  total_comments: number;
+  approved_comments: number;
+  pending_comments: number;
+  spam_comments: number;
+  trash_comments: number;
+  recent_comments: RecentComment[];
+}
+
+export interface RecentComment {
+  id: number;
+  post_id: number;
+  author_name: string;
+  author_email: string;
+  author_url?: string;
+  author_ip: string;
+  date: string;
+  date_gmt: string;
+  content: {
+    rendered: string;
+  };
+  link: string;
+  status: 'approved' | 'pending' | 'spam' | 'trash';
+  type: string;
+  parent: number;
+  meta: any[];
+  post_title?: string;
+  post_url?: string;
+  // WordPress API fields for backward compatibility
+  comment_ID?: string;
+  comment_post_ID?: string;
+  comment_author?: string;
+  comment_author_email?: string;
+  comment_author_url?: string;
+  comment_author_IP?: string;
+  comment_date?: string;
+  comment_date_gmt?: string;
+  comment_content?: string;
+  comment_karma?: string;
+  comment_approved?: string;
+  comment_agent?: string;
+  comment_type?: string;
+  comment_parent?: string;
+  user_id?: string;
+  post_type?: string;
+}

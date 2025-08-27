@@ -120,6 +120,34 @@ export interface WPRMMaintenanceMode {
   allowed_ips?: string[];
 }
 
+export interface WPRMComment {
+  comment_ID: string;
+  comment_post_ID: string;
+  comment_author: string;
+  comment_author_email: string;
+  comment_author_url: string;
+  comment_author_IP: string;
+  comment_date: string;
+  comment_date_gmt: string;
+  comment_content: string;
+  comment_karma: string;
+  comment_approved: string;
+  comment_agent: string;
+  comment_type: string;
+  comment_parent: string;
+  user_id: string;
+  post_title?: string;
+}
+
+export interface CommentsStats {
+  total_comments: number;
+  approved_comments: number;
+  pending_comments: number;
+  spam_comments: number;
+  trash_comments: number;
+  recent_comments: WPRMComment[];
+}
+
 /**
  * WordPress Remote Manager Plugin Client
  * Handles communication with the WP Remote Manager plugin API
@@ -1256,6 +1284,180 @@ export class WPRemoteManagerClient {
   /**
    * Get list of WordPress users with complete data including emails
    */
+  /**
+   * Get WordPress comments
+   */
+  async getComments(params: {
+    status?: string;
+    post_id?: number;
+    per_page?: number;
+    page?: number;
+  } = {}): Promise<CommentsStats> {
+    try {
+      console.log('[WRM Comments] Fetching comments with params:', params);
+      
+      // First try WRM plugin endpoint
+      try {
+        const response = await this.makeRequestWithFallback('/comments', {
+          params: params
+        });
+        
+        console.log('[WRM Comments] Plugin response:', JSON.stringify(response.data, null, 2));
+        
+        if (response.data?.success && response.data.data) {
+          console.log('[WRM Comments] Plugin success response, returning data');
+          return response.data.data;
+        }
+        
+        // If response.data is directly the comments data (not wrapped in success)
+        if (response.data && typeof response.data === 'object' && response.data.total_comments !== undefined) {
+          console.log('[WRM Comments] Plugin direct data response, returning as-is');
+          return response.data;
+        }
+      } catch (pluginError) {
+        console.log('[WRM Comments] Plugin endpoint failed, trying WordPress REST API');
+      }
+      
+      // Fallback to WordPress REST API
+      try {
+        console.log('[WRM Comments] Trying WordPress REST API endpoint');
+        const wpApiUrl = `${this.credentials.url}/wp-json/wp/v2/comments`;
+        
+        const queryParams = new URLSearchParams();
+        if (params.status && params.status !== 'all') queryParams.set('status', params.status);
+        if (params.post_id) queryParams.set('post', params.post_id.toString());
+        if (params.per_page) queryParams.set('per_page', params.per_page.toString());
+        if (params.page) queryParams.set('page', params.page.toString());
+        
+        const fullUrl = `${wpApiUrl}${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+        console.log('[WRM Comments] WordPress API URL:', fullUrl);
+        
+        const wpResponse = await axios.get(fullUrl, {
+          timeout: 15000,
+          headers: {
+            'User-Agent': 'AIO-Webcare-Dashboard/1.0'
+          }
+        });
+        
+        console.log('[WRM Comments] WordPress API response received:', wpResponse.data?.length || 0, 'comments');
+        
+        if (wpResponse.data && Array.isArray(wpResponse.data)) {
+          const comments = wpResponse.data;
+          const totalComments = parseInt(wpResponse.headers['x-wp-total'] || comments.length.toString());
+          
+          // Count comments by status
+          const approved = comments.filter(c => c.status === 'approved').length;
+          const pending = comments.filter(c => c.status === 'hold').length;
+          const spam = comments.filter(c => c.status === 'spam').length;
+          const trash = comments.filter(c => c.status === 'trash').length;
+          
+          const result = {
+            total_comments: totalComments,
+            approved_comments: approved,
+            pending_comments: pending,
+            spam_comments: spam,
+            trash_comments: trash,
+            recent_comments: comments.slice(0, 10).map(comment => ({
+              id: comment.id,
+              author: comment.author_name || 'Anonymous',
+              content: comment.content?.rendered || comment.content || '',
+              date: comment.date,
+              status: comment.status,
+              post_id: comment.post
+            }))
+          };
+          
+          console.log('[WRM Comments] Processed WordPress API data:', JSON.stringify(result, null, 2));
+          return result;
+        }
+      } catch (wpApiError) {
+        console.error('[WRM Comments] WordPress REST API failed:', wpApiError);
+      }
+      
+      console.warn('[WRM Comments] All endpoints failed, returning fallback');
+      // Final fallback data structure
+      return {
+        total_comments: 0,
+        approved_comments: 0,
+        pending_comments: 0,
+        spam_comments: 0,
+        trash_comments: 0,
+        recent_comments: []
+      };
+    } catch (error: any) {
+      console.error('WP Remote Manager Comments Error:', error.response?.data || error.message);
+      
+      // Return fallback comments data with realistic structure
+      return {
+        total_comments: 0,
+        approved_comments: 0,
+        pending_comments: 0,
+        spam_comments: 0,
+        trash_comments: 0,
+        recent_comments: []
+      };
+    }
+  }
+
+  /**
+   * Delete WordPress comments
+   */
+  async deleteComments(commentIds: string[]): Promise<{ success: boolean; message: string; deleted_count: number }> {
+    try {
+      const response = await this.makeRequestWithFallback('/comments/delete', {
+        method: 'POST',
+        data: { comment_ids: commentIds }
+      });
+      
+      if (response.data?.success) {
+        return response.data.data;
+      }
+      
+      return {
+        success: false,
+        message: 'Failed to delete comments',
+        deleted_count: 0
+      };
+    } catch (error: any) {
+      console.error('WP Remote Manager Delete Comments Error:', error.response?.data || error.message);
+      
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to delete comments',
+        deleted_count: 0
+      };
+    }
+  }
+
+  /**
+   * Clean spam comments
+   */
+  async cleanSpamComments(): Promise<{ success: boolean; message: string; deleted_count: number }> {
+    try {
+      const response = await this.makeRequestWithFallback('/comments/clean-spam', {
+        method: 'POST'
+      });
+      
+      if (response.data?.success) {
+        return response.data.data;
+      }
+      
+      return {
+        success: false,
+        message: 'Failed to clean spam comments',
+        deleted_count: 0
+      };
+    } catch (error: any) {
+      console.error('WP Remote Manager Clean Spam Error:', error.response?.data || error.message);
+      
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to clean spam comments',
+        deleted_count: 0
+      };
+    }
+  }
+
   async getUsers(): Promise<WPRMUser[]> {
     try {
       // First try the enhanced detailed users endpoint

@@ -7471,6 +7471,173 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
     res.sendFile(filePath);
   });
 
+  // WordPress Comments Management endpoints
+  app.get("/api/websites/:id/comments", authenticateToken, async (req, res) => {
+    try {
+      const userId = (req as AuthRequest).user!.id;
+      const websiteId = parseInt(req.params.id);
+      const { status, post_id, per_page, page } = req.query;
+      
+      const website = await storage.getWebsite(websiteId, userId);
+      
+      if (!website) {
+        return res.status(404).json({ message: "Website not found" });
+      }
+
+      if (!website.wrmApiKey) {
+        return res.status(400).json({ message: "WordPress Remote Manager API key not configured" });
+      }
+
+      const credentials: WPRemoteManagerCredentials = {
+        url: website.url,
+        apiKey: website.wrmApiKey
+      };
+
+      const wrmClient = new WPRemoteManagerClient(credentials);
+      
+      const params = {
+        status: status as string,
+        post_id: post_id ? parseInt(post_id as string) : undefined,
+        per_page: per_page ? parseInt(per_page as string) : undefined,
+        page: page ? parseInt(page as string) : undefined,
+      };
+      
+      const commentsData = await wrmClient.getComments(params);
+      console.log('[Comments API] Raw comments data received:', JSON.stringify(commentsData, null, 2));
+      
+      // Ensure we always return a valid JSON response
+      if (commentsData === undefined || commentsData === null) {
+        console.warn('[Comments API] Received undefined/null data, returning fallback');
+        return res.json({
+          total_comments: 0,
+          approved_comments: 0,
+          pending_comments: 0,
+          spam_comments: 0,
+          trash_comments: 0,
+          recent_comments: []
+        });
+      }
+      
+      // Transform comment data to match expected frontend format
+      const transformedData = {
+        ...commentsData,
+        recent_comments: commentsData.recent_comments?.map(comment => ({
+          id: parseInt(comment.comment_ID || comment.id) || 0,
+          post_id: parseInt(comment.comment_post_ID || comment.post_id) || 0,
+          author_name: comment.comment_author || comment.author_name || 'Anonymous',
+          author_email: comment.comment_author_email || comment.author_email || '',
+          author_url: comment.comment_author_url || comment.author_url || '',
+          author_ip: comment.comment_author_IP || comment.author_ip || '',
+          date: comment.comment_date || comment.date || '',
+          date_gmt: comment.comment_date_gmt || comment.date_gmt || '',
+          content: {
+            rendered: comment.comment_content || comment.content?.rendered || ''
+          },
+          link: comment.link || '',
+          status: comment.status || (comment.comment_approved === '1' ? 'approved' : comment.comment_approved === 'spam' ? 'spam' : 'pending'),
+          type: comment.comment_type || comment.type || 'comment',
+          parent: parseInt(comment.comment_parent || comment.parent) || 0,
+          meta: comment.meta || [],
+          post_title: comment.post_title || '',
+          post_url: comment.post_url || '',
+          // Keep original fields for backward compatibility
+          comment_ID: comment.comment_ID,
+          comment_post_ID: comment.comment_post_ID,
+          comment_author: comment.comment_author,
+          comment_author_email: comment.comment_author_email,
+          comment_author_url: comment.comment_author_url,
+          comment_author_IP: comment.comment_author_IP,
+          comment_date: comment.comment_date,
+          comment_date_gmt: comment.comment_date_gmt,
+          comment_content: comment.comment_content,
+          comment_karma: comment.comment_karma,
+          comment_approved: comment.comment_approved,
+          comment_agent: comment.comment_agent,
+          comment_type: comment.comment_type,
+          comment_parent: comment.comment_parent,
+          user_id: comment.user_id,
+          post_type: comment.post_type
+        })) || []
+      };
+      
+      res.json(transformedData);
+    } catch (error) {
+      console.error("Error fetching WordPress comments:", error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : "Failed to fetch comments" 
+      });
+    }
+  });
+
+  app.post("/api/websites/:id/comments/delete", authenticateToken, async (req, res) => {
+    try {
+      const userId = (req as AuthRequest).user!.id;
+      const websiteId = parseInt(req.params.id);
+      const { comment_ids } = req.body;
+      
+      const website = await storage.getWebsite(websiteId, userId);
+      
+      if (!website) {
+        return res.status(404).json({ message: "Website not found" });
+      }
+
+      if (!website.wrmApiKey) {
+        return res.status(400).json({ message: "WordPress Remote Manager API key not configured" });
+      }
+
+      if (!comment_ids || !Array.isArray(comment_ids)) {
+        return res.status(400).json({ message: "comment_ids array is required" });
+      }
+
+      const credentials: WPRemoteManagerCredentials = {
+        url: website.url,
+        apiKey: website.wrmApiKey
+      };
+
+      const wrmClient = new WPRemoteManagerClient(credentials);
+      const result = await wrmClient.deleteComments(comment_ids);
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Error deleting WordPress comments:", error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : "Failed to delete comments" 
+      });
+    }
+  });
+
+  app.post("/api/websites/:id/comments/clean-spam", authenticateToken, async (req, res) => {
+    try {
+      const userId = (req as AuthRequest).user!.id;
+      const websiteId = parseInt(req.params.id);
+      
+      const website = await storage.getWebsite(websiteId, userId);
+      
+      if (!website) {
+        return res.status(404).json({ message: "Website not found" });
+      }
+
+      if (!website.wrmApiKey) {
+        return res.status(400).json({ message: "WordPress Remote Manager API key not configured" });
+      }
+
+      const credentials: WPRemoteManagerCredentials = {
+        url: website.url,
+        apiKey: website.wrmApiKey
+      };
+
+      const wrmClient = new WPRemoteManagerClient(credentials);
+      const result = await wrmClient.cleanSpamComments();
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Error cleaning spam comments:", error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : "Failed to clean spam comments" 
+      });
+    }
+  });
+
   // API route not found handler - must be after all route definitions
   app.use('/api/*', (req, res) => {
     console.error(`[API-404] Route not found: ${req.method} ${req.originalUrl}`, {

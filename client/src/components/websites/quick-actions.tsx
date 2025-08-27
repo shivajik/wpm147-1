@@ -28,7 +28,8 @@ import {
   Clock,
   TrendingUp,
   Award,
-  Wrench
+  Wrench,
+  MessageSquare
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -124,9 +125,19 @@ export function QuickActions({ websiteId, websiteName, websiteUrl }: QuickAction
       label: 'Users',
       icon: Users,
       description: 'User management',
-      color: 'text-cyan-600',
-      bgColor: 'bg-cyan-50 hover:bg-cyan-100',
+      color: 'text-indigo-600',
+      bgColor: 'bg-indigo-50 hover:bg-indigo-100',
       href: `/websites/${websiteId}/users`,
+      isAction: false,
+    },
+    {
+      id: 'comments',
+      label: 'Comments',
+      icon: MessageSquare,
+      description: 'Manage comments',
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50 hover:bg-orange-100',
+      href: `/websites/${websiteId}/comments`,
       isAction: false,
     },
 

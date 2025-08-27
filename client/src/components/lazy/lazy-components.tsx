@@ -7,6 +7,7 @@ export const LazyProfile = lazy(() => import('@/pages/profile'));
 export const LazyWebsitePlugins = lazy(() => import('@/pages/website-plugins'));
 export const LazyWebsiteThemes = lazy(() => import('@/pages/website-themes'));
 export const LazyWebsiteUsers = lazy(() => import('@/pages/website-users'));
+export const LazyWebsiteComments = lazy(() => import('@/pages/website-comments'));
 export const LazyWebsiteSEO = lazy(() => import('@/pages/website-seo'));
 export const LazyWebsiteBackup = lazy(() => import('@/pages/website-backup'));
 export const LazyClientReports = lazy(() => import('@/pages/client-reports'));

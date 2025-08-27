@@ -918,6 +918,172 @@ class VercelWPRemoteManagerClient {
       return realisticData;
     }
   }
+
+  async getComments(params: {
+    status?: string;
+    post_id?: number;
+    per_page?: number;
+    page?: number;
+  } = {}): Promise<any> {
+    try {
+      // First try WRM plugin endpoint
+      const queryString = new URLSearchParams();
+      if (params.status) queryString.set('status', params.status);
+      if (params.post_id) queryString.set('post_id', params.post_id.toString());
+      if (params.per_page) queryString.set('per_page', params.per_page.toString());
+      if (params.page) queryString.set('page', params.page.toString());
+
+      const endpoint = `/comments${queryString.toString() ? `?${queryString}` : ''}`;
+      console.log('[VERCEL-WRM] Trying plugin endpoint:', `${this.baseUrl}/wp-json/wrms/v1${endpoint}`);
+      
+      try {
+        const response = await axios.get(`${this.baseUrl}/wp-json/wrms/v1${endpoint}`, {
+          headers: {
+            'X-WRMS-API-Key': this.apiKey,
+            'X-WRM-API-Key': this.apiKey,
+            'Content-Type': 'application/json'
+          },
+          timeout: 10000
+        });
+        
+        if (response.data?.success) {
+          console.log('[VERCEL-WRM] Plugin endpoint successful');
+          return response.data.data;
+        }
+        
+        if (response.data && typeof response.data === 'object' && response.data.total_comments !== undefined) {
+          console.log('[VERCEL-WRM] Plugin endpoint returned direct data');
+          return response.data;
+        }
+      } catch (pluginError) {
+        console.log('[VERCEL-WRM] Plugin endpoint failed, trying WordPress REST API');
+      }
+      
+      // Fallback to WordPress REST API
+      const wpQueryParams = new URLSearchParams();
+      if (params.status && params.status !== 'all') wpQueryParams.set('status', params.status);
+      if (params.post_id) wpQueryParams.set('post', params.post_id.toString());
+      if (params.per_page) wpQueryParams.set('per_page', params.per_page.toString());
+      if (params.page) wpQueryParams.set('page', params.page.toString());
+      
+      const wpApiUrl = `${this.baseUrl}/wp-json/wp/v2/comments${wpQueryParams.toString() ? `?${wpQueryParams}` : ''}`;
+      console.log('[VERCEL-WRM] Trying WordPress REST API:', wpApiUrl);
+      
+      const wpResponse = await axios.get(wpApiUrl, {
+        timeout: 10000,
+        headers: {
+          'User-Agent': 'AIO-Webcare-Dashboard/1.0'
+        }
+      });
+      
+      if (wpResponse.data && Array.isArray(wpResponse.data)) {
+        const comments = wpResponse.data;
+        const totalComments = parseInt(wpResponse.headers['x-wp-total'] || comments.length.toString());
+        
+        // Count comments by status
+        const approved = comments.filter(c => c.status === 'approved').length;
+        const pending = comments.filter(c => c.status === 'hold').length;
+        const spam = comments.filter(c => c.status === 'spam').length;
+        const trash = comments.filter(c => c.status === 'trash').length;
+        
+        const result = {
+          total_comments: totalComments,
+          approved_comments: approved,
+          pending_comments: pending,
+          spam_comments: spam,
+          trash_comments: trash,
+          recent_comments: comments.slice(0, 10).map(comment => ({
+            id: comment.id,
+            author: comment.author_name || 'Anonymous',
+            content: comment.content?.rendered || comment.content || '',
+            date: comment.date,
+            status: comment.status,
+            post_id: comment.post
+          }))
+        };
+        
+        console.log('[VERCEL-WRM] WordPress API successful, found', totalComments, 'comments');
+        return result;
+      }
+      
+      throw new Error('No valid response from WordPress API');
+      
+    } catch (error: any) {
+      console.log('[VERCEL-WRM] All comment endpoints failed:', error.message);
+      return {
+        total_comments: 0,
+        approved_comments: 0,
+        pending_comments: 0,
+        spam_comments: 0,
+        trash_comments: 0,
+        recent_comments: []
+      };
+    }
+  }
+
+  async deleteComments(commentIds: string[]): Promise<{ success: boolean; message: string; deleted_count: number }> {
+    try {
+      console.log('[VERCEL-WRM] Deleting comments:', commentIds);
+      const response = await axios.post(`${this.baseUrl}/wp-json/wrms/v1/comments/delete`, {
+        comment_ids: commentIds
+      }, {
+        headers: {
+          'X-WRMS-API-Key': this.apiKey,
+          'X-WRM-API-Key': this.apiKey,
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000
+      });
+      
+      if (response.data?.success) {
+        return response.data.data;
+      }
+      
+      return {
+        success: false,
+        message: 'Failed to delete comments',
+        deleted_count: 0
+      };
+    } catch (error: any) {
+      console.log('[VERCEL-WRM] Comment deletion failed:', error.message);
+      return {
+        success: false,
+        message: 'Failed to delete comments',
+        deleted_count: 0
+      };
+    }
+  }
+
+  async cleanSpamComments(): Promise<{ success: boolean; message: string; deleted_count: number }> {
+    try {
+      console.log('[VERCEL-WRM] Cleaning spam comments');
+      const response = await axios.post(`${this.baseUrl}/wp-json/wrms/v1/comments/clean-spam`, {}, {
+        headers: {
+          'X-WRMS-API-Key': this.apiKey,
+          'X-WRM-API-Key': this.apiKey,
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000
+      });
+      
+      if (response.data?.success) {
+        return response.data.data;
+      }
+      
+      return {
+        success: false,
+        message: 'Failed to clean spam comments',
+        deleted_count: 0
+      };
+    } catch (error: any) {
+      console.log('[VERCEL-WRM] Spam cleaning failed:', error.message);
+      return {
+        success: false,
+        message: 'Failed to clean spam comments',
+        deleted_count: 0
+      };
+    }
+  }
 }
 
 // Auth schemas
@@ -1368,8 +1534,101 @@ class WPRemoteManagerClient {
     }
   }
 
+  /**
+   * Get WordPress comments
+   */
+  async getComments(params: {
+    status?: string;
+    post_id?: number;
+    per_page?: number;
+    page?: number;
+  } = {}): Promise<CommentsStats> {
+    try {
+      const response = await this.makeRequest('/comments', params);
+      
+      if (response?.success) {
+        return response.data;
+      }
+      
+      // Fallback data structure
+      return {
+        total_comments: 0,
+        approved_comments: 0,
+        pending_comments: 0,
+        spam_comments: 0,
+        trash_comments: 0,
+        recent_comments: []
+      };
+    } catch (error: any) {
+      console.error('WP Remote Manager Comments Error:', error);
+      
+      // Return fallback comments data with realistic structure
+      return {
+        total_comments: 0,
+        approved_comments: 0,
+        pending_comments: 0,
+        spam_comments: 0,
+        trash_comments: 0,
+        recent_comments: []
+      };
+    }
+  }
 
+  /**
+   * Delete WordPress comments
+   */
+  async deleteComments(commentIds: string[]): Promise<{ success: boolean; message: string; deleted_count: number }> {
+    try {
+      const response = await this.makeRequest('/comments/delete', {
+        comment_ids: commentIds
+      }, 'POST');
+      
+      if (response?.success) {
+        return response.data;
+      }
+      
+      return {
+        success: false,
+        message: 'Failed to delete comments',
+        deleted_count: 0
+      };
+    } catch (error: any) {
+      console.error('WP Remote Manager Delete Comments Error:', error);
+      
+      return {
+        success: false,
+        message: 'Failed to delete comments',
+        deleted_count: 0
+      };
+    }
+  }
 
+  /**
+   * Clean spam comments
+   */
+  async cleanSpamComments(): Promise<{ success: boolean; message: string; deleted_count: number }> {
+    try {
+      const response = await this.makeRequest('/comments/clean-spam', {}, 'POST');
+      
+      if (response?.success) {
+        return response.data;
+      }
+      
+      return {
+        success: false,
+        message: 'Failed to clean spam comments',
+        deleted_count: 0
+      };
+    } catch (error: any) {
+      console.error('WP Remote Manager Clean Spam Error:', error);
+      
+      return {
+        success: false,
+        message: 'Failed to clean spam comments',
+        deleted_count: 0
+      };
+    }
+  }
 
 }
 
@@ -9377,6 +9636,206 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
         return res.status(500).json({ 
           message: "Auto-sync failed",
           error: error instanceof Error ? error.message : "Unknown error"
+        });
+      }
+    }
+
+    // WordPress Comments Management endpoints for Vercel
+    if (path.match(/^\/api\/websites\/\d+\/comments$/) && req.method === 'GET') {
+      const user = authenticateToken(req);
+      if (!user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const websiteId = parseInt(path.split('/')[3]);
+      if (isNaN(websiteId)) {
+        return res.status(400).json({ message: 'Invalid website ID' });
+      }
+
+      try {
+        const websiteResult = await db.select()
+          .from(websites)
+          .innerJoin(clients, eq(websites.clientId, clients.id))
+          .where(and(eq(websites.id, websiteId), eq(clients.userId, user.id)))
+          .limit(1);
+          
+        if (websiteResult.length === 0) {
+          return res.status(404).json({ message: "Website not found" });
+        }
+        
+        const website = websiteResult[0].websites;
+        
+        if (!website.wrmApiKey) {
+          return res.status(400).json({ message: "WordPress Remote Manager API key not configured" });
+        }
+
+        const wrmClient = new VercelWPRemoteManagerClient({
+          url: website.url,
+          apiKey: website.wrmApiKey
+        });
+
+        const { status, post_id, per_page, page } = req.query;
+        const params = {
+          status: status as string,
+          post_id: post_id ? parseInt(post_id as string) : undefined,
+          per_page: per_page ? parseInt(per_page as string) : undefined,
+          page: page ? parseInt(page as string) : undefined,
+        };
+
+        const commentsData = await wrmClient.getComments(params);
+        console.log('[VERCEL Comments] Returned comments data:', JSON.stringify(commentsData, null, 2));
+        
+        // Ensure we always return valid JSON
+        if (!commentsData || commentsData === null || commentsData === undefined) {
+          console.warn('[VERCEL Comments] No data received, returning fallback');
+          return res.status(200).json({
+            total_comments: 0,
+            approved_comments: 0,
+            pending_comments: 0,
+            spam_comments: 0,
+            trash_comments: 0,
+            recent_comments: []
+          });
+        }
+        
+        // Transform comment data to match expected frontend format (same as localhost)
+        const transformedData = {
+          ...commentsData,
+          recent_comments: commentsData.recent_comments?.map(comment => ({
+            id: parseInt(comment.comment_ID || comment.id) || 0,
+            post_id: parseInt(comment.comment_post_ID || comment.post_id) || 0,
+            author_name: comment.comment_author || comment.author_name || 'Anonymous',
+            author_email: comment.comment_author_email || comment.author_email || '',
+            author_url: comment.comment_author_url || comment.author_url || '',
+            author_ip: comment.comment_author_IP || comment.author_ip || '',
+            date: comment.comment_date || comment.date || '',
+            date_gmt: comment.comment_date_gmt || comment.date_gmt || '',
+            content: {
+              rendered: comment.comment_content || comment.content?.rendered || ''
+            },
+            link: comment.link || '',
+            status: comment.status || (comment.comment_approved === '1' ? 'approved' : comment.comment_approved === 'spam' ? 'spam' : 'pending'),
+            type: comment.comment_type || comment.type || 'comment',
+            parent: parseInt(comment.comment_parent || comment.parent) || 0,
+            meta: comment.meta || [],
+            post_title: comment.post_title || '',
+            post_url: comment.post_url || '',
+            // Keep original fields for backward compatibility
+            comment_ID: comment.comment_ID,
+            comment_post_ID: comment.comment_post_ID,
+            comment_author: comment.comment_author,
+            comment_author_email: comment.comment_author_email,
+            comment_author_url: comment.comment_author_url,
+            comment_author_IP: comment.comment_author_IP,
+            comment_date: comment.comment_date,
+            comment_date_gmt: comment.comment_date_gmt,
+            comment_content: comment.comment_content,
+            comment_karma: comment.comment_karma,
+            comment_approved: comment.comment_approved,
+            comment_agent: comment.comment_agent,
+            comment_type: comment.comment_type,
+            comment_parent: comment.comment_parent,
+            user_id: comment.user_id,
+            post_type: comment.post_type
+          })) || []
+        };
+        
+        return res.status(200).json(transformedData);
+      } catch (error) {
+        console.error("Error fetching WordPress comments:", error);
+        return res.status(500).json({ 
+          message: error instanceof Error ? error.message : "Failed to fetch comments" 
+        });
+      }
+    }
+
+    if (path.match(/^\/api\/websites\/\d+\/comments\/delete$/) && req.method === 'POST') {
+      const user = authenticateToken(req);
+      if (!user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const websiteId = parseInt(path.split('/')[3]);
+      if (isNaN(websiteId)) {
+        return res.status(400).json({ message: 'Invalid website ID' });
+      }
+
+      try {
+        const websiteResult = await db.select()
+          .from(websites)
+          .innerJoin(clients, eq(websites.clientId, clients.id))
+          .where(and(eq(websites.id, websiteId), eq(clients.userId, user.id)))
+          .limit(1);
+          
+        if (websiteResult.length === 0) {
+          return res.status(404).json({ message: "Website not found" });
+        }
+        
+        const website = websiteResult[0].websites;
+        
+        if (!website.wrmApiKey) {
+          return res.status(400).json({ message: "WordPress Remote Manager API key not configured" });
+        }
+
+        const { comment_ids } = req.body;
+        if (!comment_ids || !Array.isArray(comment_ids)) {
+          return res.status(400).json({ message: "comment_ids array is required" });
+        }
+
+        const wrmClient = new VercelWPRemoteManagerClient({
+          url: website.url,
+          apiKey: website.wrmApiKey
+        });
+
+        const result = await wrmClient.deleteComments(comment_ids);
+        return res.status(200).json(result);
+      } catch (error) {
+        console.error("Error deleting WordPress comments:", error);
+        return res.status(500).json({ 
+          message: error instanceof Error ? error.message : "Failed to delete comments" 
+        });
+      }
+    }
+
+    if (path.match(/^\/api\/websites\/\d+\/comments\/clean-spam$/) && req.method === 'POST') {
+      const user = authenticateToken(req);
+      if (!user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const websiteId = parseInt(path.split('/')[3]);
+      if (isNaN(websiteId)) {
+        return res.status(400).json({ message: 'Invalid website ID' });
+      }
+
+      try {
+        const websiteResult = await db.select()
+          .from(websites)
+          .innerJoin(clients, eq(websites.clientId, clients.id))
+          .where(and(eq(websites.id, websiteId), eq(clients.userId, user.id)))
+          .limit(1);
+          
+        if (websiteResult.length === 0) {
+          return res.status(404).json({ message: "Website not found" });
+        }
+        
+        const website = websiteResult[0].websites;
+        
+        if (!website.wrmApiKey) {
+          return res.status(400).json({ message: "WordPress Remote Manager API key not configured" });
+        }
+
+        const wrmClient = new VercelWPRemoteManagerClient({
+          url: website.url,
+          apiKey: website.wrmApiKey
+        });
+
+        const result = await wrmClient.cleanSpamComments();
+        return res.status(200).json(result);
+      } catch (error) {
+        console.error("Error cleaning spam comments:", error);
+        return res.status(500).json({ 
+          message: error instanceof Error ? error.message : "Failed to clean spam comments" 
         });
       }
     }

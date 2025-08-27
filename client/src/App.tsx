@@ -40,6 +40,7 @@ import {
   LazyWebsitePlugins,
   LazyWebsiteThemes,
   LazyWebsiteUsers,
+  LazyWebsiteComments,
   LazyWebsiteSEO,
   LazyWebsiteBackup,
   LazyClientReports,
@@ -111,6 +112,7 @@ function Router() {
           <Route path="/websites/:id/plugins" component={() => <Suspense fallback={<PageSkeleton />}><LazyWebsitePlugins /></Suspense>} />
           <Route path="/websites/:id/themes" component={() => <Suspense fallback={<PageSkeleton />}><LazyWebsiteThemes /></Suspense>} />
           <Route path="/websites/:id/users" component={() => <Suspense fallback={<PageSkeleton />}><LazyWebsiteUsers /></Suspense>} />
+          <Route path="/websites/:id/comments" component={() => <Suspense fallback={<PageSkeleton />}><LazyWebsiteComments /></Suspense>} />
 
           <Route path="/websites/:id/security" component={WebsiteSecurity} />
           <Route path="/websites/:id/security-scans" component={() => <Suspense fallback={<PageSkeleton />}><LazySecurityScanHistory /></Suspense>} />
