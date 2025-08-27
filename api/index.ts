@@ -918,26 +918,33 @@ class VercelWPRemoteManagerClient {
       return realisticData;
     }
   }
-
   async getComments(params: {
     status?: string;
     post_id?: number;
     per_page?: number;
     page?: number;
   } = {}): Promise<any> {
+    const debugLog: string[] = [];
+    
     try {
+      debugLog.push(`[VERCEL-WRM] Starting getComments request with params: ${JSON.stringify(params)}`);
+      debugLog.push(`[VERCEL-WRM] Base URL: ${this.baseUrl}`);
+      debugLog.push(`[VERCEL-WRM] Timestamp: ${new Date().toISOString()}`);
+    
       // First try WRM plugin endpoint
       const queryString = new URLSearchParams();
       if (params.status) queryString.set('status', params.status);
       if (params.post_id) queryString.set('post_id', params.post_id.toString());
       if (params.per_page) queryString.set('per_page', params.per_page.toString());
       if (params.page) queryString.set('page', params.page.toString());
-
+    
       const endpoint = `/comments${queryString.toString() ? `?${queryString}` : ''}`;
-      console.log('[VERCEL-WRM] Trying plugin endpoint:', `${this.baseUrl}/wp-json/wrms/v1${endpoint}`);
+      const pluginUrl = `${this.baseUrl}/wp-json/wrms/v1${endpoint}`;
+      debugLog.push(`[VERCEL-WRM] Trying plugin endpoint: ${pluginUrl}`);
       
       try {
-        const response = await axios.get(`${this.baseUrl}/wp-json/wrms/v1${endpoint}`, {
+        debugLog.push(`[VERCEL-WRM] Making request to plugin endpoint...`);
+        const response = await axios.get(pluginUrl, {
           headers: {
             'X-WRMS-API-Key': this.apiKey,
             'X-WRM-API-Key': this.apiKey,
@@ -946,20 +953,35 @@ class VercelWPRemoteManagerClient {
           timeout: 10000
         });
         
-        if (response.data?.success) {
-          console.log('[VERCEL-WRM] Plugin endpoint successful');
-          return response.data.data;
+        debugLog.push(`[VERCEL-WRM] Plugin endpoint response status: ${response.status}`);
+        debugLog.push(`[VERCEL-WRM] Plugin endpoint response data keys: ${Object.keys(response.data).join(', ')}`);
+        
+        // Handle the response format from your WordPress site
+        if (response.data?.success === true) {
+          debugLog.push(`[VERCEL-WRM] Plugin endpoint successful`);
+          debugLog.push(`[VERCEL-WRM] Total comments: ${response.data.total_comments}`);
+          debugLog.push(`[VERCEL-WRM] Recent comments count: ${response.data.recent_comments?.length || 0}`);
+          
+          // Return the exact format from WordPress without modification
+          return {
+            ...response.data,
+            debugLog // Include debug logs in response
+          };
         }
         
-        if (response.data && typeof response.data === 'object' && response.data.total_comments !== undefined) {
-          console.log('[VERCEL-WRM] Plugin endpoint returned direct data');
-          return response.data;
+        debugLog.push(`[VERCEL-WRM] Plugin endpoint returned unexpected format: ${JSON.stringify(response.data).substring(0, 200)}`);
+        
+      } catch (pluginError: any) {
+        debugLog.push(`[VERCEL-WRM] Plugin endpoint failed: ${pluginError.message}`);
+        debugLog.push(`[VERCEL-WRM] Error code: ${pluginError.code}`);
+        debugLog.push(`[VERCEL-WRM] Error response status: ${pluginError.response?.status}`);
+        if (pluginError.response?.data) {
+          debugLog.push(`[VERCEL-WRM] Error response data: ${JSON.stringify(pluginError.response.data).substring(0, 200)}`);
         }
-      } catch (pluginError) {
-        console.log('[VERCEL-WRM] Plugin endpoint failed, trying WordPress REST API');
       }
       
-      // Fallback to WordPress REST API
+      // Fallback to WordPress REST API (only if plugin endpoint fails)
+      debugLog.push(`[VERCEL-WRM] Trying WordPress REST API fallback...`);
       const wpQueryParams = new URLSearchParams();
       if (params.status && params.status !== 'all') wpQueryParams.set('status', params.status);
       if (params.post_id) wpQueryParams.set('post', params.post_id.toString());
@@ -967,54 +989,96 @@ class VercelWPRemoteManagerClient {
       if (params.page) wpQueryParams.set('page', params.page.toString());
       
       const wpApiUrl = `${this.baseUrl}/wp-json/wp/v2/comments${wpQueryParams.toString() ? `?${wpQueryParams}` : ''}`;
-      console.log('[VERCEL-WRM] Trying WordPress REST API:', wpApiUrl);
+      debugLog.push(`[VERCEL-WRM] Trying WordPress REST API: ${wpApiUrl}`);
       
-      const wpResponse = await axios.get(wpApiUrl, {
-        timeout: 10000,
-        headers: {
-          'User-Agent': 'AIO-Webcare-Dashboard/1.0'
+      try {
+        const wpResponse = await axios.get(wpApiUrl, {
+          timeout: 10000,
+          headers: {
+            'User-Agent': 'AIO-Webcare-Dashboard/1.0'
+          }
+        });
+        
+        debugLog.push(`[VERCEL-WRM] WordPress API response status: ${wpResponse.status}`);
+        
+        if (wpResponse.data && Array.isArray(wpResponse.data)) {
+          const comments = wpResponse.data;
+          const totalComments = parseInt(wpResponse.headers['x-wp-total'] || comments.length.toString());
+          
+          debugLog.push(`[VERCEL-WRM] WordPress API successful, found ${comments.length} comments`);
+          
+          // Count comments by status (matching the plugin endpoint format)
+          const approved = comments.filter(c => c.status === 'approved').length;
+          const pending = comments.filter(c => c.status === 'hold' || c.status === '0').length;
+          const spam = comments.filter(c => c.status === 'spam' || c.status === 'spam').length;
+          const trash = comments.filter(c => c.status === 'trash' || c.status === 'trash').length;
+          
+          // Transform to match the plugin endpoint format
+          const result = {
+            success: true,
+            total_comments: totalComments,
+            approved_comments: approved,
+            pending_comments: pending,
+            spam_comments: spam,
+            trash_comments: trash,
+            comments_by_type: [
+              {
+                comment_type: "comment",
+                count: totalComments
+              }
+            ],
+            recent_comments: comments.map(comment => ({
+              comment_ID: comment.id.toString(),
+              comment_post_ID: comment.post.toString(),
+              comment_author: comment.author_name || 'Anonymous',
+              comment_author_email: comment.author_email || '',
+              comment_author_url: comment.author_url || '',
+              comment_author_IP: comment.author_ip || '',
+              comment_date: comment.date || '',
+              comment_date_gmt: comment.date_gmt || '',
+              comment_content: comment.content?.rendered || comment.content || '',
+              comment_karma: "0",
+              comment_approved: comment.status === 'approved' ? '1' : '0',
+              comment_agent: '',
+              comment_type: comment.type || 'comment',
+              comment_parent: comment.parent?.toString() || "0",
+              user_id: comment.author?.toString() || "0",
+              post_title: '',
+              post_type: ''
+            })),
+            debugLog // Include debug logs in response
+          };
+          
+          debugLog.push(`[VERCEL-WRM] WordPress API transformation complete`);
+          return result;
+        } else {
+          debugLog.push(`[VERCEL-WRM] WordPress API returned non-array data`);
+          throw new Error('No valid array response from WordPress API');
         }
-      });
-      
-      if (wpResponse.data && Array.isArray(wpResponse.data)) {
-        const comments = wpResponse.data;
-        const totalComments = parseInt(wpResponse.headers['x-wp-total'] || comments.length.toString());
         
-        // Count comments by status
-        const approved = comments.filter(c => c.status === 'approved').length;
-        const pending = comments.filter(c => c.status === 'hold').length;
-        const spam = comments.filter(c => c.status === 'spam').length;
-        const trash = comments.filter(c => c.status === 'trash').length;
+      } catch (wpError: any) {
+        debugLog.push(`[VERCEL-WRM] WordPress API failed: ${wpError.message}`);
+        debugLog.push(`[VERCEL-WRM] WordPress API error code: ${wpError.code}`);
+        debugLog.push(`[VERCEL-WRM] WordPress API error status: ${wpError.response?.status}`);
+        if (wpError.response?.data) {
+          debugLog.push(`[VERCEL-WRM] WordPress API error data: ${JSON.stringify(wpError.response.data).substring(0, 200)}`);
+        }
         
-        const result = {
-          total_comments: totalComments,
-          approved_comments: approved,
-          pending_comments: pending,
-          spam_comments: spam,
-          trash_comments: trash,
-          recent_comments: comments.slice(0, 10).map(comment => ({
-            id: comment.id,
-            author: comment.author_name || 'Anonymous',
-            content: comment.content?.rendered || comment.content || '',
-            date: comment.date,
-            status: comment.status,
-            post_id: comment.post
-          }))
-        };
-        
-        console.log('[VERCEL-WRM] WordPress API successful, found', totalComments, 'comments');
-        return result;
+        throw new Error(`All comment endpoints failed: ${wpError.message}`);
       }
       
-      throw new Error('No valid response from WordPress API');
-      
     } catch (error: any) {
-      console.log('[VERCEL-WRM] All comment endpoints failed:', error.message);
-       return {
-      error: true,
-      message: error.message || 'Failed to fetch comments',
-      stack:  error.stack
-    };
+      debugLog.push(`[VERCEL-WRM] All comment endpoints failed: ${error.message}`);
+      debugLog.push(`[VERCEL-WRM] Final error stack: ${error.stack}`);
+      
+      // Return error with debug logs
+      return {
+        success: false,
+        error: true,
+        message: error.message || 'Failed to fetch comments',
+        stack: error.stack,
+        debugLog // Include debug logs in error response
+      };
     }
   }
 
@@ -1537,102 +1601,102 @@ class WPRemoteManagerClient {
 /**
  * Get WordPress comments with enhanced debugging
  */
-async getComments(params: {
-  status?: string;
-  post_id?: number;
-  per_page?: number;
-  page?: number;
-} = {}): Promise<CommentsStats & { debugLog?: string[] }> {
-  const debugLog: string[] = [];
+// async getComments(params: {
+//   status?: string;
+//   post_id?: number;
+//   per_page?: number;
+//   page?: number;
+// } = {}): Promise<CommentsStats & { debugLog?: string[] }> {
+//   const debugLog: string[] = [];
   
-  try {
-    debugLog.push(`[WPRemoteManagerClient] Starting getComments request with params: ${JSON.stringify(params)}`);
-    debugLog.push(`[WPRemoteManagerClient] URL: ${this.credentials?.url}`);
-    debugLog.push(`[WPRemoteManagerClient] Timestamp: ${new Date().toISOString()}`);
+//   try {
+//     debugLog.push(`[WPRemoteManagerClient] Starting getComments request with params: ${JSON.stringify(params)}`);
+//     debugLog.push(`[WPRemoteManagerClient] URL: ${this.credentials?.url}`);
+//     debugLog.push(`[WPRemoteManagerClient] Timestamp: ${new Date().toISOString()}`);
 
-    // Validate credentials
-    if (!this.credentials?.url || !this.credentials?.apiKey) {
-      const error = new Error('Invalid credentials: URL or API key missing');
-      debugLog.push(`[WPRemoteManagerClient] Credential validation failed: hasUrl=${!!this.credentials?.url}, hasApiKey=${!!this.credentials?.apiKey}`);
-      throw error;
-    }
+//     // Validate credentials
+//     if (!this.credentials?.url || !this.credentials?.apiKey) {
+//       const error = new Error('Invalid credentials: URL or API key missing');
+//       debugLog.push(`[WPRemoteManagerClient] Credential validation failed: hasUrl=${!!this.credentials?.url}, hasApiKey=${!!this.credentials?.apiKey}`);
+//       throw error;
+//     }
 
-    debugLog.push(`[WPRemoteManagerClient] Making request to /comments endpoint...`);
+//     debugLog.push(`[WPRemoteManagerClient] Making request to /comments endpoint...`);
     
-    let response;
-    try {
-      response = await this.makeRequest('/comments', params);
-      debugLog.push(`[WPRemoteManagerClient] Raw response received: ${typeof response}`);
-      debugLog.push(`[WPRemoteManagerClient] Response keys: ${response ? Object.keys(response).join(', ') : 'null'}`);
-      debugLog.push(`[WPRemoteManagerClient] Response success: ${response?.success}`);
+//     let response;
+//     try {
+//       response = await this.makeRequest('/comments', params);
+//       debugLog.push(`[WPRemoteManagerClient] Raw response received: ${typeof response}`);
+//       debugLog.push(`[WPRemoteManagerClient] Response keys: ${response ? Object.keys(response).join(', ') : 'null'}`);
+//       debugLog.push(`[WPRemoteManagerClient] Response success: ${response?.success}`);
       
-      if (response) {
-        const responsePreview = JSON.stringify(response, null, 2).substring(0, 1000);
-        debugLog.push(`[WPRemoteManagerClient] Response preview: ${responsePreview}${JSON.stringify(response, null, 2).length > 1000 ? '...' : ''}`);
-      }
-    } catch (requestError: any) {
-      debugLog.push(`[WPRemoteManagerClient] makeRequest failed: ${requestError.message}`);
-      debugLog.push(`[WPRemoteManagerClient] Error stack: ${requestError.stack}`);
-      debugLog.push(`[WPRemoteManagerClient] Response status: ${requestError.response?.status}`);
-      debugLog.push(`[WPRemoteManagerClient] Response statusText: ${requestError.response?.statusText}`);
-      throw requestError;
-    }
+//       if (response) {
+//         const responsePreview = JSON.stringify(response, null, 2).substring(0, 1000);
+//         debugLog.push(`[WPRemoteManagerClient] Response preview: ${responsePreview}${JSON.stringify(response, null, 2).length > 1000 ? '...' : ''}`);
+//       }
+//     } catch (requestError: any) {
+//       debugLog.push(`[WPRemoteManagerClient] makeRequest failed: ${requestError.message}`);
+//       debugLog.push(`[WPRemoteManagerClient] Error stack: ${requestError.stack}`);
+//       debugLog.push(`[WPRemoteManagerClient] Response status: ${requestError.response?.status}`);
+//       debugLog.push(`[WPRemoteManagerClient] Response statusText: ${requestError.response?.statusText}`);
+//       throw requestError;
+//     }
 
-    // Enhanced response validation
-    if (!response) {
-      const error = new Error('No response received from WordPress Remote Manager');
-      debugLog.push(`[WPRemoteManagerClient] No response error`);
-      throw error;
-    }
+//     // Enhanced response validation
+//     if (!response) {
+//       const error = new Error('No response received from WordPress Remote Manager');
+//       debugLog.push(`[WPRemoteManagerClient] No response error`);
+//       throw error;
+//     }
 
-    if (response.success === false) {
-      const errorMessage = response.message || response.error || 'Unknown error from WordPress Remote Manager';
-      debugLog.push(`[WPRemoteManagerClient] API returned success=false: ${errorMessage}`);
-      debugLog.push(`[WPRemoteManagerClient] Full error response: ${JSON.stringify(response)}`);
-      throw new Error(`WordPress Remote Manager API error: ${errorMessage}`);
-    }
+//     if (response.success === false) {
+//       const errorMessage = response.message || response.error || 'Unknown error from WordPress Remote Manager';
+//       debugLog.push(`[WPRemoteManagerClient] API returned success=false: ${errorMessage}`);
+//       debugLog.push(`[WPRemoteManagerClient] Full error response: ${JSON.stringify(response)}`);
+//       throw new Error(`WordPress Remote Manager API error: ${errorMessage}`);
+//     }
 
-    if (response.success === true) {
-      // The API response structure is different - data is at root level, not in data property
-      const responseData = response;
+//     if (response.success === true) {
+//       // The API response structure is different - data is at root level, not in data property
+//       const responseData = response;
       
-      debugLog.push(`[WPRemoteManagerClient] Success response with data`);
-      debugLog.push(`[WPRemoteManagerClient] Data type: ${typeof responseData}`);
-      debugLog.push(`[WPRemoteManagerClient] Data keys: ${Object.keys(responseData).join(', ')}`);
-      debugLog.push(`[WPRemoteManagerClient] Total comments: ${responseData.total_comments}`);
-      debugLog.push(`[WPRemoteManagerClient] Recent comments count: ${responseData.recent_comments?.length || 0}`);
+//       debugLog.push(`[WPRemoteManagerClient] Success response with data`);
+//       debugLog.push(`[WPRemoteManagerClient] Data type: ${typeof responseData}`);
+//       debugLog.push(`[WPRemoteManagerClient] Data keys: ${Object.keys(responseData).join(', ')}`);
+//       debugLog.push(`[WPRemoteManagerClient] Total comments: ${responseData.total_comments}`);
+//       debugLog.push(`[WPRemoteManagerClient] Recent comments count: ${responseData.recent_comments?.length || 0}`);
       
-      // Return the response data with debug log included
-      return {
-        ...responseData,
-        debugLog
-      };
-    }
+//       // Return the response data with debug log included
+//       return {
+//         ...responseData,
+//         debugLog
+//       };
+//     }
 
-    // Handle unexpected response format
-    debugLog.push(`[WPRemoteManagerClient] Unexpected response format`);
-    debugLog.push(`[WPRemoteManagerClient] Has success property: ${'success' in response}`);
-    debugLog.push(`[WPRemoteManagerClient] Success value: ${response.success}`);
-    debugLog.push(`[WPRemoteManagerClient] Response structure: ${Object.keys(response).join(', ')}`);
+//     // Handle unexpected response format
+//     debugLog.push(`[WPRemoteManagerClient] Unexpected response format`);
+//     debugLog.push(`[WPRemoteManagerClient] Has success property: ${'success' in response}`);
+//     debugLog.push(`[WPRemoteManagerClient] Success value: ${response.success}`);
+//     debugLog.push(`[WPRemoteManagerClient] Response structure: ${Object.keys(response).join(', ')}`);
     
-    throw new Error(`Unexpected response format from WordPress Remote Manager: ${JSON.stringify(response)}`);
+//     throw new Error(`Unexpected response format from WordPress Remote Manager: ${JSON.stringify(response)}`);
 
-  } catch (error: any) {
-    debugLog.push(`[WPRemoteManagerClient] Comments Error: ${error.message}`);
-    debugLog.push(`[WPRemoteManagerClient] Error stack: ${error.stack}`);
-    debugLog.push(`[WPRemoteManagerClient] Response data: ${error.response?.data ? JSON.stringify(error.response.data) : 'null'}`);
-    debugLog.push(`[WPRemoteManagerClient] Status: ${error.response?.status || 'null'}`);
+//   } catch (error: any) {
+//     debugLog.push(`[WPRemoteManagerClient] Comments Error: ${error.message}`);
+//     debugLog.push(`[WPRemoteManagerClient] Error stack: ${error.stack}`);
+//     debugLog.push(`[WPRemoteManagerClient] Response data: ${error.response?.data ? JSON.stringify(error.response.data) : 'null'}`);
+//     debugLog.push(`[WPRemoteManagerClient] Status: ${error.response?.status || 'null'}`);
     
-    // Create a more informative error
-    const enhancedError = new Error(`WordPress Remote Manager Comments Error: ${error.message}`);
-    enhancedError.name = error.name;
-    enhancedError.stack = error.stack;
-    enhancedError.originalError = error;
-    enhancedError.debugLog = debugLog;
+//     // Create a more informative error
+//     const enhancedError = new Error(`WordPress Remote Manager Comments Error: ${error.message}`);
+//     enhancedError.name = error.name;
+//     enhancedError.stack = error.stack;
+//     enhancedError.originalError = error;
+//     enhancedError.debugLog = debugLog;
     
-    throw enhancedError;
-  }
-}
+//     throw enhancedError;
+//   }
+// }
 
 
   /**
@@ -9777,6 +9841,7 @@ if (path.match(/^\/api\/websites\/\d+\/comments$/) && req.method === 'GET') {
     let commentsData;
     try {
       commentsData = await wrmClient.getComments(params);
+      debugLog.push(`[DEBUG] starting to get getComments debug log`, commentsData);
        if (commentsData.debugLog) {
         debugLog.push(...commentsData.debugLog);
         // Remove debugLog from the response data to avoid duplication
@@ -9793,6 +9858,10 @@ if (path.match(/^\/api\/websites\/\d+\/comments$/) && req.method === 'GET') {
         debugLog.push(`[DEBUG] WRM client response is null/undefined`);
       }
     } catch (wrmError: any) {
+       if (wrmError && wrmError.debugLog) {
+    debugLog.push(...wrmError.debugLog);
+  }
+
       debugLog.push(`[DEBUG] WRM client error: ${wrmError.message}`);
       debugLog.push(`[DEBUG] WRM client error stack: ${wrmError.stack}`);
       debugLog.push(`[DEBUG] WRM client error details: ${JSON.stringify({
