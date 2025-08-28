@@ -25,7 +25,9 @@ import {
   CheckCircle,
   AlertCircle,
   Clock,
-  Filter
+  Filter,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { format } from 'date-fns';
 import type { ClientReport, Client, Website } from '@shared/schema';
@@ -40,6 +42,7 @@ export default function ClientReports() {
   const [, setLocation] = useLocation();
   const [showTemplatesDialog, setShowTemplatesDialog] = useState(false);
   const [selectedTab, setSelectedTab] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
   const queryClient = useQueryClient();
 
   const { data: reportsResponse, isLoading } = useQuery<{
@@ -53,7 +56,18 @@ export default function ClientReports() {
       hasPrevPage: boolean;
     };
   }>({
-    queryKey: ['/api/client-reports'],
+    queryKey: ['/api/client-reports', currentPage],
+    queryFn: async () => {
+      const response = await fetch(`/api/client-reports?page=${currentPage}&limit=15`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+        },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch reports');
+      }
+      return response.json();
+    },
   });
 
   const reports = reportsResponse?.reports || [];
@@ -356,6 +370,41 @@ export default function ClientReports() {
                   ))}
                 </TableBody>
               </Table>
+
+            )}
+
+            {/* Pagination Controls */}
+            {reportsResponse?.pagination && reportsResponse.pagination.totalPages > 1 && (
+              <div className="flex items-center justify-between px-4 py-3 border-t">
+                <div className="flex items-center text-sm text-muted-foreground">
+                  Showing {((reportsResponse.pagination.page - 1) * reportsResponse.pagination.limit) + 1} to {Math.min(reportsResponse.pagination.page * reportsResponse.pagination.limit, reportsResponse.pagination.total)} of {reportsResponse.pagination.total} reports
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={!reportsResponse.pagination.hasPrevPage}
+                  >
+                    <ChevronLeft className="w-4 h-4 mr-1" />
+                    Previous
+                  </Button>
+                  <div className="flex items-center space-x-1">
+                    <span className="text-sm text-muted-foreground">
+                      Page {reportsResponse.pagination.page} of {reportsResponse.pagination.totalPages}
+                    </span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.min(reportsResponse.pagination.totalPages, prev + 1))}
+                    disabled={!reportsResponse.pagination.hasNextPage}
+                  >
+                    Next
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </div>
+              </div>
             )}
           </CardContent>
         </Card>
