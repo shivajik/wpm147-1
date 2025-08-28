@@ -1630,9 +1630,16 @@ class VercelWPRemoteManagerClient {
     }
   }
 
-  async removeAllSpamAndTrashedComments(): Promise<{ success: boolean; message: string; deleted_count: number }> {
+  async removeAllSpamAndTrashedComments(): Promise<{ success: boolean; message: string; deleted_count: number; debugLog?: string[] }> {
+    const debugLog: string[] = [];
     try {
+      debugLog.push(`[VERCEL-WRM] Starting removeAllSpamAndTrashedComments`);
+      debugLog.push(`[VERCEL-WRM] Target URL: ${this.baseUrl}`);
+      debugLog.push(`[VERCEL-WRM] API Key preview: ${this.apiKey.substring(0, 10)}...`);
+      
       const endpoint = `${this.baseUrl}/wp-json/wrms/v1/comments/remove-spam-trash`;
+      debugLog.push(`[VERCEL-WRM] Full endpoint: ${endpoint}`);
+      
       const headers = {
         'X-WRMS-API-Key': this.apiKey,
         'X-WRM-API-Key': this.apiKey,
@@ -1640,37 +1647,59 @@ class VercelWPRemoteManagerClient {
         'User-Agent': 'WPRemoteManager/1.0'
       };
       
+      debugLog.push(`[VERCEL-WRM] Making POST request with headers: ${JSON.stringify(Object.keys(headers))}`);
+      
       const response = await axios.post(endpoint, {}, {
         headers,
         timeout: 8000,
         validateStatus: (status) => status < 500
       });
       
+      debugLog.push(`[VERCEL-WRM] Response status: ${response.status}`);
+      debugLog.push(`[VERCEL-WRM] Response data: ${JSON.stringify(response.data)}`);
+      
       if (response.data?.success) {
+        const deletedCount = response.data.deleted_count || 0;
+        debugLog.push(`[VERCEL-WRM] Successfully removed ${deletedCount} spam and trashed comments`);
         return {
           success: true,
-          message: `Removed ${response.data.deleted_count || 0} spam and trashed comments`,
-          deleted_count: response.data.deleted_count || 0
+          message: `Removed ${deletedCount} spam and trashed comments`,
+          deleted_count: deletedCount,
+          debugLog
         };
       }
       
+      debugLog.push(`[VERCEL-WRM] API returned success=false: ${response.data?.message || 'No message'}`);
       return {
         success: false,
-        message: 'Failed to remove spam and trashed comments',
-        deleted_count: 0
+        message: response.data?.message || 'Failed to remove spam and trashed comments - API returned success=false',
+        deleted_count: 0,
+        debugLog
       };
     } catch (error: any) {
+      debugLog.push(`[VERCEL-WRM] Exception occurred: ${error.message}`);
+      debugLog.push(`[VERCEL-WRM] Error response: ${JSON.stringify(error.response?.data)}`);
+      debugLog.push(`[VERCEL-WRM] Error status: ${error.response?.status}`);
+      
       return {
         success: false,
-        message: 'Failed to remove spam and trashed comments',
-        deleted_count: 0
+        message: error.response?.data?.message || error.message || 'Failed to remove spam and trashed comments - Request failed',
+        deleted_count: 0,
+        debugLog
       };
     }
   }
   
-  async removeAllUnapprovedComments(): Promise<{ success: boolean; message: string; deleted_count: number }> {
+  async removeAllUnapprovedComments(): Promise<{ success: boolean; message: string; deleted_count: number; debugLog?: string[] }> {
+    const debugLog: string[] = [];
     try {
+      debugLog.push(`[VERCEL-WRM] Starting removeAllUnapprovedComments`);
+      debugLog.push(`[VERCEL-WRM] Target URL: ${this.baseUrl}`);
+      debugLog.push(`[VERCEL-WRM] API Key preview: ${this.apiKey.substring(0, 10)}...`);
+      
       const endpoint = `${this.baseUrl}/wp-json/wrms/v1/comments/remove-unapproved`;
+      debugLog.push(`[VERCEL-WRM] Full endpoint: ${endpoint}`);
+      
       const headers = {
         'X-WRMS-API-Key': this.apiKey,
         'X-WRM-API-Key': this.apiKey,
@@ -1678,30 +1707,45 @@ class VercelWPRemoteManagerClient {
         'User-Agent': 'WPRemoteManager/1.0'
       };
       
+      debugLog.push(`[VERCEL-WRM] Making POST request with headers: ${JSON.stringify(Object.keys(headers))}`);
+      
       const response = await axios.post(endpoint, {}, {
         headers,
         timeout: 8000,
         validateStatus: (status) => status < 500
       });
       
+      debugLog.push(`[VERCEL-WRM] Response status: ${response.status}`);
+      debugLog.push(`[VERCEL-WRM] Response data: ${JSON.stringify(response.data)}`);
+      
       if (response.data?.success) {
+        const deletedCount = response.data.deleted_count || 0;
+        debugLog.push(`[VERCEL-WRM] Successfully removed ${deletedCount} unapproved comments`);
         return {
           success: true,
-          message: `Removed ${response.data.deleted_count || 0} unapproved comments`,
-          deleted_count: response.data.deleted_count || 0
+          message: `Removed ${deletedCount} unapproved comments`,
+          deleted_count: deletedCount,
+          debugLog
         };
       }
       
+      debugLog.push(`[VERCEL-WRM] API returned success=false: ${response.data?.message || 'No message'}`);
       return {
         success: false,
-        message: 'Failed to remove unapproved comments',
-        deleted_count: 0
+        message: response.data?.message || 'Failed to remove unapproved comments - API returned success=false',
+        deleted_count: 0,
+        debugLog
       };
     } catch (error: any) {
+      debugLog.push(`[VERCEL-WRM] Exception occurred: ${error.message}`);
+      debugLog.push(`[VERCEL-WRM] Error response: ${JSON.stringify(error.response?.data)}`);
+      debugLog.push(`[VERCEL-WRM] Error status: ${error.response?.status}`);
+      
       return {
         success: false,
-        message: 'Failed to remove unapproved comments',
-        deleted_count: 0
+        message: error.response?.data?.message || error.message || 'Failed to remove unapproved comments - Request failed',
+        deleted_count: 0,
+        debugLog
       };
     }
   }
@@ -10658,15 +10702,26 @@ if (path.match(/^\/api\/websites\/\d+\/comments$/) && req.method === 'GET') {
 
     // Remove ALL unapproved comments (like WordPress WP-Optimize)
     if (path.match(/^\/api\/websites\/\d+\/comments\/remove-unapproved$/) && req.method === 'POST') {
+      const debugLog: string[] = [];
+      debugLog.push(`[PRODUCTION-UNAPPROVED] Starting unapproved comments removal`);
+      debugLog.push(`[PRODUCTION-UNAPPROVED] Timestamp: ${new Date().toISOString()}`);
+      debugLog.push(`[PRODUCTION-UNAPPROVED] Path: ${path}`);
+      
       const user = authenticateToken(req);
       if (!user) {
-        return res.status(401).json({ message: 'Access token required' });
+        debugLog.push(`[PRODUCTION-UNAPPROVED] Authentication failed - no token`);
+        return res.status(401).json({ message: 'Access token required', debugLog });
       }
+
+      debugLog.push(`[PRODUCTION-UNAPPROVED] User authenticated: ${user.email} (ID: ${user.id})`);
 
       const websiteId = parseInt(path.split('/')[3]);
       if (isNaN(websiteId)) {
-        return res.status(400).json({ message: 'Invalid website ID' });
+        debugLog.push(`[PRODUCTION-UNAPPROVED] Invalid website ID: ${path.split('/')[3]}`);
+        return res.status(400).json({ message: 'Invalid website ID', debugLog });
       }
+
+      debugLog.push(`[PRODUCTION-UNAPPROVED] Website ID: ${websiteId}`);
 
       try {
         const websiteResult = await db.select()
@@ -10676,42 +10731,70 @@ if (path.match(/^\/api\/websites\/\d+\/comments$/) && req.method === 'GET') {
           .limit(1);
           
         if (websiteResult.length === 0) {
-          return res.status(404).json({ message: "Website not found" });
+          debugLog.push(`[PRODUCTION-UNAPPROVED] Website not found for user ${user.id}`);
+          return res.status(404).json({ message: "Website not found", debugLog });
         }
         
         const website = websiteResult[0].websites;
+        debugLog.push(`[PRODUCTION-UNAPPROVED] Website found: ${website.name} (${website.url})`);
+        debugLog.push(`[PRODUCTION-UNAPPROVED] Has API key: ${!!website.wrmApiKey}`);
+        
         if (!website.wrmApiKey) {
-          return res.status(400).json({ message: "WordPress Remote Manager API key not configured" });
+          debugLog.push(`[PRODUCTION-UNAPPROVED] No WRM API key configured`);
+          return res.status(400).json({ message: "WordPress Remote Manager API key not configured", debugLog });
         }
 
+        debugLog.push(`[PRODUCTION-UNAPPROVED] Creating WRM client for ${website.url}`);
         const wrmClient = new VercelWPRemoteManagerClient({
           url: website.url,
           apiKey: website.wrmApiKey
         });
 
+        debugLog.push(`[PRODUCTION-UNAPPROVED] Calling removeAllUnapprovedComments method...`);
         const result = await wrmClient.removeAllUnapprovedComments();
-        return res.status(200).json(result);
+        
+        debugLog.push(`[PRODUCTION-UNAPPROVED] WRM client result: ${JSON.stringify(result)}`);
+        debugLog.push(`[PRODUCTION-UNAPPROVED] Operation completed`);
+        
+        return res.status(200).json({
+          ...result,
+          debugLog: debugLog.concat(result.debugLog || [])
+        });
       } catch (error) {
+        debugLog.push(`[PRODUCTION-UNAPPROVED] Error occurred: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        debugLog.push(`[PRODUCTION-UNAPPROVED] Error stack: ${error instanceof Error ? error.stack : 'No stack'}`);
         console.error("Error removing unapproved comments:", error);
         return res.status(500).json({ 
-          message: "Failed to remove unapproved comments",
+          message: error instanceof Error ? error.message : "Failed to remove unapproved comments",
           success: false,
-          deleted_count: 0
+          deleted_count: 0,
+          debugLog
         });
       }
     }
 
     // Remove ALL spam and trashed comments (like WordPress WP-Optimize)
     if (path.match(/^\/api\/websites\/\d+\/comments\/remove-spam-trash$/) && req.method === 'POST') {
+      const debugLog: string[] = [];
+      debugLog.push(`[PRODUCTION-SPAM-TRASH] Starting spam and trashed comments removal`);
+      debugLog.push(`[PRODUCTION-SPAM-TRASH] Timestamp: ${new Date().toISOString()}`);
+      debugLog.push(`[PRODUCTION-SPAM-TRASH] Path: ${path}`);
+      
       const user = authenticateToken(req);
       if (!user) {
-        return res.status(401).json({ message: 'Access token required' });
+        debugLog.push(`[PRODUCTION-SPAM-TRASH] Authentication failed - no token`);
+        return res.status(401).json({ message: 'Access token required', debugLog });
       }
+
+      debugLog.push(`[PRODUCTION-SPAM-TRASH] User authenticated: ${user.email} (ID: ${user.id})`);
 
       const websiteId = parseInt(path.split('/')[3]);
       if (isNaN(websiteId)) {
-        return res.status(400).json({ message: 'Invalid website ID' });
+        debugLog.push(`[PRODUCTION-SPAM-TRASH] Invalid website ID: ${path.split('/')[3]}`);
+        return res.status(400).json({ message: 'Invalid website ID', debugLog });
       }
+
+      debugLog.push(`[PRODUCTION-SPAM-TRASH] Website ID: ${websiteId}`);
 
       try {
         const websiteResult = await db.select()
@@ -10721,27 +10804,44 @@ if (path.match(/^\/api\/websites\/\d+\/comments$/) && req.method === 'GET') {
           .limit(1);
           
         if (websiteResult.length === 0) {
-          return res.status(404).json({ message: "Website not found" });
+          debugLog.push(`[PRODUCTION-SPAM-TRASH] Website not found for user ${user.id}`);
+          return res.status(404).json({ message: "Website not found", debugLog });
         }
         
         const website = websiteResult[0].websites;
+        debugLog.push(`[PRODUCTION-SPAM-TRASH] Website found: ${website.name} (${website.url})`);
+        debugLog.push(`[PRODUCTION-SPAM-TRASH] Has API key: ${!!website.wrmApiKey}`);
+        
         if (!website.wrmApiKey) {
-          return res.status(400).json({ message: "WordPress Remote Manager API key not configured" });
+          debugLog.push(`[PRODUCTION-SPAM-TRASH] No WRM API key configured`);
+          return res.status(400).json({ message: "WordPress Remote Manager API key not configured", debugLog });
         }
 
+        debugLog.push(`[PRODUCTION-SPAM-TRASH] Creating WRM client for ${website.url}`);
         const wrmClient = new VercelWPRemoteManagerClient({
           url: website.url,
           apiKey: website.wrmApiKey
         });
 
+        debugLog.push(`[PRODUCTION-SPAM-TRASH] Calling removeAllSpamAndTrashedComments method...`);
         const result = await wrmClient.removeAllSpamAndTrashedComments();
-        return res.status(200).json(result);
+        
+        debugLog.push(`[PRODUCTION-SPAM-TRASH] WRM client result: ${JSON.stringify(result)}`);
+        debugLog.push(`[PRODUCTION-SPAM-TRASH] Operation completed`);
+        
+        return res.status(200).json({
+          ...result,
+          debugLog: debugLog.concat(result.debugLog || [])
+        });
       } catch (error) {
+        debugLog.push(`[PRODUCTION-SPAM-TRASH] Error occurred: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        debugLog.push(`[PRODUCTION-SPAM-TRASH] Error stack: ${error instanceof Error ? error.stack : 'No stack'}`);
         console.error("Error removing spam and trashed comments:", error);
         return res.status(500).json({ 
-          message: "Failed to remove spam and trashed comments",
+          message: error instanceof Error ? error.message : "Failed to remove spam and trashed comments",
           success: false,
-          deleted_count: 0
+          deleted_count: 0,
+          debugLog
         });
       }
     }

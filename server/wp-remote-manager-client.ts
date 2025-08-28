@@ -1554,30 +1554,48 @@ export class WPRemoteManagerClient {
   /**
    * Remove ALL unapproved comments (WordPress WP-Optimize style)
    */
-  async removeAllUnapprovedComments(): Promise<{ success: boolean; message: string; deleted_count: number }> {
+  async removeAllUnapprovedComments(): Promise<{ success: boolean; message: string; deleted_count: number; debugLog?: string[] }> {
+    const debugLog: string[] = [];
     try {
+      debugLog.push(`[WRM-CLIENT] Starting removeAllUnapprovedComments`);
+      debugLog.push(`[WRM-CLIENT] Target URL: ${this.credentials.url}`);
+      debugLog.push(`[WRM-CLIENT] API Key preview: ${this.credentials.apiKey?.substring(0, 10)}...`);
+      
       const response = await this.makeRequestWithFallback('/comments/remove-unapproved', {
         method: 'POST'
       });
       
+      debugLog.push(`[WRM-CLIENT] Response status: ${response.status}`);
+      debugLog.push(`[WRM-CLIENT] Response data: ${JSON.stringify(response.data)}`);
+      
       if (response.data?.success) {
+        const deletedCount = response.data.deleted_count || 0;
+        debugLog.push(`[WRM-CLIENT] Successfully removed ${deletedCount} unapproved comments`);
         return {
           success: true,
-          message: `Removed ${response.data.deleted_count || 0} unapproved comments`,
-          deleted_count: response.data.deleted_count || 0
+          message: `Removed ${deletedCount} unapproved comments`,
+          deleted_count: deletedCount,
+          debugLog
         };
       }
       
+      debugLog.push(`[WRM-CLIENT] API returned success=false: ${response.data?.message || 'No message'}`);
       return {
         success: false,
-        message: 'Failed to remove unapproved comments',
-        deleted_count: 0
+        message: response.data?.message || 'Failed to remove unapproved comments - API returned success=false',
+        deleted_count: 0,
+        debugLog
       };
     } catch (error: any) {
+      debugLog.push(`[WRM-CLIENT] Exception occurred: ${error.message}`);
+      debugLog.push(`[WRM-CLIENT] Error response: ${JSON.stringify(error.response?.data)}`);
+      debugLog.push(`[WRM-CLIENT] Error status: ${error.response?.status}`);
+      
       return {
         success: false,
-        message: 'Failed to remove unapproved comments',
-        deleted_count: 0
+        message: error.response?.data?.message || error.message || 'Failed to remove unapproved comments - Request failed',
+        deleted_count: 0,
+        debugLog
       };
     }
   }
@@ -1585,30 +1603,48 @@ export class WPRemoteManagerClient {
   /**
    * Remove ALL spam and trashed comments (WordPress WP-Optimize style)
    */
-  async removeAllSpamAndTrashedComments(): Promise<{ success: boolean; message: string; deleted_count: number }> {
+  async removeAllSpamAndTrashedComments(): Promise<{ success: boolean; message: string; deleted_count: number; debugLog?: string[] }> {
+    const debugLog: string[] = [];
     try {
+      debugLog.push(`[WRM-CLIENT] Starting removeAllSpamAndTrashedComments`);
+      debugLog.push(`[WRM-CLIENT] Target URL: ${this.credentials.url}`);
+      debugLog.push(`[WRM-CLIENT] API Key preview: ${this.credentials.apiKey?.substring(0, 10)}...`);
+      
       const response = await this.makeRequestWithFallback('/comments/remove-spam-trash', {
         method: 'POST'
       });
       
+      debugLog.push(`[WRM-CLIENT] Response status: ${response.status}`);
+      debugLog.push(`[WRM-CLIENT] Response data: ${JSON.stringify(response.data)}`);
+      
       if (response.data?.success) {
+        const deletedCount = response.data.deleted_count || 0;
+        debugLog.push(`[WRM-CLIENT] Successfully removed ${deletedCount} spam and trashed comments`);
         return {
           success: true,
-          message: `Removed ${response.data.deleted_count || 0} spam and trashed comments`,
-          deleted_count: response.data.deleted_count || 0
+          message: `Removed ${deletedCount} spam and trashed comments`,
+          deleted_count: deletedCount,
+          debugLog
         };
       }
       
+      debugLog.push(`[WRM-CLIENT] API returned success=false: ${response.data?.message || 'No message'}`);
       return {
         success: false,
-        message: 'Failed to remove spam and trashed comments',
-        deleted_count: 0
+        message: response.data?.message || 'Failed to remove spam and trashed comments - API returned success=false',
+        deleted_count: 0,
+        debugLog
       };
     } catch (error: any) {
+      debugLog.push(`[WRM-CLIENT] Exception occurred: ${error.message}`);
+      debugLog.push(`[WRM-CLIENT] Error response: ${JSON.stringify(error.response?.data)}`);
+      debugLog.push(`[WRM-CLIENT] Error status: ${error.response?.status}`);
+      
       return {
         success: false,
-        message: 'Failed to remove spam and trashed comments',
-        deleted_count: 0
+        message: error.response?.data?.message || error.message || 'Failed to remove spam and trashed comments - Request failed',
+        deleted_count: 0,
+        debugLog
       };
     }
   }
