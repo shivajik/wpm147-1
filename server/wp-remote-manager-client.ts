@@ -1553,39 +1553,92 @@ export class WPRemoteManagerClient {
   
   /**
    * Remove ALL unapproved comments (WordPress WP-Optimize style)
+   * Uses WordPress Core REST API directly for maximum compatibility
    */
   async removeAllUnapprovedComments(): Promise<{ success: boolean; message: string; deleted_count: number; debugLog?: string[] }> {
     const debugLog: string[] = [];
     try {
-      debugLog.push(`[WRM-CLIENT] Starting removeAllUnapprovedComments`);
+      debugLog.push(`[WRM-CLIENT] Starting removeAllUnapprovedComments using WordPress Core API`);
       debugLog.push(`[WRM-CLIENT] Target URL: ${this.credentials.url}`);
       debugLog.push(`[WRM-CLIENT] API Key preview: ${this.credentials.apiKey?.substring(0, 10)}...`);
       
-      const response = await this.makeRequestWithFallback('/comments/remove-unapproved', {
-        method: 'POST'
+      // Step 1: Get all unapproved comments using WordPress Core REST API
+      debugLog.push(`[WRM-CLIENT] Step 1: Fetching unapproved comments`);
+      const axios = (await import('axios')).default;
+      
+      // Get all pending/unapproved comments
+      const commentsUrl = `${this.credentials.url}/wp-json/wp/v2/comments?status=hold&per_page=100`;
+      debugLog.push(`[WRM-CLIENT] Fetching comments from: ${commentsUrl}`);
+      
+      const commentsResponse = await axios.get(commentsUrl, {
+        headers: {
+          'X-WRMS-API-Key': this.credentials.apiKey!,
+          'X-WRM-API-Key': this.credentials.apiKey!,
+          'Authorization': `Bearer ${this.credentials.apiKey!}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000
       });
       
-      debugLog.push(`[WRM-CLIENT] Response status: ${response.status}`);
-      debugLog.push(`[WRM-CLIENT] Response data: ${JSON.stringify(response.data)}`);
+      debugLog.push(`[WRM-CLIENT] Found ${commentsResponse.data.length} unapproved comments`);
       
-      if (response.data?.success) {
-        const deletedCount = response.data.deleted_count || 0;
-        debugLog.push(`[WRM-CLIENT] Successfully removed ${deletedCount} unapproved comments`);
+      if (commentsResponse.data.length === 0) {
+        debugLog.push(`[WRM-CLIENT] No unapproved comments found`);
         return {
           success: true,
-          message: `Removed ${deletedCount} unapproved comments`,
-          deleted_count: deletedCount,
+          message: 'No unapproved comments found to remove',
+          deleted_count: 0,
           debugLog
         };
       }
       
-      debugLog.push(`[WRM-CLIENT] API returned success=false: ${response.data?.message || 'No message'}`);
-      return {
-        success: false,
-        message: response.data?.message || 'Failed to remove unapproved comments - API returned success=false',
-        deleted_count: 0,
-        debugLog
-      };
+      // Step 2: Delete each unapproved comment
+      debugLog.push(`[WRM-CLIENT] Step 2: Deleting ${commentsResponse.data.length} comments`);
+      let deletedCount = 0;
+      const errors: string[] = [];
+      
+      for (const comment of commentsResponse.data) {
+        try {
+          const deleteUrl = `${this.credentials.url}/wp-json/wp/v2/comments/${comment.id}?force=true`;
+          debugLog.push(`[WRM-CLIENT] Deleting comment ID ${comment.id}`);
+          
+          await axios.delete(deleteUrl, {
+            headers: {
+              'X-WRMS-API-Key': this.credentials.apiKey!,
+              'X-WRM-API-Key': this.credentials.apiKey!,
+              'Authorization': `Bearer ${this.credentials.apiKey!}`,
+              'Content-Type': 'application/json'
+            },
+            timeout: 5000
+          });
+          
+          deletedCount++;
+          debugLog.push(`[WRM-CLIENT] Successfully deleted comment ID ${comment.id}`);
+        } catch (deleteError: any) {
+          const errorMsg = `Failed to delete comment ${comment.id}: ${deleteError.message}`;
+          errors.push(errorMsg);
+          debugLog.push(`[WRM-CLIENT] Error: ${errorMsg}`);
+        }
+      }
+      
+      debugLog.push(`[WRM-CLIENT] Deletion complete: ${deletedCount} deleted, ${errors.length} errors`);
+      
+      if (deletedCount > 0) {
+        return {
+          success: true,
+          message: `Successfully removed ${deletedCount} unapproved comments${errors.length > 0 ? ` (${errors.length} failed)` : ''}`,
+          deleted_count: deletedCount,
+          debugLog
+        };
+      } else {
+        return {
+          success: false,
+          message: `Failed to remove unapproved comments. Errors: ${errors.join('; ')}`,
+          deleted_count: 0,
+          debugLog
+        };
+      }
+      
     } catch (error: any) {
       debugLog.push(`[WRM-CLIENT] Exception occurred: ${error.message}`);
       debugLog.push(`[WRM-CLIENT] Error response: ${JSON.stringify(error.response?.data)}`);
@@ -1593,7 +1646,7 @@ export class WPRemoteManagerClient {
       
       return {
         success: false,
-        message: error.response?.data?.message || error.message || 'Failed to remove unapproved comments - Request failed',
+        message: error.response?.data?.message || error.message || 'Failed to remove unapproved comments - WordPress API request failed',
         deleted_count: 0,
         debugLog
       };
@@ -1602,39 +1655,140 @@ export class WPRemoteManagerClient {
   
   /**
    * Remove ALL spam and trashed comments (WordPress WP-Optimize style)
+   * Uses WordPress Core REST API directly for maximum compatibility
    */
   async removeAllSpamAndTrashedComments(): Promise<{ success: boolean; message: string; deleted_count: number; debugLog?: string[] }> {
     const debugLog: string[] = [];
     try {
-      debugLog.push(`[WRM-CLIENT] Starting removeAllSpamAndTrashedComments`);
+      debugLog.push(`[WRM-CLIENT] Starting removeAllSpamAndTrashedComments using WordPress Core API`);
       debugLog.push(`[WRM-CLIENT] Target URL: ${this.credentials.url}`);
       debugLog.push(`[WRM-CLIENT] API Key preview: ${this.credentials.apiKey?.substring(0, 10)}...`);
       
-      const response = await this.makeRequestWithFallback('/comments/remove-spam-trash', {
-        method: 'POST'
-      });
+      const axios = (await import('axios')).default;
+      let totalDeleted = 0;
+      const errors: string[] = [];
       
-      debugLog.push(`[WRM-CLIENT] Response status: ${response.status}`);
-      debugLog.push(`[WRM-CLIENT] Response data: ${JSON.stringify(response.data)}`);
+      // Step 1: Get and delete spam comments
+      debugLog.push(`[WRM-CLIENT] Step 1: Fetching spam comments`);
+      try {
+        const spamUrl = `${this.credentials.url}/wp-json/wp/v2/comments?status=spam&per_page=100`;
+        debugLog.push(`[WRM-CLIENT] Fetching spam comments from: ${spamUrl}`);
+        
+        const spamResponse = await axios.get(spamUrl, {
+          headers: {
+            'X-WRMS-API-Key': this.credentials.apiKey!,
+            'X-WRM-API-Key': this.credentials.apiKey!,
+            'Authorization': `Bearer ${this.credentials.apiKey!}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: 10000
+        });
+        
+        debugLog.push(`[WRM-CLIENT] Found ${spamResponse.data.length} spam comments`);
+        
+        // Delete spam comments
+        for (const comment of spamResponse.data) {
+          try {
+            const deleteUrl = `${this.credentials.url}/wp-json/wp/v2/comments/${comment.id}?force=true`;
+            debugLog.push(`[WRM-CLIENT] Deleting spam comment ID ${comment.id}`);
+            
+            await axios.delete(deleteUrl, {
+              headers: {
+                'X-WRMS-API-Key': this.credentials.apiKey!,
+                'X-WRM-API-Key': this.credentials.apiKey!,
+                'Authorization': `Bearer ${this.credentials.apiKey!}`,
+                'Content-Type': 'application/json'
+              },
+              timeout: 5000
+            });
+            
+            totalDeleted++;
+            debugLog.push(`[WRM-CLIENT] Successfully deleted spam comment ID ${comment.id}`);
+          } catch (deleteError: any) {
+            const errorMsg = `Failed to delete spam comment ${comment.id}: ${deleteError.message}`;
+            errors.push(errorMsg);
+            debugLog.push(`[WRM-CLIENT] Error: ${errorMsg}`);
+          }
+        }
+      } catch (spamFetchError: any) {
+        const errorMsg = `Failed to fetch spam comments: ${spamFetchError.message}`;
+        errors.push(errorMsg);
+        debugLog.push(`[WRM-CLIENT] Error: ${errorMsg}`);
+      }
       
-      if (response.data?.success) {
-        const deletedCount = response.data.deleted_count || 0;
-        debugLog.push(`[WRM-CLIENT] Successfully removed ${deletedCount} spam and trashed comments`);
+      // Step 2: Get and delete trashed comments
+      debugLog.push(`[WRM-CLIENT] Step 2: Fetching trashed comments`);
+      try {
+        const trashUrl = `${this.credentials.url}/wp-json/wp/v2/comments?status=trash&per_page=100`;
+        debugLog.push(`[WRM-CLIENT] Fetching trashed comments from: ${trashUrl}`);
+        
+        const trashResponse = await axios.get(trashUrl, {
+          headers: {
+            'X-WRMS-API-Key': this.credentials.apiKey!,
+            'X-WRM-API-Key': this.credentials.apiKey!,
+            'Authorization': `Bearer ${this.credentials.apiKey!}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: 10000
+        });
+        
+        debugLog.push(`[WRM-CLIENT] Found ${trashResponse.data.length} trashed comments`);
+        
+        // Delete trashed comments
+        for (const comment of trashResponse.data) {
+          try {
+            const deleteUrl = `${this.credentials.url}/wp-json/wp/v2/comments/${comment.id}?force=true`;
+            debugLog.push(`[WRM-CLIENT] Deleting trashed comment ID ${comment.id}`);
+            
+            await axios.delete(deleteUrl, {
+              headers: {
+                'X-WRMS-API-Key': this.credentials.apiKey!,
+                'X-WRM-API-Key': this.credentials.apiKey!,
+                'Authorization': `Bearer ${this.credentials.apiKey!}`,
+                'Content-Type': 'application/json'
+              },
+              timeout: 5000
+            });
+            
+            totalDeleted++;
+            debugLog.push(`[WRM-CLIENT] Successfully deleted trashed comment ID ${comment.id}`);
+          } catch (deleteError: any) {
+            const errorMsg = `Failed to delete trashed comment ${comment.id}: ${deleteError.message}`;
+            errors.push(errorMsg);
+            debugLog.push(`[WRM-CLIENT] Error: ${errorMsg}`);
+          }
+        }
+      } catch (trashFetchError: any) {
+        const errorMsg = `Failed to fetch trashed comments: ${trashFetchError.message}`;
+        errors.push(errorMsg);
+        debugLog.push(`[WRM-CLIENT] Error: ${errorMsg}`);
+      }
+      
+      debugLog.push(`[WRM-CLIENT] Deletion complete: ${totalDeleted} total deleted, ${errors.length} errors`);
+      
+      if (totalDeleted > 0) {
         return {
           success: true,
-          message: `Removed ${deletedCount} spam and trashed comments`,
-          deleted_count: deletedCount,
+          message: `Successfully removed ${totalDeleted} spam and trashed comments${errors.length > 0 ? ` (${errors.length} failed)` : ''}`,
+          deleted_count: totalDeleted,
+          debugLog
+        };
+      } else if (errors.length === 0) {
+        return {
+          success: true,
+          message: 'No spam or trashed comments found to remove',
+          deleted_count: 0,
+          debugLog
+        };
+      } else {
+        return {
+          success: false,
+          message: `Failed to remove spam and trashed comments. Errors: ${errors.join('; ')}`,
+          deleted_count: 0,
           debugLog
         };
       }
       
-      debugLog.push(`[WRM-CLIENT] API returned success=false: ${response.data?.message || 'No message'}`);
-      return {
-        success: false,
-        message: response.data?.message || 'Failed to remove spam and trashed comments - API returned success=false',
-        deleted_count: 0,
-        debugLog
-      };
     } catch (error: any) {
       debugLog.push(`[WRM-CLIENT] Exception occurred: ${error.message}`);
       debugLog.push(`[WRM-CLIENT] Error response: ${JSON.stringify(error.response?.data)}`);
@@ -1642,7 +1796,7 @@ export class WPRemoteManagerClient {
       
       return {
         success: false,
-        message: error.response?.data?.message || error.message || 'Failed to remove spam and trashed comments - Request failed',
+        message: error.response?.data?.message || error.message || 'Failed to remove spam and trashed comments - WordPress API request failed',
         deleted_count: 0,
         debugLog
       };
