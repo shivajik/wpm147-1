@@ -7612,59 +7612,70 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
     }
   });
 
-  // Clean unapproved comments endpoint
-  app.post("/api/websites/:id/comments/clean-unapproved", authenticateToken, async (req, res) => {
-    const debugLog: string[] = [];
+  // Remove ALL unapproved comments (like WordPress WP-Optimize)
+  app.post("/api/websites/:id/comments/remove-unapproved", authenticateToken, async (req, res) => {
     try {
-      debugLog.push(`[LOCALHOST-UNAPPROVED] Starting unapproved cleanup request`);
-      debugLog.push(`[LOCALHOST-UNAPPROVED] Timestamp: ${new Date().toISOString()}`);
-      
       const userId = (req as AuthRequest).user!.id;
-      debugLog.push(`[LOCALHOST-UNAPPROVED] User authenticated: ID ${userId}`);
-      
       const websiteId = parseInt(req.params.id);
-      debugLog.push(`[LOCALHOST-UNAPPROVED] Website ID: ${websiteId}`);
-      
       const website = await storage.getWebsite(websiteId, userId);
       
       if (!website) {
-        debugLog.push(`[LOCALHOST-UNAPPROVED] Website not found for user ${userId}`);
-        return res.status(404).json({ message: "Website not found", debugLog });
+        return res.status(404).json({ message: "Website not found" });
       }
-
-      debugLog.push(`[LOCALHOST-UNAPPROVED] Website found: ${website.name} (${website.url})`);
-      debugLog.push(`[LOCALHOST-UNAPPROVED] Has API key: ${!!website.wrmApiKey}`);
 
       if (!website.wrmApiKey) {
-        debugLog.push(`[LOCALHOST-UNAPPROVED] No WRM API key configured`);
-        return res.status(400).json({ message: "WordPress Remote Manager API key not configured", debugLog });
+        return res.status(400).json({ message: "WordPress Remote Manager API key not configured" });
       }
 
-      debugLog.push(`[LOCALHOST-UNAPPROVED] Creating WRM client for ${website.url}`);
       const credentials: WPRemoteManagerCredentials = {
         url: website.url,
         apiKey: website.wrmApiKey
       };
 
       const wrmClient = new WPRemoteManagerClient(credentials);
-      debugLog.push(`[LOCALHOST-UNAPPROVED] Calling cleanUnapprovedComments method...`);
-      const result = await wrmClient.cleanUnapprovedComments();
+      const result = await wrmClient.removeAllUnapprovedComments();
       
-      debugLog.push(`[LOCALHOST-UNAPPROVED] WRM client result: ${JSON.stringify(result)}`);
-      debugLog.push(`[LOCALHOST-UNAPPROVED] Operation completed`);
-      
-      res.json({
-        ...result,
-        debugLog
-      });
+      res.json(result);
     } catch (error) {
-      debugLog.push(`[LOCALHOST-UNAPPROVED] Error occurred: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      console.error("Error cleaning unapproved WordPress comments:", error);
+      console.error("Error removing unapproved comments:", error);
       res.status(500).json({ 
-        message: error instanceof Error ? error.message : "Failed to clean unapproved comments",
+        message: "Failed to remove unapproved comments",
         success: false,
-        deleted_count: 0,
-        debugLog
+        deleted_count: 0
+      });
+    }
+  });
+
+  // Remove ALL spam and trashed comments (like WordPress WP-Optimize)
+  app.post("/api/websites/:id/comments/remove-spam-trash", authenticateToken, async (req, res) => {
+    try {
+      const userId = (req as AuthRequest).user!.id;
+      const websiteId = parseInt(req.params.id);
+      const website = await storage.getWebsite(websiteId, userId);
+      
+      if (!website) {
+        return res.status(404).json({ message: "Website not found" });
+      }
+
+      if (!website.wrmApiKey) {
+        return res.status(400).json({ message: "WordPress Remote Manager API key not configured" });
+      }
+
+      const credentials: WPRemoteManagerCredentials = {
+        url: website.url,
+        apiKey: website.wrmApiKey
+      };
+
+      const wrmClient = new WPRemoteManagerClient(credentials);
+      const result = await wrmClient.removeAllSpamAndTrashedComments();
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Error removing spam and trashed comments:", error);
+      res.status(500).json({ 
+        message: "Failed to remove spam and trashed comments",
+        success: false,
+        deleted_count: 0
       });
     }
   });
