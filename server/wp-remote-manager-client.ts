@@ -1562,9 +1562,25 @@ export class WPRemoteManagerClient {
       debugLog.push(`[WRM-CLIENT] Target URL: ${this.credentials.url}`);
       debugLog.push(`[WRM-CLIENT] API Key preview: ${this.credentials.apiKey?.substring(0, 10)}...`);
       
-      const response = await this.makeRequestWithFallback('/comments/remove-unapproved', {
-        method: 'POST'
-      });
+      // Try plugin endpoint first, fallback to WordPress Core API
+      let response;
+      try {
+        response = await this.makeRequestWithFallback('/comments/remove-unapproved', {
+          method: 'POST'
+        });
+        
+        // If we get a 404, the plugin endpoint doesn't exist, use WordPress Core API
+        if (response.status === 404 || response.data?.code === 'rest_no_route') {
+          debugLog.push(`[WRM-CLIENT] Plugin endpoint not found, using WordPress Core API fallback`);
+          return await this.removeUnapprovedCommentsDirectAPI(debugLog);
+        }
+      } catch (error: any) {
+        if (error.response?.status === 404 || error.response?.data?.code === 'rest_no_route') {
+          debugLog.push(`[WRM-CLIENT] Plugin endpoint not found, using WordPress Core API fallback`);
+          return await this.removeUnapprovedCommentsDirectAPI(debugLog);
+        }
+        throw error;
+      }
       
       debugLog.push(`[WRM-CLIENT] Response status: ${response.status}`);
       debugLog.push(`[WRM-CLIENT] Response data: ${JSON.stringify(response.data)}`);
@@ -1612,9 +1628,25 @@ export class WPRemoteManagerClient {
       debugLog.push(`[WRM-CLIENT] Target URL: ${this.credentials.url}`);
       debugLog.push(`[WRM-CLIENT] API Key preview: ${this.credentials.apiKey?.substring(0, 10)}...`);
       
-      const response = await this.makeRequestWithFallback('/comments/remove-spam-trash', {
-        method: 'POST'
-      });
+      // Try plugin endpoint first, fallback to WordPress Core API
+      let response;
+      try {
+        response = await this.makeRequestWithFallback('/comments/remove-spam-trash', {
+          method: 'POST'
+        });
+        
+        // If we get a 404, the plugin endpoint doesn't exist, use WordPress Core API
+        if (response.status === 404 || response.data?.code === 'rest_no_route') {
+          debugLog.push(`[WRM-CLIENT] Plugin endpoint not found, using WordPress Core API fallback`);
+          return await this.removeSpamTrashCommentsDirectAPI(debugLog);
+        }
+      } catch (error: any) {
+        if (error.response?.status === 404 || error.response?.data?.code === 'rest_no_route') {
+          debugLog.push(`[WRM-CLIENT] Plugin endpoint not found, using WordPress Core API fallback`);
+          return await this.removeSpamTrashCommentsDirectAPI(debugLog);
+        }
+        throw error;
+      }
       
       debugLog.push(`[WRM-CLIENT] Response status: ${response.status}`);
       debugLog.push(`[WRM-CLIENT] Response data: ${JSON.stringify(response.data)}`);
@@ -3323,5 +3355,169 @@ export class WPRemoteManagerClient {
     const unit = match[2].toUpperCase();
     
     return unit === 'KB' ? value / 1024 : value;
+  }
+  
+  /**
+   * Direct WordPress Core API fallback for removing unapproved comments
+   */
+  private async removeUnapprovedCommentsDirectAPI(debugLog: string[]): Promise<{ success: boolean; message: string; deleted_count: number; debugLog?: string[] }> {
+    try {
+      debugLog.push(`[WRM-CLIENT] Using WordPress Core API direct method`);
+      const axios = (await import('axios')).default;
+      
+      // Get all pending/unapproved comments
+      const commentsUrl = `${this.credentials.url}/wp-json/wp/v2/comments?status=hold&per_page=100`;
+      debugLog.push(`[WRM-CLIENT] Fetching unapproved comments from: ${commentsUrl}`);
+      
+      const commentsResponse = await axios.get(commentsUrl, {
+        headers: {
+          'X-WRMS-API-Key': this.credentials.apiKey!,
+          'X-WRM-API-Key': this.credentials.apiKey!,
+          'Authorization': `Bearer ${this.credentials.apiKey!}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000
+      });
+      
+      debugLog.push(`[WRM-CLIENT] Found ${commentsResponse.data.length} unapproved comments`);
+      
+      if (commentsResponse.data.length === 0) {
+        return {
+          success: true,
+          message: 'No unapproved comments found to remove',
+          deleted_count: 0,
+          debugLog
+        };
+      }
+      
+      // Delete each unapproved comment
+      let deletedCount = 0;
+      const errors: string[] = [];
+      
+      for (const comment of commentsResponse.data) {
+        try {
+          const deleteUrl = `${this.credentials.url}/wp-json/wp/v2/comments/${comment.id}?force=true`;
+          await axios.delete(deleteUrl, {
+            headers: {
+              'X-WRMS-API-Key': this.credentials.apiKey!,
+              'X-WRM-API-Key': this.credentials.apiKey!,
+              'Authorization': `Bearer ${this.credentials.apiKey!}`,
+              'Content-Type': 'application/json'
+            },
+            timeout: 5000
+          });
+          deletedCount++;
+        } catch (deleteError: any) {
+          errors.push(`Failed to delete comment ${comment.id}`);
+        }
+      }
+      
+      return {
+        success: deletedCount > 0,
+        message: `Successfully removed ${deletedCount} unapproved comments via WordPress Core API`,
+        deleted_count: deletedCount,
+        debugLog
+      };
+    } catch (error: any) {
+      debugLog.push(`[WRM-CLIENT] Direct API error: ${error.message}`);
+      return {
+        success: false,
+        message: 'Failed to remove unapproved comments via WordPress Core API',
+        deleted_count: 0,
+        debugLog
+      };
+    }
+  }
+  
+  /**
+   * Direct WordPress Core API fallback for removing spam and trash comments
+   */
+  private async removeSpamTrashCommentsDirectAPI(debugLog: string[]): Promise<{ success: boolean; message: string; deleted_count: number; debugLog?: string[] }> {
+    try {
+      debugLog.push(`[WRM-CLIENT] Using WordPress Core API direct method`);
+      const axios = (await import('axios')).default;
+      let totalDeleted = 0;
+      
+      // Get spam comments
+      const spamUrl = `${this.credentials.url}/wp-json/wp/v2/comments?status=spam&per_page=100`;
+      try {
+        const spamResponse = await axios.get(spamUrl, {
+          headers: {
+            'X-WRMS-API-Key': this.credentials.apiKey!,
+            'X-WRM-API-Key': this.credentials.apiKey!,
+            'Authorization': `Bearer ${this.credentials.apiKey!}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: 10000
+        });
+        
+        for (const comment of spamResponse.data) {
+          try {
+            await axios.delete(`${this.credentials.url}/wp-json/wp/v2/comments/${comment.id}?force=true`, {
+              headers: {
+                'X-WRMS-API-Key': this.credentials.apiKey!,
+                'X-WRM-API-Key': this.credentials.apiKey!,
+                'Authorization': `Bearer ${this.credentials.apiKey!}`,
+                'Content-Type': 'application/json'
+              },
+              timeout: 5000
+            });
+            totalDeleted++;
+          } catch (deleteError) {
+            // Continue with next comment
+          }
+        }
+      } catch (spamFetchError) {
+        debugLog.push(`[WRM-CLIENT] Could not fetch spam comments`);
+      }
+      
+      // Get trash comments
+      const trashUrl = `${this.credentials.url}/wp-json/wp/v2/comments?status=trash&per_page=100`;
+      try {
+        const trashResponse = await axios.get(trashUrl, {
+          headers: {
+            'X-WRMS-API-Key': this.credentials.apiKey!,
+            'X-WRM-API-Key': this.credentials.apiKey!,
+            'Authorization': `Bearer ${this.credentials.apiKey!}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: 10000
+        });
+        
+        for (const comment of trashResponse.data) {
+          try {
+            await axios.delete(`${this.credentials.url}/wp-json/wp/v2/comments/${comment.id}?force=true`, {
+              headers: {
+                'X-WRMS-API-Key': this.credentials.apiKey!,
+                'X-WRM-API-Key': this.credentials.apiKey!,
+                'Authorization': `Bearer ${this.credentials.apiKey!}`,
+                'Content-Type': 'application/json'
+              },
+              timeout: 5000
+            });
+            totalDeleted++;
+          } catch (deleteError) {
+            // Continue with next comment
+          }
+        }
+      } catch (trashFetchError) {
+        debugLog.push(`[WRM-CLIENT] Could not fetch trash comments`);
+      }
+      
+      return {
+        success: totalDeleted > 0,
+        message: `Successfully removed ${totalDeleted} spam and trashed comments via WordPress Core API`,
+        deleted_count: totalDeleted,
+        debugLog
+      };
+    } catch (error: any) {
+      debugLog.push(`[WRM-CLIENT] Direct API error: ${error.message}`);
+      return {
+        success: false,
+        message: 'Failed to remove spam and trashed comments via WordPress Core API',
+        deleted_count: 0,
+        debugLog
+      };
+    }
   }
 }
