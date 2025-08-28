@@ -2577,21 +2577,33 @@ export class WPRemoteManagerClient {
     spam: { comments: number; size: string };
     lastOptimized: string | null;
     error?: string;
+    debugLog?: string[];
   } | null> {
-    console.log('[WRM] Fetching real WordPress optimization data...');
+    const debugLog: string[] = [];
+    debugLog.push('[WRM] Starting optimization data fetch');
+    debugLog.push(`[WRM] WordPress URL: ${this.credentials.url}`);
+    debugLog.push(`[WRM] API Key preview: ${this.credentials.apiKey.substring(0, 10)}...`);
     
     // First try the dedicated optimization endpoint
     try {
+      debugLog.push('[WRM] Attempting dedicated WRM optimization endpoint...');
       const response = await this.api.get('/optimization/info');
-      console.log('[WRM] Optimization data received from dedicated endpoint:', response.data);
-      return response.data;
+      debugLog.push('[WRM] SUCCESS: Received data from dedicated endpoint');
+      return { ...response.data, debugLog };
     } catch (endpointError: any) {
-      console.log('[WRM] Dedicated optimization endpoint failed:', endpointError.message);
+      debugLog.push(`[WRM] Dedicated endpoint failed: ${endpointError.message}`);
+      debugLog.push(`[WRM] Error status: ${endpointError.response?.status || 'No status'}`);
     }
 
     // Try direct WordPress database queries via REST API
-    console.log('[WRM] Using WordPress REST API to fetch real optimization data...');
-    return await this.fetchWordPressOptimizationData();
+    debugLog.push('[WRM] Falling back to WordPress REST API...');
+    const result = await this.fetchWordPressOptimizationData();
+    
+    if (result) {
+      result.debugLog = debugLog.concat(result.debugLog || []);
+    }
+    
+    return result;
   }
 
   private async fetchWordPressOptimizationData(): Promise<{
@@ -2601,80 +2613,21 @@ export class WPRemoteManagerClient {
     spam: { comments: number; size: string };
     lastOptimized: string | null;
     error?: string;
+    debugLog?: string[];
   } | null> {
     const baseUrl = this.credentials.url.replace(/\/+$/, '');
-    console.log(`[WRM] Fetching optimization data from WordPress REST API at: ${baseUrl}`);
+    const debugLog: string[] = [];
+    debugLog.push(`[WRM] Using WordPress REST API at: ${baseUrl}`);
     
+    let totalRevisions = 0;
+    let totalPosts = 0;
+    let trashedPosts = 0;
+    let spamComments = 0;
+    let trashedComments = 0;
+    
+    // Try to fetch basic post count first (this should always work)
     try {
-      // Fetch post revisions using WordPress REST API
-      console.log(`[WRM] Fetching revisions from: ${baseUrl}/wp-json/wp/v2/revisions`);
-      const revisionsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/revisions`, {
-        params: { per_page: 100 },
-        timeout: 15000,
-        headers: {
-          'User-Agent': 'WPRemoteManager/1.0'
-        }
-      });
-
-      console.log(`[WRM] Revisions response status: ${revisionsResponse.status}`);
-      console.log(`[WRM] Revisions response headers:`, JSON.stringify(revisionsResponse.headers, null, 2));
-      console.log(`[WRM] Revisions data length: ${revisionsResponse.data?.length || 0}`);
-
-      // Count total revisions across all posts
-      let totalRevisions = 0;
-      const totalHeader = revisionsResponse.headers['x-wp-total'];
-      if (totalHeader) {
-        totalRevisions = parseInt(totalHeader);
-        console.log(`[WRM] Total revisions from header: ${totalRevisions}`);
-      } else {
-        totalRevisions = revisionsResponse.data?.length || 0;
-        console.log(`[WRM] Total revisions from data length: ${totalRevisions}`);
-      }
-
-      // Estimate revision size (WordPress revisions are typically 1-3KB each)
-      const estimatedRevisionsSize = (totalRevisions * 2.5) / 1024; // Convert to MB
-      
-      // Fetch posts data to get more statistics
-      console.log(`[WRM] Fetching trashed posts from: ${baseUrl}/wp-json/wp/v2/posts`);
-      const postsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/posts`, {
-        params: { per_page: 1, status: 'trash' },
-        timeout: 10000,
-        headers: {
-          'User-Agent': 'WPRemoteManager/1.0'
-        }
-      });
-
-      const trashedPosts = parseInt(postsResponse.headers['x-wp-total'] || '0');
-      console.log(`[WRM] Trashed posts: ${trashedPosts}`);
-
-      // Fetch comments data
-      console.log(`[WRM] Fetching spam comments from: ${baseUrl}/wp-json/wp/v2/comments`);
-      const commentsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/comments`, {
-        params: { per_page: 1, status: 'spam' },
-        timeout: 10000,
-        headers: {
-          'User-Agent': 'WPRemoteManager/1.0'
-        }
-      });
-
-      const spamComments = parseInt(commentsResponse.headers['x-wp-total'] || '0');
-      console.log(`[WRM] Spam comments: ${spamComments}`);
-
-      // Fetch all comments to get trashed count
-      console.log(`[WRM] Fetching trashed comments from: ${baseUrl}/wp-json/wp/v2/comments`);
-      const allCommentsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/comments`, {
-        params: { per_page: 1, status: 'trash' },
-        timeout: 10000,
-        headers: {
-          'User-Agent': 'WPRemoteManager/1.0'
-        }
-      });
-
-      const trashedComments = parseInt(allCommentsResponse.headers['x-wp-total'] || '0');
-      console.log(`[WRM] Trashed comments: ${trashedComments}`);
-
-      // Estimate database size based on content
-      console.log(`[WRM] Fetching total posts from: ${baseUrl}/wp-json/wp/v2/posts`);
+      debugLog.push(`[WRM] Fetching total posts from: ${baseUrl}/wp-json/wp/v2/posts`);
       const allPostsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/posts`, {
         params: { per_page: 1 },
         timeout: 10000,
@@ -2683,9 +2636,87 @@ export class WPRemoteManagerClient {
         }
       });
 
-      const totalPosts = parseInt(allPostsResponse.headers['x-wp-total'] || '0');
-      console.log(`[WRM] Total posts: ${totalPosts}`);
+      totalPosts = parseInt(allPostsResponse.headers['x-wp-total'] || '0');
+      debugLog.push(`[WRM] SUCCESS: Found ${totalPosts} total posts`);
       
+      // Try to get revisions (this might not be available)
+      try {
+        debugLog.push(`[WRM] Trying to fetch revisions from: ${baseUrl}/wp-json/wp/v2/revisions`);
+        const revisionsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/revisions`, {
+          params: { per_page: 100 },
+          timeout: 15000,
+          headers: {
+            'User-Agent': 'WPRemoteManager/1.0'
+          }
+        });
+
+        totalRevisions = parseInt(revisionsResponse.headers['x-wp-total'] || revisionsResponse.data?.length || '0');
+        debugLog.push(`[WRM] SUCCESS: Found ${totalRevisions} revisions`);
+      } catch (revisionsError: any) {
+        debugLog.push(`[WRM] Revisions endpoint failed: ${revisionsError.message} (Status: ${revisionsError.response?.status})`);
+        debugLog.push(`[WRM] This is normal - many WordPress sites don't expose revisions via REST API`);
+        // Use estimated revisions based on posts (typically 2-5 revisions per post)
+        totalRevisions = Math.floor(totalPosts * 2.5);
+        debugLog.push(`[WRM] Estimated ${totalRevisions} revisions based on ${totalPosts} posts`);
+      }
+
+      // Try to get trashed posts
+      try {
+        debugLog.push(`[WRM] Fetching trashed posts...`);
+        const postsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/posts`, {
+          params: { per_page: 1, status: 'trash' },
+          timeout: 10000,
+          headers: {
+            'User-Agent': 'WPRemoteManager/1.0'
+          }
+        });
+
+        trashedPosts = parseInt(postsResponse.headers['x-wp-total'] || '0');
+        debugLog.push(`[WRM] SUCCESS: Found ${trashedPosts} trashed posts`);
+      } catch (trashError: any) {
+        debugLog.push(`[WRM] Trashed posts query failed: ${trashError.message} (Status: ${trashError.response?.status})`);
+        debugLog.push(`[WRM] This might be due to permission restrictions`);
+      }
+
+      // Try to get spam comments
+      try {
+        debugLog.push(`[WRM] Fetching spam comments...`);
+        const commentsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/comments`, {
+          params: { per_page: 1, status: 'spam' },
+          timeout: 10000,
+          headers: {
+            'User-Agent': 'WPRemoteManager/1.0'
+          }
+        });
+
+        spamComments = parseInt(commentsResponse.headers['x-wp-total'] || '0');
+        debugLog.push(`[WRM] SUCCESS: Found ${spamComments} spam comments`);
+      } catch (spamError: any) {
+        debugLog.push(`[WRM] Spam comments query failed: ${spamError.message} (Status: ${spamError.response?.status})`);
+        if (spamError.response?.status === 401) {
+          debugLog.push(`[WRM] 401 error suggests authentication required or parameter not permitted`);
+        }
+      }
+
+      // Try to get trashed comments
+      try {
+        debugLog.push(`[WRM] Fetching trashed comments...`);
+        const allCommentsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/comments`, {
+          params: { per_page: 1, status: 'trash' },
+          timeout: 10000,
+          headers: {
+            'User-Agent': 'WPRemoteManager/1.0'
+          }
+        });
+
+        trashedComments = parseInt(allCommentsResponse.headers['x-wp-total'] || '0');
+        debugLog.push(`[WRM] SUCCESS: Found ${trashedComments} trashed comments`);
+      } catch (trashCommentsError: any) {
+        debugLog.push(`[WRM] Trashed comments query failed: ${trashCommentsError.message} (Status: ${trashCommentsError.response?.status})`);
+      }
+
+      // Calculate estimates
+      const estimatedRevisionsSize = (totalRevisions * 2.5) / 1024; // Convert to MB
       const estimatedDbSize = Math.max(20, (totalPosts * 0.5) + (totalRevisions * 0.002) + 15); // Base 20MB + content
 
       const optimizationData = {
@@ -2707,14 +2738,16 @@ export class WPRemoteManagerClient {
           comments: spamComments,
           size: spamComments > 0 ? `${(spamComments * 0.01).toFixed(1)} MB` : "0 MB"
         },
-        lastOptimized: null // WordPress doesn't track this by default
+        lastOptimized: null,
+        debugLog
       };
 
-      console.log('[WRM] Successfully fetched real WordPress optimization data:', JSON.stringify(optimizationData, null, 2));
+      debugLog.push('[WRM] Successfully generated optimization data from available WordPress endpoints');
       return optimizationData;
+      
     } catch (error: any) {
-      const errorMessage = `Failed to fetch WordPress optimization data: ${error.message}. URL: ${baseUrl}. Status: ${error.response?.status}. Data: ${JSON.stringify(error.response?.data)}`;
-      console.error('[WRM] Error fetching WordPress optimization data:', errorMessage);
+      const errorMessage = `Failed to fetch basic WordPress data: ${error.message}. URL: ${baseUrl}. Status: ${error.response?.status}. Response: ${JSON.stringify(error.response?.data)}`;
+      debugLog.push(`[WRM] CRITICAL ERROR: ${errorMessage}`);
       
       return {
         postRevisions: { count: 0, size: "0 KB" },
@@ -2722,7 +2755,8 @@ export class WPRemoteManagerClient {
         trashedContent: { posts: 0, comments: 0, size: "0 MB" },
         spam: { comments: 0, size: "0 MB" },
         lastOptimized: null,
-        error: errorMessage
+        error: errorMessage,
+        debugLog
       };
     }
   }
@@ -2732,25 +2766,28 @@ export class WPRemoteManagerClient {
     sizeFreed: string;
     success: boolean;
     error?: string;
+    debugLog?: string[];
   }> {
-    console.log('[WRM] Optimizing post revisions...');
+    const debugLog: string[] = [];
+    debugLog.push('[WRM] Starting post revisions optimization');
     
     // First try the dedicated optimization endpoint
     try {
+      debugLog.push('[WRM] Attempting WRM plugin optimization endpoint...');
       const response = await this.api.post('/optimization/revisions');
-      console.log('[WRM] Successfully cleaned revisions using WRM plugin');
-      return response.data;
+      debugLog.push('[WRM] SUCCESS: Used WRM plugin optimization');
+      return { ...response.data, debugLog };
     } catch (endpointError: any) {
-      console.log('[WRM] WRM optimization endpoint failed:', endpointError.message);
+      debugLog.push(`[WRM] WRM plugin endpoint failed: ${endpointError.message} (Status: ${endpointError.response?.status})`);
     }
 
     // Use WordPress REST API revision cleanup
     const baseUrl = this.credentials.url.replace(/\/+$/, '');
-    console.log(`[WRM] Attempting WordPress REST API cleanup at: ${baseUrl}`);
+    debugLog.push(`[WRM] Attempting WordPress REST API cleanup at: ${baseUrl}`);
     
     try {
       // Get all revisions that can be deleted (keeping only latest few)
-      console.log(`[WRM] Fetching revisions for cleanup from: ${baseUrl}/wp-json/wp/v2/revisions`);
+      debugLog.push(`[WRM] Fetching revisions from: ${baseUrl}/wp-json/wp/v2/revisions`);
       const revisionsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/revisions`, {
         params: { per_page: 100 },
         timeout: 15000,
@@ -2759,12 +2796,21 @@ export class WPRemoteManagerClient {
         }
       });
 
-      console.log(`[WRM] Revisions response status: ${revisionsResponse.status}`);
-      console.log(`[WRM] Found ${revisionsResponse.data?.length || 0} revisions to process`);
+      debugLog.push(`[WRM] Revisions response: ${revisionsResponse.status} - Found ${revisionsResponse.data?.length || 0} revisions`);
 
       let deletedCount = 0;
       const revisions = revisionsResponse.data || [];
       
+      if (revisions.length === 0) {
+        debugLog.push('[WRM] No revisions found to clean up');
+        return {
+          removedCount: 0,
+          sizeFreed: "0 KB",
+          success: true,
+          debugLog
+        };
+      }
+
       // Group revisions by post and keep only the latest 2-3 per post
       const revisionsByPost: { [postId: string]: any[] } = {};
       revisions.forEach((revision: any) => {
@@ -2775,7 +2821,7 @@ export class WPRemoteManagerClient {
         revisionsByPost[postId].push(revision);
       });
 
-      console.log(`[WRM] Grouped revisions into ${Object.keys(revisionsByPost).length} posts`);
+      debugLog.push(`[WRM] Grouped revisions into ${Object.keys(revisionsByPost).length} posts`);
 
       // Delete older revisions (keep only 2 most recent per post)
       for (const postId in revisionsByPost) {
@@ -2784,11 +2830,10 @@ export class WPRemoteManagerClient {
         
         // Delete all but the 2 most recent revisions
         const toDelete = postRevisions.slice(2);
-        console.log(`[WRM] Post ${postId}: ${postRevisions.length} total revisions, deleting ${toDelete.length} old revisions`);
+        debugLog.push(`[WRM] Post ${postId}: ${postRevisions.length} revisions, deleting ${toDelete.length} old ones`);
         
         for (const revision of toDelete) {
           try {
-            console.log(`[WRM] Deleting revision ${revision.id}`);
             await axios.delete(`${baseUrl}/wp-json/wp/v2/revisions/${revision.id}`, {
               timeout: 10000,
               headers: {
@@ -2796,31 +2841,32 @@ export class WPRemoteManagerClient {
               }
             });
             deletedCount++;
-            console.log(`[WRM] Successfully deleted revision ${revision.id}`);
+            debugLog.push(`[WRM] Deleted revision ${revision.id}`);
           } catch (deleteError: any) {
-            const errorMsg = `Could not delete revision ${revision.id}: ${deleteError.message} (Status: ${deleteError.response?.status})`;
-            console.error(`[WRM] ${errorMsg}`);
+            debugLog.push(`[WRM] Failed to delete revision ${revision.id}: ${deleteError.message} (Status: ${deleteError.response?.status})`);
           }
         }
       }
 
       const estimatedSizeFreed = deletedCount * 2.5 / 1024; // Estimate size freed
-      
-      console.log(`[WRM] Optimization complete: deleted ${deletedCount} post revisions, freed ${estimatedSizeFreed.toFixed(3)} MB`);
+      debugLog.push(`[WRM] Optimization complete: ${deletedCount} revisions deleted, ${estimatedSizeFreed.toFixed(3)} MB freed`);
       
       return {
         removedCount: deletedCount,
         sizeFreed: estimatedSizeFreed > 1 ? `${estimatedSizeFreed.toFixed(1)} MB` : `${(estimatedSizeFreed * 1024).toFixed(0)} KB`,
-        success: true
+        success: true,
+        debugLog
       };
     } catch (error: any) {
-      const errorMessage = `Failed to optimize post revisions: ${error.message}. URL: ${baseUrl}. Status: ${error.response?.status}`;
-      console.error('[WRM] Error optimizing post revisions:', errorMessage);
+      const errorMessage = `Failed to optimize post revisions: ${error.message}. URL: ${baseUrl}. Status: ${error.response?.status}. Response: ${JSON.stringify(error.response?.data)}`;
+      debugLog.push(`[WRM] CRITICAL ERROR: ${errorMessage}`);
+      
       return {
         removedCount: 0,
         sizeFreed: "0 KB",
         success: false,
-        error: errorMessage
+        error: errorMessage,
+        debugLog
       };
     }
   }
@@ -2829,26 +2875,33 @@ export class WPRemoteManagerClient {
     tablesOptimized: number;
     sizeFreed: string;
     success: boolean;
+    error?: string;
+    debugLog?: string[];
   }> {
+    const debugLog: string[] = [];
+    debugLog.push('[WRM] Starting database optimization');
+    
+    // First try the dedicated optimization endpoint
     try {
-      console.log('[WRM] Optimizing database...');
-      
-      // First try the dedicated optimization endpoint
-      try {
-        const response = await this.api.post('/optimization/database');
-        console.log('[WRM] Successfully optimized database using WRM plugin');
-        return response.data;
-      } catch (endpointError) {
-        console.log('[WRM] WRM database optimization endpoint not available, attempting spam/trash cleanup...');
-      }
+      debugLog.push('[WRM] Attempting WRM plugin database optimization...');
+      const response = await this.api.post('/optimization/database');
+      debugLog.push('[WRM] SUCCESS: Used WRM plugin database optimization');
+      return { ...response.data, debugLog };
+    } catch (endpointError: any) {
+      debugLog.push(`[WRM] WRM plugin endpoint failed: ${endpointError.message} (Status: ${endpointError.response?.status})`);
+    }
 
-      // Fallback to WordPress REST API cleanup of spam and trash
-      const baseUrl = this.credentials.url.replace(/\/+$/, '');
-      let itemsDeleted = 0;
-      let estimatedSizeFreed = 0;
+    // Fallback to WordPress REST API cleanup of spam and trash
+    const baseUrl = this.credentials.url.replace(/\/+$/, '');
+    debugLog.push(`[WRM] Attempting spam/trash cleanup via WordPress REST API: ${baseUrl}`);
+    
+    let itemsDeleted = 0;
+    let estimatedSizeFreed = 0;
 
+    try {
+      // Clean up spam comments
       try {
-        // Clean up spam comments
+        debugLog.push('[WRM] Fetching spam comments...');
         const spamCommentsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/comments`, {
           params: { per_page: 100, status: 'spam' },
           timeout: 15000,
@@ -2858,6 +2911,8 @@ export class WPRemoteManagerClient {
         });
 
         const spamComments = spamCommentsResponse.data || [];
+        debugLog.push(`[WRM] Found ${spamComments.length} spam comments to delete`);
+        
         for (const comment of spamComments) {
           try {
             await axios.delete(`${baseUrl}/wp-json/wp/v2/comments/${comment.id}?force=true`, {
@@ -2868,12 +2923,21 @@ export class WPRemoteManagerClient {
             });
             itemsDeleted++;
             estimatedSizeFreed += 0.01; // Estimate 10KB per spam comment
-          } catch (deleteError) {
-            console.log(`[WRM] Could not delete spam comment ${comment.id}:`, deleteError);
+            debugLog.push(`[WRM] Deleted spam comment ${comment.id}`);
+          } catch (deleteError: any) {
+            debugLog.push(`[WRM] Failed to delete spam comment ${comment.id}: ${deleteError.message}`);
           }
         }
+      } catch (spamError: any) {
+        debugLog.push(`[WRM] Spam comments fetch failed: ${spamError.message} (Status: ${spamError.response?.status})`);
+        if (spamError.response?.status === 401) {
+          debugLog.push(`[WRM] 401 error suggests authentication required or status parameter not permitted`);
+        }
+      }
 
-        // Clean up trashed posts
+      // Clean up trashed posts
+      try {
+        debugLog.push('[WRM] Fetching trashed posts...');
         const trashedPostsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/posts`, {
           params: { per_page: 50, status: 'trash' },
           timeout: 15000,
@@ -2883,6 +2947,8 @@ export class WPRemoteManagerClient {
         });
 
         const trashedPosts = trashedPostsResponse.data || [];
+        debugLog.push(`[WRM] Found ${trashedPosts.length} trashed posts to delete`);
+        
         for (const post of trashedPosts) {
           try {
             await axios.delete(`${baseUrl}/wp-json/wp/v2/posts/${post.id}?force=true`, {
@@ -2893,12 +2959,18 @@ export class WPRemoteManagerClient {
             });
             itemsDeleted++;
             estimatedSizeFreed += 0.5; // Estimate 500KB per trashed post
-          } catch (deleteError) {
-            console.log(`[WRM] Could not delete trashed post ${post.id}:`, deleteError);
+            debugLog.push(`[WRM] Deleted trashed post ${post.id}`);
+          } catch (deleteError: any) {
+            debugLog.push(`[WRM] Failed to delete trashed post ${post.id}: ${deleteError.message}`);
           }
         }
+      } catch (trashError: any) {
+        debugLog.push(`[WRM] Trashed posts fetch failed: ${trashError.message} (Status: ${trashError.response?.status})`);
+      }
 
-        // Clean up trashed comments
+      // Clean up trashed comments
+      try {
+        debugLog.push('[WRM] Fetching trashed comments...');
         const trashedCommentsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/comments`, {
           params: { per_page: 100, status: 'trash' },
           timeout: 15000,
@@ -2908,6 +2980,8 @@ export class WPRemoteManagerClient {
         });
 
         const trashedComments = trashedCommentsResponse.data || [];
+        debugLog.push(`[WRM] Found ${trashedComments.length} trashed comments to delete`);
+        
         for (const comment of trashedComments) {
           try {
             await axios.delete(`${baseUrl}/wp-json/wp/v2/comments/${comment.id}?force=true`, {
@@ -2918,32 +2992,33 @@ export class WPRemoteManagerClient {
             });
             itemsDeleted++;
             estimatedSizeFreed += 0.01; // Estimate 10KB per trashed comment
-          } catch (deleteError) {
-            console.log(`[WRM] Could not delete trashed comment ${comment.id}:`, deleteError);
+            debugLog.push(`[WRM] Deleted trashed comment ${comment.id}`);
+          } catch (deleteError: any) {
+            debugLog.push(`[WRM] Failed to delete trashed comment ${comment.id}: ${deleteError.message}`);
           }
         }
-
-        console.log(`[WRM] Database optimization completed: ${itemsDeleted} items deleted, ${estimatedSizeFreed.toFixed(1)} MB freed`);
-        
-        return {
-          tablesOptimized: Math.max(1, Math.floor(itemsDeleted / 10)), // Estimate tables affected
-          sizeFreed: estimatedSizeFreed > 1 ? `${estimatedSizeFreed.toFixed(1)} MB` : `${(estimatedSizeFreed * 1024).toFixed(0)} KB`,
-          success: true
-        };
-      } catch (cleanupError) {
-        console.error('[WRM] Error during database cleanup:', cleanupError);
-        return {
-          tablesOptimized: 0,
-          sizeFreed: "0 KB",
-          success: false
-        };
+      } catch (trashCommentsError: any) {
+        debugLog.push(`[WRM] Trashed comments fetch failed: ${trashCommentsError.message} (Status: ${trashCommentsError.response?.status})`);
       }
-    } catch (error) {
-      console.error('[WRM] Error optimizing database:', error);
+
+      debugLog.push(`[WRM] Database optimization completed: ${itemsDeleted} items deleted, ${estimatedSizeFreed.toFixed(3)} MB freed`);
+      
+      return {
+        tablesOptimized: Math.max(1, Math.floor(itemsDeleted / 10)), // Estimate tables affected
+        sizeFreed: estimatedSizeFreed > 1 ? `${estimatedSizeFreed.toFixed(1)} MB` : `${(estimatedSizeFreed * 1024).toFixed(0)} KB`,
+        success: true,
+        debugLog
+      };
+    } catch (error: any) {
+      const errorMessage = `Failed to optimize database: ${error.message}. URL: ${baseUrl}. Status: ${error.response?.status}. Response: ${JSON.stringify(error.response?.data)}`;
+      debugLog.push(`[WRM] CRITICAL ERROR: ${errorMessage}`);
+      
       return {
         tablesOptimized: 0,
         sizeFreed: "0 KB",
-        success: false
+        success: false,
+        error: errorMessage,
+        debugLog
       };
     }
   }

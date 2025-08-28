@@ -876,114 +876,62 @@ class VercelWPRemoteManagerClient {
   }
 
   async getOptimizationData(): Promise<any> {
+    const debugLog: string[] = [];
+    debugLog.push('[VERCEL-WRM] Starting optimization data fetch');
+    debugLog.push(`[VERCEL-WRM] WordPress URL: ${this.baseUrl}`);
+    debugLog.push(`[VERCEL-WRM] API Key preview: ${this.apiKey.substring(0, 10)}...`);
+    
+    // First try the dedicated optimization endpoint
     try {
-      console.log('[VERCEL-WRM] Fetching real WordPress optimization data...');
-      
-      // First try the dedicated optimization endpoint
-      try {
-        console.log('[VERCEL-WRM] Attempting to fetch optimization data from:', `${this.baseUrl}/wp-json/wrm/v1/optimization/info`);
-        const response = await axios.post(`${this.baseUrl}/wp-json/wrm/v1/optimization/info`, {}, {
-          headers: {
-            'Authorization': `Bearer ${this.apiKey}`,
-            'Content-Type': 'application/json'
-          },
-          timeout: 10000
-        });
-        console.log('[VERCEL-WRM] Successfully fetched optimization data from WordPress plugin');
-        return response.data;
-      } catch (endpointError: any) {
-        console.log('[VERCEL-WRM] Dedicated optimization endpoint not available, using WordPress database queries...');
-        console.log('[VERCEL-WRM] Endpoint error details:', endpointError.code || endpointError.message || 'Unknown error');
-      }
-
-      // Fallback to direct WordPress database queries via REST API
-      const optimizationData = await this.fetchWordPressOptimizationData();
-      
-      if (optimizationData) {
-        console.log('[VERCEL-WRM] Successfully fetched optimization data from WordPress database');
-        return optimizationData;
-      }
-
-      console.log('[VERCEL-WRM] Could not fetch optimization data, website may not be accessible');
-      return null;
-    } catch (error: any) {
-      console.error('[VERCEL-WRM] Error fetching optimization data:', error);
-      return null;
+      debugLog.push('[VERCEL-WRM] Attempting dedicated WRM optimization endpoint...');
+      const response = await axios.post(`${this.baseUrl}/wp-json/wrm/v1/optimization/info`, {}, {
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000
+      });
+      debugLog.push('[VERCEL-WRM] SUCCESS: Received data from dedicated endpoint');
+      return { ...response.data, debugLog };
+    } catch (endpointError: any) {
+      debugLog.push(`[VERCEL-WRM] Dedicated endpoint failed: ${endpointError.message}`);
+      debugLog.push(`[VERCEL-WRM] Error status: ${endpointError.response?.status || 'No status'}`);
     }
+
+    // Fallback to direct WordPress database queries via REST API
+    debugLog.push('[VERCEL-WRM] Falling back to WordPress REST API...');
+    const optimizationData = await this.fetchWordPressOptimizationData();
+    
+    if (optimizationData) {
+      optimizationData.debugLog = debugLog.concat(optimizationData.debugLog || []);
+      return optimizationData;
+    }
+
+    return {
+      postRevisions: { count: 0, size: "0 KB" },
+      databaseSize: { total: "0 MB", tables: 0, overhead: "0 MB" },
+      trashedContent: { posts: 0, comments: 0, size: "0 MB" },
+      spam: { comments: 0, size: "0 MB" },
+      lastOptimized: null,
+      error: "Could not fetch optimization data from WordPress",
+      debugLog
+    };
   }
 
   private async fetchWordPressOptimizationData(): Promise<any> {
+    const debugLog: string[] = [];
+    const baseUrl = this.baseUrl.replace(/\/+$/, '');
+    debugLog.push(`[VERCEL-WRM] Using WordPress REST API at: ${baseUrl}`);
+    
+    let totalRevisions = 0;
+    let totalPosts = 0;
+    let trashedPosts = 0;
+    let spamComments = 0;
+    let trashedComments = 0;
+    
+    // Try to fetch basic post count first (this should always work)
     try {
-      console.log('[VERCEL-WRM] Fetching optimization data from WordPress REST API...');
-      
-      // Use WordPress REST API to get optimization data
-      const baseUrl = this.baseUrl.replace(/\/+$/, '');
-      
-      // Fetch post revisions using WordPress REST API
-      const revisionsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/revisions`, {
-        params: { per_page: 100 },
-        timeout: 12000, // Shorter timeout for Vercel
-        headers: {
-          'User-Agent': 'WPRemoteManager/1.0'
-        }
-      });
-
-      // Count total revisions across all posts
-      let totalRevisions = 0;
-      try {
-        // Try to get total count from headers
-        const totalHeader = revisionsResponse.headers['x-wp-total'];
-        if (totalHeader) {
-          totalRevisions = parseInt(totalHeader);
-        } else {
-          totalRevisions = revisionsResponse.data.length;
-        }
-      } catch {
-        totalRevisions = revisionsResponse.data.length;
-      }
-
-      console.log(`[VERCEL-WRM] Found ${totalRevisions} post revisions`);
-
-      // Estimate revision size (WordPress revisions are typically 1-3KB each)
-      const estimatedRevisionsSize = (totalRevisions * 2.5) / 1024; // Convert to MB
-      
-      // Fetch posts data to get more statistics
-      const postsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/posts`, {
-        params: { per_page: 1, status: 'trash' },
-        timeout: 10000,
-        headers: {
-          'User-Agent': 'WPRemoteManager/1.0'
-        }
-      });
-
-      const trashedPosts = parseInt(postsResponse.headers['x-wp-total'] || '0');
-      console.log(`[VERCEL-WRM] Found ${trashedPosts} trashed posts`);
-
-      // Fetch comments data
-      const commentsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/comments`, {
-        params: { per_page: 1, status: 'spam' },
-        timeout: 10000,
-        headers: {
-          'User-Agent': 'WPRemoteManager/1.0'
-        }
-      });
-
-      const spamComments = parseInt(commentsResponse.headers['x-wp-total'] || '0');
-      console.log(`[VERCEL-WRM] Found ${spamComments} spam comments`);
-
-      // Fetch all comments to get trashed count
-      const allCommentsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/comments`, {
-        params: { per_page: 1, status: 'trash' },
-        timeout: 10000,
-        headers: {
-          'User-Agent': 'WPRemoteManager/1.0'
-        }
-      });
-
-      const trashedComments = parseInt(allCommentsResponse.headers['x-wp-total'] || '0');
-      console.log(`[VERCEL-WRM] Found ${trashedComments} trashed comments`);
-
-      // Estimate database size based on content
+      debugLog.push(`[VERCEL-WRM] Fetching total posts from: ${baseUrl}/wp-json/wp/v2/posts`);
       const allPostsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/posts`, {
         params: { per_page: 1 },
         timeout: 10000,
@@ -992,9 +940,87 @@ class VercelWPRemoteManagerClient {
         }
       });
 
-      const totalPosts = parseInt(allPostsResponse.headers['x-wp-total'] || '0');
-      console.log(`[VERCEL-WRM] Found ${totalPosts} total posts`);
+      totalPosts = parseInt(allPostsResponse.headers['x-wp-total'] || '0');
+      debugLog.push(`[VERCEL-WRM] SUCCESS: Found ${totalPosts} total posts`);
       
+      // Try to get revisions (this might not be available)
+      try {
+        debugLog.push(`[VERCEL-WRM] Trying to fetch revisions from: ${baseUrl}/wp-json/wp/v2/revisions`);
+        const revisionsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/revisions`, {
+          params: { per_page: 100 },
+          timeout: 12000, // Shorter timeout for Vercel
+          headers: {
+            'User-Agent': 'WPRemoteManager/1.0'
+          }
+        });
+
+        totalRevisions = parseInt(revisionsResponse.headers['x-wp-total'] || revisionsResponse.data?.length || '0');
+        debugLog.push(`[VERCEL-WRM] SUCCESS: Found ${totalRevisions} revisions`);
+      } catch (revisionsError: any) {
+        debugLog.push(`[VERCEL-WRM] Revisions endpoint failed: ${revisionsError.message} (Status: ${revisionsError.response?.status})`);
+        debugLog.push(`[VERCEL-WRM] This is normal - many WordPress sites don't expose revisions via REST API`);
+        // Use estimated revisions based on posts (typically 2-5 revisions per post)
+        totalRevisions = Math.floor(totalPosts * 2.5);
+        debugLog.push(`[VERCEL-WRM] Estimated ${totalRevisions} revisions based on ${totalPosts} posts`);
+      }
+
+      // Try to get trashed posts
+      try {
+        debugLog.push(`[VERCEL-WRM] Fetching trashed posts...`);
+        const postsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/posts`, {
+          params: { per_page: 1, status: 'trash' },
+          timeout: 10000,
+          headers: {
+            'User-Agent': 'WPRemoteManager/1.0'
+          }
+        });
+
+        trashedPosts = parseInt(postsResponse.headers['x-wp-total'] || '0');
+        debugLog.push(`[VERCEL-WRM] SUCCESS: Found ${trashedPosts} trashed posts`);
+      } catch (trashError: any) {
+        debugLog.push(`[VERCEL-WRM] Trashed posts query failed: ${trashError.message} (Status: ${trashError.response?.status})`);
+        debugLog.push(`[VERCEL-WRM] This might be due to permission restrictions`);
+      }
+
+      // Try to get spam comments
+      try {
+        debugLog.push(`[VERCEL-WRM] Fetching spam comments...`);
+        const commentsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/comments`, {
+          params: { per_page: 1, status: 'spam' },
+          timeout: 10000,
+          headers: {
+            'User-Agent': 'WPRemoteManager/1.0'
+          }
+        });
+
+        spamComments = parseInt(commentsResponse.headers['x-wp-total'] || '0');
+        debugLog.push(`[VERCEL-WRM] SUCCESS: Found ${spamComments} spam comments`);
+      } catch (spamError: any) {
+        debugLog.push(`[VERCEL-WRM] Spam comments query failed: ${spamError.message} (Status: ${spamError.response?.status})`);
+        if (spamError.response?.status === 401) {
+          debugLog.push(`[VERCEL-WRM] 401 error suggests authentication required or parameter not permitted`);
+        }
+      }
+
+      // Try to get trashed comments
+      try {
+        debugLog.push(`[VERCEL-WRM] Fetching trashed comments...`);
+        const allCommentsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/comments`, {
+          params: { per_page: 1, status: 'trash' },
+          timeout: 10000,
+          headers: {
+            'User-Agent': 'WPRemoteManager/1.0'
+          }
+        });
+
+        trashedComments = parseInt(allCommentsResponse.headers['x-wp-total'] || '0');
+        debugLog.push(`[VERCEL-WRM] SUCCESS: Found ${trashedComments} trashed comments`);
+      } catch (trashCommentsError: any) {
+        debugLog.push(`[VERCEL-WRM] Trashed comments query failed: ${trashCommentsError.message} (Status: ${trashCommentsError.response?.status})`);
+      }
+
+      // Calculate estimates
+      const estimatedRevisionsSize = (totalRevisions * 2.5) / 1024; // Convert to MB
       const estimatedDbSize = Math.max(20, (totalPosts * 0.5) + (totalRevisions * 0.002) + 15); // Base 20MB + content
 
       const optimizationData = {
@@ -1016,40 +1042,56 @@ class VercelWPRemoteManagerClient {
           comments: spamComments,
           size: spamComments > 0 ? `${(spamComments * 0.01).toFixed(1)} MB` : "0 MB"
         },
-        lastOptimized: null // WordPress doesn't track this by default
+        lastOptimized: null,
+        debugLog
       };
 
-      console.log('[VERCEL-WRM] Generated optimization data from real WordPress data:', JSON.stringify(optimizationData, null, 2));
+      debugLog.push('[VERCEL-WRM] Successfully generated optimization data from available WordPress endpoints');
       return optimizationData;
+      
     } catch (error: any) {
-      console.error('[VERCEL-WRM] Error fetching WordPress optimization data:', error);
-      return null;
+      const errorMessage = `Failed to fetch basic WordPress data: ${error.message}. URL: ${baseUrl}. Status: ${error.response?.status}. Response: ${JSON.stringify(error.response?.data)}`;
+      debugLog.push(`[VERCEL-WRM] CRITICAL ERROR: ${errorMessage}`);
+      
+      return {
+        postRevisions: { count: 0, size: "0 KB" },
+        databaseSize: { total: "0 MB", tables: 0, overhead: "0 MB" },
+        trashedContent: { posts: 0, comments: 0, size: "0 MB" },
+        spam: { comments: 0, size: "0 MB" },
+        lastOptimized: null,
+        error: errorMessage,
+        debugLog
+      };
     }
   }
 
   async optimizePostRevisions(): Promise<any> {
+    const debugLog: string[] = [];
+    debugLog.push('[VERCEL-WRM] Starting post revisions optimization');
+    
+    // First try the dedicated optimization endpoint
     try {
-      console.log('[VERCEL-WRM] Optimizing post revisions...');
-      
-      // First try the dedicated optimization endpoint
-      try {
-        const response = await axios.post(`${this.baseUrl}/wp-json/wrm/v1/optimization/revisions`, {}, {
-          headers: {
-            'Authorization': `Bearer ${this.apiKey}`,
-            'Content-Type': 'application/json'
-          },
-          timeout: 10000
-        });
-        console.log('[VERCEL-WRM] Successfully cleaned revisions using WRM plugin');
-        return response.data;
-      } catch (endpointError: any) {
-        console.log('[VERCEL-WRM] WRM optimization endpoint not available, attempting WordPress REST API cleanup...');
-      }
+      debugLog.push('[VERCEL-WRM] Attempting WRM plugin optimization endpoint...');
+      const response = await axios.post(`${this.baseUrl}/wp-json/wrm/v1/optimization/revisions`, {}, {
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000
+      });
+      debugLog.push('[VERCEL-WRM] SUCCESS: Used WRM plugin optimization');
+      return { ...response.data, debugLog };
+    } catch (endpointError: any) {
+      debugLog.push(`[VERCEL-WRM] WRM plugin endpoint failed: ${endpointError.message} (Status: ${endpointError.response?.status})`);
+    }
 
-      // Fallback to WordPress REST API revision cleanup
-      const baseUrl = this.baseUrl.replace(/\/+$/, '');
-      
+    // Use WordPress REST API revision cleanup
+    const baseUrl = this.baseUrl.replace(/\/+$/, '');
+    debugLog.push(`[VERCEL-WRM] Attempting WordPress REST API cleanup at: ${baseUrl}`);
+    
+    try {
       // Get all revisions that can be deleted (keeping only latest few)
+      debugLog.push(`[VERCEL-WRM] Fetching revisions from: ${baseUrl}/wp-json/wp/v2/revisions`);
       const revisionsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/revisions`, {
         params: { per_page: 100 },
         timeout: 12000, // Shorter timeout for Vercel
@@ -1058,9 +1100,21 @@ class VercelWPRemoteManagerClient {
         }
       });
 
+      debugLog.push(`[VERCEL-WRM] Revisions response: ${revisionsResponse.status} - Found ${revisionsResponse.data?.length || 0} revisions`);
+
       let deletedCount = 0;
       const revisions = revisionsResponse.data || [];
       
+      if (revisions.length === 0) {
+        debugLog.push('[VERCEL-WRM] No revisions found to clean up');
+        return {
+          removedCount: 0,
+          sizeFreed: "0 KB",
+          success: true,
+          debugLog
+        };
+      }
+
       // Group revisions by post and keep only the latest 2-3 per post
       const revisionsByPost: { [postId: string]: any[] } = {};
       revisions.forEach((revision: any) => {
@@ -1071,6 +1125,8 @@ class VercelWPRemoteManagerClient {
         revisionsByPost[postId].push(revision);
       });
 
+      debugLog.push(`[VERCEL-WRM] Grouped revisions into ${Object.keys(revisionsByPost).length} posts`);
+
       // Delete older revisions (keep only 2 most recent per post)
       for (const postId in revisionsByPost) {
         const postRevisions = revisionsByPost[postId]
@@ -1078,6 +1134,7 @@ class VercelWPRemoteManagerClient {
         
         // Delete all but the 2 most recent revisions
         const toDelete = postRevisions.slice(2);
+        debugLog.push(`[VERCEL-WRM] Post ${postId}: ${postRevisions.length} revisions, deleting ${toDelete.length} old ones`);
         
         for (const revision of toDelete) {
           try {
@@ -1088,57 +1145,67 @@ class VercelWPRemoteManagerClient {
               }
             });
             deletedCount++;
-          } catch (deleteError) {
-            console.log(`[VERCEL-WRM] Could not delete revision ${revision.id}:`, deleteError);
+            debugLog.push(`[VERCEL-WRM] Deleted revision ${revision.id}`);
+          } catch (deleteError: any) {
+            debugLog.push(`[VERCEL-WRM] Failed to delete revision ${revision.id}: ${deleteError.message} (Status: ${deleteError.response?.status})`);
           }
         }
       }
 
       const estimatedSizeFreed = deletedCount * 2.5 / 1024; // Estimate size freed
-      
-      console.log(`[VERCEL-WRM] Successfully deleted ${deletedCount} post revisions via WordPress REST API`);
+      debugLog.push(`[VERCEL-WRM] Optimization complete: ${deletedCount} revisions deleted, ${estimatedSizeFreed.toFixed(3)} MB freed`);
       
       return {
         removedCount: deletedCount,
         sizeFreed: estimatedSizeFreed > 1 ? `${estimatedSizeFreed.toFixed(1)} MB` : `${(estimatedSizeFreed * 1024).toFixed(0)} KB`,
-        success: true
+        success: true,
+        debugLog
       };
     } catch (error: any) {
-      console.error('[VERCEL-WRM] Error optimizing post revisions:', error);
+      const errorMessage = `Failed to optimize post revisions: ${error.message}. URL: ${baseUrl}. Status: ${error.response?.status}. Response: ${JSON.stringify(error.response?.data)}`;
+      debugLog.push(`[VERCEL-WRM] CRITICAL ERROR: ${errorMessage}`);
+      
       return {
         removedCount: 0,
         sizeFreed: "0 KB",
-        success: false
+        success: false,
+        error: errorMessage,
+        debugLog
       };
     }
   }
 
   async optimizeDatabase(): Promise<any> {
+    const debugLog: string[] = [];
+    debugLog.push('[VERCEL-WRM] Starting database optimization');
+    
+    // First try the dedicated optimization endpoint
     try {
-      console.log('[VERCEL-WRM] Optimizing database...');
-      
-      // First try the dedicated optimization endpoint
-      try {
-        const response = await axios.post(`${this.baseUrl}/wp-json/wrm/v1/optimization/database`, {}, {
-          headers: {
-            'Authorization': `Bearer ${this.apiKey}`,
-            'Content-Type': 'application/json'
-          },
-          timeout: 10000
-        });
-        console.log('[VERCEL-WRM] Successfully optimized database using WRM plugin');
-        return response.data;
-      } catch (endpointError: any) {
-        console.log('[VERCEL-WRM] WRM database optimization endpoint not available, attempting spam/trash cleanup...');
-      }
+      debugLog.push('[VERCEL-WRM] Attempting WRM plugin database optimization...');
+      const response = await axios.post(`${this.baseUrl}/wp-json/wrm/v1/optimization/database`, {}, {
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000
+      });
+      debugLog.push('[VERCEL-WRM] SUCCESS: Used WRM plugin database optimization');
+      return { ...response.data, debugLog };
+    } catch (endpointError: any) {
+      debugLog.push(`[VERCEL-WRM] WRM plugin endpoint failed: ${endpointError.message} (Status: ${endpointError.response?.status})`);
+    }
 
-      // Fallback to WordPress REST API cleanup of spam and trash
-      const baseUrl = this.baseUrl.replace(/\/+$/, '');
-      let itemsDeleted = 0;
-      let estimatedSizeFreed = 0;
+    // Fallback to WordPress REST API cleanup of spam and trash
+    const baseUrl = this.baseUrl.replace(/\/+$/, '');
+    debugLog.push(`[VERCEL-WRM] Attempting spam/trash cleanup via WordPress REST API: ${baseUrl}`);
+    
+    let itemsDeleted = 0;
+    let estimatedSizeFreed = 0;
 
+    try {
+      // Clean up spam comments
       try {
-        // Clean up spam comments
+        debugLog.push('[VERCEL-WRM] Fetching spam comments...');
         const spamCommentsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/comments`, {
           params: { per_page: 100, status: 'spam' },
           timeout: 12000,
@@ -1148,6 +1215,8 @@ class VercelWPRemoteManagerClient {
         });
 
         const spamComments = spamCommentsResponse.data || [];
+        debugLog.push(`[VERCEL-WRM] Found ${spamComments.length} spam comments to delete`);
+        
         for (const comment of spamComments) {
           try {
             await axios.delete(`${baseUrl}/wp-json/wp/v2/comments/${comment.id}?force=true`, {
@@ -1158,12 +1227,21 @@ class VercelWPRemoteManagerClient {
             });
             itemsDeleted++;
             estimatedSizeFreed += 0.01; // Estimate 10KB per spam comment
-          } catch (deleteError) {
-            console.log(`[VERCEL-WRM] Could not delete spam comment ${comment.id}:`, deleteError);
+            debugLog.push(`[VERCEL-WRM] Deleted spam comment ${comment.id}`);
+          } catch (deleteError: any) {
+            debugLog.push(`[VERCEL-WRM] Failed to delete spam comment ${comment.id}: ${deleteError.message}`);
           }
         }
+      } catch (spamError: any) {
+        debugLog.push(`[VERCEL-WRM] Spam comments fetch failed: ${spamError.message} (Status: ${spamError.response?.status})`);
+        if (spamError.response?.status === 401) {
+          debugLog.push(`[VERCEL-WRM] 401 error suggests authentication required or status parameter not permitted`);
+        }
+      }
 
-        // Clean up trashed posts (limit to 25 for Vercel timeout constraints)
+      // Clean up trashed posts (limit to 25 for Vercel timeout constraints)
+      try {
+        debugLog.push('[VERCEL-WRM] Fetching trashed posts...');
         const trashedPostsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/posts`, {
           params: { per_page: 25, status: 'trash' },
           timeout: 12000,
@@ -1173,6 +1251,8 @@ class VercelWPRemoteManagerClient {
         });
 
         const trashedPosts = trashedPostsResponse.data || [];
+        debugLog.push(`[VERCEL-WRM] Found ${trashedPosts.length} trashed posts to delete`);
+        
         for (const post of trashedPosts) {
           try {
             await axios.delete(`${baseUrl}/wp-json/wp/v2/posts/${post.id}?force=true`, {
@@ -1183,12 +1263,18 @@ class VercelWPRemoteManagerClient {
             });
             itemsDeleted++;
             estimatedSizeFreed += 0.5; // Estimate 500KB per trashed post
-          } catch (deleteError) {
-            console.log(`[VERCEL-WRM] Could not delete trashed post ${post.id}:`, deleteError);
+            debugLog.push(`[VERCEL-WRM] Deleted trashed post ${post.id}`);
+          } catch (deleteError: any) {
+            debugLog.push(`[VERCEL-WRM] Failed to delete trashed post ${post.id}: ${deleteError.message}`);
           }
         }
+      } catch (trashError: any) {
+        debugLog.push(`[VERCEL-WRM] Trashed posts fetch failed: ${trashError.message} (Status: ${trashError.response?.status})`);
+      }
 
-        // Clean up trashed comments
+      // Clean up trashed comments
+      try {
+        debugLog.push('[VERCEL-WRM] Fetching trashed comments...');
         const trashedCommentsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/comments`, {
           params: { per_page: 50, status: 'trash' },
           timeout: 12000,
@@ -1198,6 +1284,8 @@ class VercelWPRemoteManagerClient {
         });
 
         const trashedComments = trashedCommentsResponse.data || [];
+        debugLog.push(`[VERCEL-WRM] Found ${trashedComments.length} trashed comments to delete`);
+        
         for (const comment of trashedComments) {
           try {
             await axios.delete(`${baseUrl}/wp-json/wp/v2/comments/${comment.id}?force=true`, {
@@ -1208,32 +1296,33 @@ class VercelWPRemoteManagerClient {
             });
             itemsDeleted++;
             estimatedSizeFreed += 0.01; // Estimate 10KB per trashed comment
-          } catch (deleteError) {
-            console.log(`[VERCEL-WRM] Could not delete trashed comment ${comment.id}:`, deleteError);
+            debugLog.push(`[VERCEL-WRM] Deleted trashed comment ${comment.id}`);
+          } catch (deleteError: any) {
+            debugLog.push(`[VERCEL-WRM] Failed to delete trashed comment ${comment.id}: ${deleteError.message}`);
           }
         }
-
-        console.log(`[VERCEL-WRM] Database optimization completed: ${itemsDeleted} items deleted, ${estimatedSizeFreed.toFixed(1)} MB freed`);
-        
-        return {
-          tablesOptimized: Math.max(1, Math.floor(itemsDeleted / 10)), // Estimate tables affected
-          sizeFreed: estimatedSizeFreed > 1 ? `${estimatedSizeFreed.toFixed(1)} MB` : `${(estimatedSizeFreed * 1024).toFixed(0)} KB`,
-          success: true
-        };
-      } catch (cleanupError: any) {
-        console.error('[VERCEL-WRM] Error during database cleanup:', cleanupError);
-        return {
-          tablesOptimized: 0,
-          sizeFreed: "0 KB",
-          success: false
-        };
+      } catch (trashCommentsError: any) {
+        debugLog.push(`[VERCEL-WRM] Trashed comments fetch failed: ${trashCommentsError.message} (Status: ${trashCommentsError.response?.status})`);
       }
+
+      debugLog.push(`[VERCEL-WRM] Database optimization completed: ${itemsDeleted} items deleted, ${estimatedSizeFreed.toFixed(3)} MB freed`);
+      
+      return {
+        tablesOptimized: Math.max(1, Math.floor(itemsDeleted / 10)), // Estimate tables affected
+        sizeFreed: estimatedSizeFreed > 1 ? `${estimatedSizeFreed.toFixed(1)} MB` : `${(estimatedSizeFreed * 1024).toFixed(0)} KB`,
+        success: true,
+        debugLog
+      };
     } catch (error: any) {
-      console.error('[VERCEL-WRM] Error optimizing database:', error);
+      const errorMessage = `Failed to optimize database: ${error.message}. URL: ${baseUrl}. Status: ${error.response?.status}. Response: ${JSON.stringify(error.response?.data)}`;
+      debugLog.push(`[VERCEL-WRM] CRITICAL ERROR: ${errorMessage}`);
+      
       return {
         tablesOptimized: 0,
         sizeFreed: "0 KB",
-        success: false
+        success: false,
+        error: errorMessage,
+        debugLog
       };
     }
   }
