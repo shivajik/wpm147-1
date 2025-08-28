@@ -42,9 +42,21 @@ export default function ClientReports() {
   const [selectedTab, setSelectedTab] = useState('all');
   const queryClient = useQueryClient();
 
-  const { data: reports, isLoading } = useQuery<ClientReportWithRelations[]>({
+  const { data: reportsResponse, isLoading } = useQuery<{
+    reports: ClientReportWithRelations[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNextPage: boolean;
+      hasPrevPage: boolean;
+    };
+  }>({
     queryKey: ['/api/client-reports'],
   });
+
+  const reports = reportsResponse?.reports || [];
 
   const { data: stats } = useQuery<{
     totalReports: number;
@@ -138,10 +150,10 @@ export default function ClientReports() {
     }
   };
 
-  const filteredReports = reports?.filter(report => {
+  const filteredReports = reports.filter(report => {
     if (selectedTab === 'all') return true;
     return report.status === selectedTab;
-  }) || [];
+  });
 
   return (
     <AppLayout title="Client Reports">
