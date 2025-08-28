@@ -10703,6 +10703,79 @@ if (path.match(/^\/api\/websites\/\d+\/comments$/) && req.method === 'GET') {
       }
     }
 
+    // Clean unapproved comments endpoint  
+    if (path.match(/^\/api\/websites\/\d+\/comments\/clean-unapproved$/) && req.method === 'POST') {
+      const debugLog: string[] = [];
+      debugLog.push(`[CLEAN-UNAPPROVED] Starting unapproved cleanup request`);
+      debugLog.push(`[CLEAN-UNAPPROVED] Timestamp: ${new Date().toISOString()}`);
+      debugLog.push(`[CLEAN-UNAPPROVED] Path: ${path}`);
+      
+      const user = authenticateToken(req);
+      if (!user) {
+        debugLog.push(`[CLEAN-UNAPPROVED] Authentication failed - no token`);
+        return res.status(401).json({ message: 'Access token required', debugLog });
+      }
+
+      debugLog.push(`[CLEAN-UNAPPROVED] User authenticated: ${user.email} (ID: ${user.id})`);
+
+      const websiteId = parseInt(path.split('/')[3]);
+      if (isNaN(websiteId)) {
+        debugLog.push(`[CLEAN-UNAPPROVED] Invalid website ID: ${path.split('/')[3]}`);
+        return res.status(400).json({ message: 'Invalid website ID', debugLog });
+      }
+
+      debugLog.push(`[CLEAN-UNAPPROVED] Website ID: ${websiteId}`);
+
+      try {
+        const websiteResult = await db.select()
+          .from(websites)
+          .innerJoin(clients, eq(websites.clientId, clients.id))
+          .where(and(eq(websites.id, websiteId), eq(clients.userId, user.id)))
+          .limit(1);
+          
+        if (websiteResult.length === 0) {
+          debugLog.push(`[CLEAN-UNAPPROVED] Website not found for user ${user.id}`);
+          return res.status(404).json({ message: "Website not found", debugLog });
+        }
+        
+        const website = websiteResult[0].websites;
+        debugLog.push(`[CLEAN-UNAPPROVED] Website found: ${website.name} (${website.url})`);
+        debugLog.push(`[CLEAN-UNAPPROVED] Has API key: ${!!website.wrmApiKey}`);
+        
+        if (!website.wrmApiKey) {
+          debugLog.push(`[CLEAN-UNAPPROVED] No WRM API key configured`);
+          return res.status(400).json({ message: "WordPress Remote Manager API key not configured", debugLog });
+        }
+
+        debugLog.push(`[CLEAN-UNAPPROVED] Creating WRM client for ${website.url}`);
+        const wrmClient = new VercelWPRemoteManagerClient({
+          url: website.url,
+          apiKey: website.wrmApiKey
+        });
+
+        debugLog.push(`[CLEAN-UNAPPROVED] Calling cleanUnapprovedComments method...`);
+        const result = await wrmClient.cleanUnapprovedComments();
+        
+        debugLog.push(`[CLEAN-UNAPPROVED] WRM client result: ${JSON.stringify(result)}`);
+        debugLog.push(`[CLEAN-UNAPPROVED] Operation completed successfully`);
+        
+        return res.status(200).json({
+          ...result,
+          debugLog
+        });
+      } catch (error) {
+        debugLog.push(`[CLEAN-UNAPPROVED] Error occurred: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        debugLog.push(`[CLEAN-UNAPPROVED] Error stack: ${error instanceof Error ? error.stack : 'No stack'}`);
+        console.error("Error cleaning unapproved WordPress comments:", error);
+        return res.status(500).json({ 
+          message: error instanceof Error ? error.message : "Failed to clean unapproved comments",
+          success: false,
+          deleted_count: 0,
+          debugLog
+        });
+      }
+    }
+
     if (path.match(/^\/api\/websites\/\d+\/comments\/clean-spam$/) && req.method === 'POST') {
       const debugLog: string[] = [];
       debugLog.push(`[CLEAN-SPAM] Starting spam cleanup request`);
