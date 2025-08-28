@@ -161,6 +161,19 @@ class WP_Remote_Manager_Enhanced_Users {
             'callback' => array($this, 'regenerate_api_key_endpoint'),
             'permission_callback' => array($this, 'verify_admin_capabilities')
         ));
+        
+        // Comment management endpoints (WP-Optimize style)
+        register_rest_route($this->api_namespace, '/comments/remove-unapproved', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'remove_unapproved_comments'),
+            'permission_callback' => array($this, 'verify_admin_capabilities')
+        ));
+        
+        register_rest_route($this->api_namespace, '/comments/remove-spam-trash', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'remove_spam_and_trash_comments'),
+            'permission_callback' => array($this, 'verify_admin_capabilities')
+        ));
     }
     
     /**
@@ -1380,6 +1393,116 @@ curl -H "X-API-Key: <?php echo esc_html($current_key); ?>" \
             'success' => true,
             'message' => 'Theme activated successfully',
             'theme' => $theme
+        ));
+    }
+    
+    /**
+     * Remove all unapproved comments (WP-Optimize style)
+     * Matches exact WordPress WP-Optimize plugin behavior
+     */
+    public function remove_unapproved_comments($request) {
+        global $wpdb;
+        
+        // Get all unapproved comments (status = 0 means unapproved/pending)
+        $unapproved_comments = $wpdb->get_results(
+            "SELECT comment_ID FROM {$wpdb->comments} WHERE comment_approved = '0'"
+        );
+        
+        if (empty($unapproved_comments)) {
+            return rest_ensure_response(array(
+                'success' => true,
+                'message' => 'No unapproved comments found to remove',
+                'deleted_count' => 0,
+                'details' => 'Database query found 0 unapproved comments'
+            ));
+        }
+        
+        $deleted_count = 0;
+        $errors = array();
+        
+        // Delete each unapproved comment
+        foreach ($unapproved_comments as $comment) {
+            $result = wp_delete_comment($comment->comment_ID, true); // Force delete (skip trash)
+            
+            if ($result) {
+                $deleted_count++;
+            } else {
+                $errors[] = "Failed to delete comment ID: {$comment->comment_ID}";
+            }
+        }
+        
+        // Log the action for audit
+        error_log("WRM: Removed {$deleted_count} unapproved comments via API");
+        
+        return rest_ensure_response(array(
+            'success' => $deleted_count > 0,
+            'message' => "Successfully removed {$deleted_count} unapproved comments" . 
+                        (count($errors) > 0 ? " (with " . count($errors) . " errors)" : ""),
+            'deleted_count' => $deleted_count,
+            'errors' => $errors,
+            'total_found' => count($unapproved_comments)
+        ));
+    }
+    
+    /**
+     * Remove all spam and trashed comments (WP-Optimize style)
+     * Matches exact WordPress WP-Optimize plugin behavior
+     */
+    public function remove_spam_and_trash_comments($request) {
+        global $wpdb;
+        
+        // Get all spam comments (comment_approved = 'spam')
+        $spam_comments = $wpdb->get_results(
+            "SELECT comment_ID FROM {$wpdb->comments} WHERE comment_approved = 'spam'"
+        );
+        
+        // Get all trashed comments (comment_approved = 'trash')
+        $trash_comments = $wpdb->get_results(
+            "SELECT comment_ID FROM {$wpdb->comments} WHERE comment_approved = 'trash'"
+        );
+        
+        $total_comments = array_merge($spam_comments, $trash_comments);
+        
+        if (empty($total_comments)) {
+            return rest_ensure_response(array(
+                'success' => true,
+                'message' => 'No spam or trashed comments found to remove',
+                'deleted_count' => 0,
+                'details' => array(
+                    'spam_found' => count($spam_comments),
+                    'trash_found' => count($trash_comments)
+                )
+            ));
+        }
+        
+        $deleted_count = 0;
+        $errors = array();
+        
+        // Delete each spam and trashed comment
+        foreach ($total_comments as $comment) {
+            $result = wp_delete_comment($comment->comment_ID, true); // Force delete (skip trash)
+            
+            if ($result) {
+                $deleted_count++;
+            } else {
+                $errors[] = "Failed to delete comment ID: {$comment->comment_ID}";
+            }
+        }
+        
+        // Log the action for audit
+        error_log("WRM: Removed {$deleted_count} spam and trashed comments via API");
+        
+        return rest_ensure_response(array(
+            'success' => $deleted_count > 0,
+            'message' => "Successfully removed {$deleted_count} spam and trashed comments" . 
+                        (count($errors) > 0 ? " (with " . count($errors) . " errors)" : ""),
+            'deleted_count' => $deleted_count,
+            'errors' => $errors,
+            'details' => array(
+                'spam_found' => count($spam_comments),
+                'trash_found' => count($trash_comments),
+                'total_found' => count($total_comments)
+            )
         ));
     }
 }
