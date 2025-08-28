@@ -7548,70 +7548,123 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
   });
 
   app.post("/api/websites/:id/comments/delete", authenticateToken, async (req, res) => {
+    const debugLog: string[] = [];
     try {
+      debugLog.push(`[LOCALHOST-DELETE] Starting comment deletion request`);
+      debugLog.push(`[LOCALHOST-DELETE] Timestamp: ${new Date().toISOString()}`);
+      
       const userId = (req as AuthRequest).user!.id;
+      debugLog.push(`[LOCALHOST-DELETE] User authenticated: ID ${userId}`);
+      
       const websiteId = parseInt(req.params.id);
+      debugLog.push(`[LOCALHOST-DELETE] Website ID: ${websiteId}`);
+      
       const { comment_ids } = req.body;
+      debugLog.push(`[LOCALHOST-DELETE] Comment IDs to delete: ${JSON.stringify(comment_ids)}`);
       
       const website = await storage.getWebsite(websiteId, userId);
       
       if (!website) {
-        return res.status(404).json({ message: "Website not found" });
+        debugLog.push(`[LOCALHOST-DELETE] Website not found for user ${userId}`);
+        return res.status(404).json({ message: "Website not found", debugLog });
       }
 
+      debugLog.push(`[LOCALHOST-DELETE] Website found: ${website.name} (${website.url})`);
+      debugLog.push(`[LOCALHOST-DELETE] Has API key: ${!!website.wrmApiKey}`);
+
       if (!website.wrmApiKey) {
-        return res.status(400).json({ message: "WordPress Remote Manager API key not configured" });
+        debugLog.push(`[LOCALHOST-DELETE] No WRM API key configured`);
+        return res.status(400).json({ message: "WordPress Remote Manager API key not configured", debugLog });
       }
 
       if (!comment_ids || !Array.isArray(comment_ids)) {
-        return res.status(400).json({ message: "comment_ids array is required" });
+        debugLog.push(`[LOCALHOST-DELETE] Invalid comment_ids: ${JSON.stringify(comment_ids)}`);
+        return res.status(400).json({ message: "comment_ids array is required", debugLog });
       }
 
+      debugLog.push(`[LOCALHOST-DELETE] Creating WRM client for ${website.url}`);
       const credentials: WPRemoteManagerCredentials = {
         url: website.url,
         apiKey: website.wrmApiKey
       };
 
       const wrmClient = new WPRemoteManagerClient(credentials);
+      debugLog.push(`[LOCALHOST-DELETE] Calling deleteComments method...`);
       const result = await wrmClient.deleteComments(comment_ids);
       
-      res.json(result);
+      debugLog.push(`[LOCALHOST-DELETE] WRM client result: ${JSON.stringify(result)}`);
+      debugLog.push(`[LOCALHOST-DELETE] Operation completed successfully`);
+      
+      res.json({
+        ...result,
+        debugLog
+      });
     } catch (error) {
+      debugLog.push(`[LOCALHOST-DELETE] Error occurred: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      debugLog.push(`[LOCALHOST-DELETE] Error stack: ${error instanceof Error ? error.stack : 'No stack'}`);
       console.error("Error deleting WordPress comments:", error);
       res.status(500).json({ 
-        message: error instanceof Error ? error.message : "Failed to delete comments" 
+        message: error instanceof Error ? error.message : "Failed to delete comments",
+        success: false,
+        deleted_count: 0,
+        debugLog
       });
     }
   });
 
   app.post("/api/websites/:id/comments/clean-spam", authenticateToken, async (req, res) => {
+    const debugLog: string[] = [];
     try {
+      debugLog.push(`[LOCALHOST-SPAM] Starting spam cleanup request`);
+      debugLog.push(`[LOCALHOST-SPAM] Timestamp: ${new Date().toISOString()}`);
+      
       const userId = (req as AuthRequest).user!.id;
+      debugLog.push(`[LOCALHOST-SPAM] User authenticated: ID ${userId}`);
+      
       const websiteId = parseInt(req.params.id);
+      debugLog.push(`[LOCALHOST-SPAM] Website ID: ${websiteId}`);
       
       const website = await storage.getWebsite(websiteId, userId);
       
       if (!website) {
-        return res.status(404).json({ message: "Website not found" });
+        debugLog.push(`[LOCALHOST-SPAM] Website not found for user ${userId}`);
+        return res.status(404).json({ message: "Website not found", debugLog });
       }
+
+      debugLog.push(`[LOCALHOST-SPAM] Website found: ${website.name} (${website.url})`);
+      debugLog.push(`[LOCALHOST-SPAM] Has API key: ${!!website.wrmApiKey}`);
 
       if (!website.wrmApiKey) {
-        return res.status(400).json({ message: "WordPress Remote Manager API key not configured" });
+        debugLog.push(`[LOCALHOST-SPAM] No WRM API key configured`);
+        return res.status(400).json({ message: "WordPress Remote Manager API key not configured", debugLog });
       }
 
+      debugLog.push(`[LOCALHOST-SPAM] Creating WRM client for ${website.url}`);
       const credentials: WPRemoteManagerCredentials = {
         url: website.url,
         apiKey: website.wrmApiKey
       };
 
       const wrmClient = new WPRemoteManagerClient(credentials);
+      debugLog.push(`[LOCALHOST-SPAM] Calling cleanSpamComments method...`);
       const result = await wrmClient.cleanSpamComments();
       
-      res.json(result);
+      debugLog.push(`[LOCALHOST-SPAM] WRM client result: ${JSON.stringify(result)}`);
+      debugLog.push(`[LOCALHOST-SPAM] Operation completed successfully`);
+      
+      res.json({
+        ...result,
+        debugLog
+      });
     } catch (error) {
+      debugLog.push(`[LOCALHOST-SPAM] Error occurred: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      debugLog.push(`[LOCALHOST-SPAM] Error stack: ${error instanceof Error ? error.stack : 'No stack'}`);
       console.error("Error cleaning spam comments:", error);
       res.status(500).json({ 
-        message: error instanceof Error ? error.message : "Failed to clean spam comments" 
+        message: error instanceof Error ? error.message : "Failed to clean spam comments",
+        success: false,
+        deleted_count: 0,
+        debugLog
       });
     }
   });

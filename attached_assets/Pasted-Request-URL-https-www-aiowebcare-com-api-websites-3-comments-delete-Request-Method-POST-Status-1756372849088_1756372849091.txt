@@ -1,0 +1,26 @@
+Request URL
+https://www.aiowebcare.com/api/websites/3/comments/delete
+Request Method
+POST
+Status Code
+200 OK
+
+{
+    "success": false,
+    "message": "Request failed: Request failed with status code 500",
+    "deleted_count": 0,
+    "debugLog": [
+        "[COMMENT-DELETE] Starting comment deletion request",
+        "[COMMENT-DELETE] Timestamp: 2025-08-28T09:17:12.192Z",
+        "[COMMENT-DELETE] Path: /api/websites/3/comments/delete",
+        "[COMMENT-DELETE] User authenticated: demo@wpmaintenance.com (ID: 1)",
+        "[COMMENT-DELETE] Website ID: 3",
+        "[COMMENT-DELETE] Website found: AS College Chincholi (https://ascollegechincholi.com)",
+        "[COMMENT-DELETE] Has API key: true",
+        "[COMMENT-DELETE] Comment IDs to delete: [\"82\"]",
+        "[COMMENT-DELETE] Creating WRM client for https://ascollegechincholi.com",
+        "[COMMENT-DELETE] Calling deleteComments method...",
+        "[COMMENT-DELETE] WRM client result: {\"success\":false,\"message\":\"Request failed: Request failed with status code 500\",\"deleted_count\":0,\"debugLog\":[\"[VERCEL-WRM] Starting deleteComments for IDs: [\\\"82\\\"]\",\"[VERCEL-WRM] Base URL: https://ascollegechincholi.com\",\"[VERCEL-WRM] Has API key: true\",\"[VERCEL-WRM] API key length: 32\",\"[VERCEL-WRM] Full endpoint: https://ascollegechincholi.com/wp-json/wrms/v1/comments/delete\",\"[VERCEL-WRM] Request payload: {\\\"comment_ids\\\":[\\\"82\\\"]}\",\"[VERCEL-WRM] Request headers: {\\n  \\\"X-WRMS-API-Key\\\": \\\"283d9179a9ce0bfc18f76ea13939479a\\\",\\n  \\\"X-WRM-API-Key\\\": \\\"283d9179a9ce0bfc18f76ea13939479a\\\",\\n  \\\"Content-Type\\\": \\\"application/json\\\"\\n}\",\"[VERCEL-WRM] Making axios POST request...\",\"[VERCEL-WRM] Exception caught: Request failed with status code 500\",\"[VERCEL-WRM] Error code: ERR_BAD_RESPONSE\",\"[VERCEL-WRM] Error response status: 500\",\"[VERCEL-WRM] Error response data: {\\\"code\\\":\\\"internal_server_error\\\",\\\"message\\\":\\\"<p>There has been a critical error on this website.</p><p><a href=\\\\\\\"https://wordpress.org/documentation/article/faq-troubleshooting/\\\\\\\">Learn more about troubleshooting WordPress.</a></p>\\\",\\\"data\\\":{\\\"status\\\":500,\\\"error\\\":{\\\"type\\\":1,\\\"message\\\":\\\"Uncaught Error: Call to undefined method WP_Remote_Manager_Enhanced_Users::log_security_event() in /home4/ascollegechincho/public_html/wp-content/plugins/wp-remote-plugin/wp-remote-manager-enhanced-users-v3.2.3-comments-revisions.php:1769\\\\nStack trace:\\\\n#0 /home4/ascollegechincho/public_html/wp-includes/rest-api/class-wp-rest-server.php(1292): WP_Remote_Manager_Enhanced_Users->delete_comments(Object(WP_REST_Request))\\\\n#1 /home4/ascollegechincho/public_html/wp-includes/rest-api/class-wp-rest-server.php(1125): WP_REST_Server->respond_to_request(Object(WP_REST_Request), '/wrms/v1/commen...', Array, NULL)\\\\n#2 /home4/ascollegechincho/public_html/wp-includes/rest-api/class-wp-rest-server.php(439): WP_REST_Server->dispatch(Object(WP_REST_Request))\\\\n#3 /home4/ascollegechincho/public_html/wp-includes/rest-api.php(459): WP_REST_Server->serve_request('/wrms/v1/commen...')\\\\n#4 /home4/ascollegechincho/public_html/wp-includes/class-wp-hook.php(324): rest_api_loaded(Object(WP))\\\\n#5 /home4/ascollegechincho/public_html/wp-includes/class-wp-hook.php(348): WP_Hook->apply_filters('', Array)\\\\n#6 /home4/ascollegechincho/public_html/wp-includes/plugin.php(565): WP_Hook->do_action(Array)\\\\n#7 /home4/ascollegechincho/public_html/wp-includes/class-wp.php(418): do_action_ref_array('parse_request', Array)\\\\n#8 /home4/ascollegechincho/public_html/wp-includes/class-wp.php(818): WP->parse_request('')\\\\n#9 /home4/ascollegechincho/public_html/wp-includes/functions.php(1342): WP->main('')\\\\n#10 /home4/ascollegechincho/public_html/wp-blog-header.php(16): wp()\\\\n#11 /home4/ascollegechincho/public_html/index.php(17): require('/home4/ascolleg...')\\\\n#12 {main}\\\\n  thrown\\\",\\\"file\\\":\\\"/home4/ascollegechincho/public_html/wp-content/plugins/wp-remote-plugin/wp-remote-manager-enhanced-users-v3.2.3-comments-revisions.php\\\",\\\"line\\\":1769}},\\\"additional_errors\\\":[]}\",\"[VERCEL-WRM] Error stack: AxiosError: Request failed with status code 500\\n    at settle (file:///var/task/node_modules/axios/lib/core/settle.js:19:12)\\n    at Unzip.handleStreamEnd (file:///var/task/node_modules/axios/lib/adapters/http.js:599:11)\\n    at Unzip.emit (node:events:530:35)\\n    at endReadableNT (node:internal/streams/readable:1698:12)\\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)\\n    at Axios.request (file:///var/task/node_modules/axios/lib/core/Axios.js:45:41)\\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\\n    at async VercelWPRemoteManagerClient.deleteComments (/vercel/path0/api/index.ts:1515:24)\\n    at async Object.handler (/vercel/path0/api/index.ts:10568:24)\\n    at async r (/opt/rust/nodejs.js:2:15476)\\n    at async Server.<anonymous> (/opt/rust/nodejs.js:2:11350)\\n    at async Server.<anonymous> (/opt/rust/nodejs.js:16:7279)\"]}",
+        "[COMMENT-DELETE] Operation completed successfully"
+    ]
+}

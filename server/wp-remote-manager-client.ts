@@ -1402,29 +1402,59 @@ export class WPRemoteManagerClient {
   /**
    * Delete WordPress comments
    */
-  async deleteComments(commentIds: string[]): Promise<{ success: boolean; message: string; deleted_count: number }> {
+  async deleteComments(commentIds: string[]): Promise<{ success: boolean; message: string; deleted_count: number; debugLog?: string[] }> {
+    const debugLog: string[] = [];
     try {
-      const response = await this.makeRequestWithFallback('/comments/delete', {
+      debugLog.push(`[LOCALHOST-WRM] Starting deleteComments for IDs: ${JSON.stringify(commentIds)}`);
+      debugLog.push(`[LOCALHOST-WRM] Base URL: ${this.credentials.url}`);
+      debugLog.push(`[LOCALHOST-WRM] Has API key: ${!!this.credentials.apiKey}`);
+      debugLog.push(`[LOCALHOST-WRM] API key length: ${this.credentials.apiKey?.length || 0}`);
+      
+      const endpoint = '/comments/delete';
+      debugLog.push(`[LOCALHOST-WRM] Endpoint: ${endpoint}`);
+      
+      const payload = { comment_ids: commentIds };
+      debugLog.push(`[LOCALHOST-WRM] Request payload: ${JSON.stringify(payload)}`);
+      
+      debugLog.push(`[LOCALHOST-WRM] Making request with fallback...`);
+      const response = await this.makeRequestWithFallback(endpoint, {
         method: 'POST',
-        data: { comment_ids: commentIds }
+        data: payload
       });
       
+      debugLog.push(`[LOCALHOST-WRM] Response status: ${response.status}`);
+      debugLog.push(`[LOCALHOST-WRM] Response data: ${JSON.stringify(response.data)}`);
+      
       if (response.data?.success) {
-        return response.data.data;
+        debugLog.push(`[LOCALHOST-WRM] WordPress response indicates success`);
+        const result = response.data.data || response.data;
+        debugLog.push(`[LOCALHOST-WRM] Parsed result: ${JSON.stringify(result)}`);
+        return {
+          ...result,
+          debugLog
+        };
       }
       
+      debugLog.push(`[LOCALHOST-WRM] WordPress response indicates failure`);
       return {
         success: false,
-        message: 'Failed to delete comments',
-        deleted_count: 0
+        message: response.data?.message || 'Failed to delete comments',
+        deleted_count: 0,
+        debugLog
       };
     } catch (error: any) {
+      debugLog.push(`[LOCALHOST-WRM] Exception caught: ${error.message}`);
+      debugLog.push(`[LOCALHOST-WRM] Error response status: ${error.response?.status}`);
+      debugLog.push(`[LOCALHOST-WRM] Error response data: ${JSON.stringify(error.response?.data)}`);
+      debugLog.push(`[LOCALHOST-WRM] Error stack: ${error.stack}`);
+      
       console.error('WP Remote Manager Delete Comments Error:', error.response?.data || error.message);
       
       return {
         success: false,
         message: error.response?.data?.message || 'Failed to delete comments',
-        deleted_count: 0
+        deleted_count: 0,
+        debugLog
       };
     }
   }
@@ -1432,28 +1462,55 @@ export class WPRemoteManagerClient {
   /**
    * Clean spam comments
    */
-  async cleanSpamComments(): Promise<{ success: boolean; message: string; deleted_count: number }> {
+  async cleanSpamComments(): Promise<{ success: boolean; message: string; deleted_count: number; debugLog?: string[] }> {
+    const debugLog: string[] = [];
     try {
-      const response = await this.makeRequestWithFallback('/comments/clean-spam', {
+      debugLog.push(`[LOCALHOST-WRM] Starting cleanSpamComments`);
+      debugLog.push(`[LOCALHOST-WRM] Base URL: ${this.credentials.url}`);
+      debugLog.push(`[LOCALHOST-WRM] Has API key: ${!!this.credentials.apiKey}`);
+      debugLog.push(`[LOCALHOST-WRM] API key length: ${this.credentials.apiKey?.length || 0}`);
+      
+      const endpoint = '/comments/clean-spam';
+      debugLog.push(`[LOCALHOST-WRM] Endpoint: ${endpoint}`);
+      
+      debugLog.push(`[LOCALHOST-WRM] Making request with fallback...`);
+      const response = await this.makeRequestWithFallback(endpoint, {
         method: 'POST'
       });
       
+      debugLog.push(`[LOCALHOST-WRM] Response status: ${response.status}`);
+      debugLog.push(`[LOCALHOST-WRM] Response data: ${JSON.stringify(response.data)}`);
+      
       if (response.data?.success) {
-        return response.data.data;
+        debugLog.push(`[LOCALHOST-WRM] WordPress response indicates success`);
+        const result = response.data.data || response.data;
+        debugLog.push(`[LOCALHOST-WRM] Parsed result: ${JSON.stringify(result)}`);
+        return {
+          ...result,
+          debugLog
+        };
       }
       
+      debugLog.push(`[LOCALHOST-WRM] WordPress response indicates failure`);
       return {
         success: false,
-        message: 'Failed to clean spam comments',
-        deleted_count: 0
+        message: response.data?.message || 'Failed to clean spam comments',
+        deleted_count: 0,
+        debugLog
       };
     } catch (error: any) {
+      debugLog.push(`[LOCALHOST-WRM] Exception caught: ${error.message}`);
+      debugLog.push(`[LOCALHOST-WRM] Error response status: ${error.response?.status}`);
+      debugLog.push(`[LOCALHOST-WRM] Error response data: ${JSON.stringify(error.response?.data)}`);
+      debugLog.push(`[LOCALHOST-WRM] Error stack: ${error.stack}`);
+      
       console.error('WP Remote Manager Clean Spam Error:', error.response?.data || error.message);
       
       return {
         success: false,
         message: error.response?.data?.message || 'Failed to clean spam comments',
-        deleted_count: 0
+        deleted_count: 0,
+        debugLog
       };
     }
   }
