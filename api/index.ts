@@ -2460,23 +2460,36 @@ function generateToken(payload: { id: number; email: string }): string {
 
 // Authentication middleware function
 function authenticateToken(req: any): { id: number; email: string } | null {
-  // First try Authorization header
-  const authHeader = req.headers.authorization;
-  let token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
-  
-  // If not found in header, try query parameter
-  if (!token && req.query && req.query.token) {
-    token = req.query.token as string;
-  }
-
-  if (!token) {
-    return null;
-  }
-
   try {
+    // First try Authorization header
+    const authHeader = req.headers?.authorization || req.headers?.Authorization;
+    let token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+    
+    // If not found in header, try query parameter
+    if (!token && req.query?.token) {
+      token = req.query.token as string;
+    }
+    
+    // Additional fallback - check for token in body for POST requests
+    if (!token && req.body?.token) {
+      token = req.body.token as string;
+    }
+
+    if (!token) {
+      console.log('[AUTH] No token found in request headers, query, or body');
+      return null;
+    }
+
     const decoded = jwt.verify(token, JWT_SECRET) as { id: number; email: string };
+    
+    if (!decoded || !decoded.id || !decoded.email) {
+      console.log('[AUTH] Invalid token payload:', decoded);
+      return null;
+    }
+    
     return decoded;
-  } catch (error) {
+  } catch (error: any) {
+    console.error('[AUTH] Token verification failed:', error.message);
     return null;
   }
 }
@@ -10414,7 +10427,7 @@ if (path.match(/^\/api\/websites\/\d+\/comments$/) && req.method === 'GET') {
     if (path.match(/^\/api\/websites\/\d+\/comments\/delete$/) && req.method === 'POST') {
       const user = authenticateToken(req);
       if (!user) {
-        return res.status(401).json({ message: 'Unauthorized' });
+        return res.status(401).json({ message: 'Access token required' });
       }
 
       const websiteId = parseInt(path.split('/')[3]);
@@ -10462,7 +10475,7 @@ if (path.match(/^\/api\/websites\/\d+\/comments$/) && req.method === 'GET') {
     if (path.match(/^\/api\/websites\/\d+\/comments\/clean-spam$/) && req.method === 'POST') {
       const user = authenticateToken(req);
       if (!user) {
-        return res.status(401).json({ message: 'Unauthorized' });
+        return res.status(401).json({ message: 'Access token required' });
       }
 
       const websiteId = parseInt(path.split('/')[3]);
