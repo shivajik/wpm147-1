@@ -102,20 +102,36 @@ export function CommentsSection({ websiteId }: CommentsSectionProps) {
     }
   });
 
-  // Delete comment mutation
-  const deleteCommentMutation = useMutation({
-    mutationFn: async (commentId: number) => {
-      return await apiCall(`/api/websites/${websiteId}/comments/${commentId}/delete`, {
-        method: 'DELETE',
+  // WordPress-style bulk cleanup mutations
+  const removeUnapprovedMutation = useMutation({
+    mutationFn: async () => {
+      return await apiCall(`/api/websites/${websiteId}/comments/remove-unapproved`, {
+        method: 'POST',
         body: JSON.stringify({}),
       });
     },
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: [`/api/websites/${websiteId}/comments-data`] });
-      toast({ title: 'Comment deleted successfully' });
+      toast({ title: `Removed ${data.deleted_count || 0} unapproved comments` });
     },
     onError: () => {
-      toast({ title: 'Failed to delete comment', variant: 'destructive' });
+      toast({ title: 'Failed to remove unapproved comments', variant: 'destructive' });
+    }
+  });
+
+  const removeSpamTrashMutation = useMutation({
+    mutationFn: async () => {
+      return await apiCall(`/api/websites/${websiteId}/comments/remove-spam-trash`, {
+        method: 'POST',
+        body: JSON.stringify({}),
+      });
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: [`/api/websites/${websiteId}/comments-data`] });
+      toast({ title: `Removed ${data.deleted_count || 0} spam/trash comments` });
+    },
+    onError: () => {
+      toast({ title: 'Failed to remove spam/trash comments', variant: 'destructive' });
     }
   });
 
@@ -213,16 +229,6 @@ export function CommentsSection({ websiteId }: CommentsSectionProps) {
                 </Button>
               )}
               
-              <Button 
-                size="sm" 
-                variant="outline"
-                onClick={() => deleteCommentMutation.mutate(comment.id)}
-                disabled={deleteCommentMutation.isPending}
-                className="text-red-600 border-red-300 hover:bg-red-50"
-              >
-                <Trash2 className="w-3 h-3 mr-1" />
-                Delete
-              </Button>
               
               <Button size="sm" variant="ghost" className="text-gray-500">
                 <Reply className="w-3 h-3 mr-1" />
@@ -263,14 +269,25 @@ export function CommentsSection({ websiteId }: CommentsSectionProps) {
             </div>
             <div className="text-xs text-muted-foreground">Spam</div>
           </div>
-          <div className="text-center">
+          <div className="text-center space-y-1">
             <Button 
               size="sm" 
-              className="w-full h-8 text-xs bg-blue-600 hover:bg-blue-700"
-              onClick={() => queryClient.invalidateQueries({ queryKey: [`/api/websites/${websiteId}/comments-data`] })}
+              className="w-full h-8 text-xs bg-orange-600 hover:bg-orange-700"
+              onClick={() => removeUnapprovedMutation.mutate()}
+              disabled={removeUnapprovedMutation.isPending}
             >
-              <RefreshCw className="h-3 w-3 mr-1" />
-              Refresh
+              <CheckCircle className="h-3 w-3 mr-1" />
+              Remove Unapproved
+            </Button>
+            <Button 
+              size="sm" 
+              variant="outline"
+              className="w-full h-8 text-xs text-red-600 border-red-300 hover:bg-red-50"
+              onClick={() => removeSpamTrashMutation.mutate()}
+              disabled={removeSpamTrashMutation.isPending}
+            >
+              <Trash2 className="h-3 w-3 mr-1" />
+              Remove Spam/Trash
             </Button>
           </div>
         </div>

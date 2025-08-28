@@ -121,75 +121,72 @@ export default function WebsiteComments() {
   console.log('Website data for comments:', website);
   console.log('Comments data:', commentsData);
 
-  // Mutations for comment actions
-  const deleteCommentsMutation = useMutation({
-    mutationFn: async (commentIds: string[]) => {
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch(`/api/websites/${websiteId}/comments/delete`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ comment_ids: commentIds })
-      });
-      if (!response.ok) throw new Error('Failed to delete comments');
-      return response.json();
-    },
-    onSuccess: (data) => {
-      refetchComments();
-      setSelectedComments([]);
-      toast({ 
-        title: 'Comments deleted successfully', 
-        description: `${data.deleted_count} comment(s) deleted`
-      });
-    },
-    onError: (error: any) => {
-      toast({ 
-        title: 'Failed to delete comments', 
-        description: error.message,
-        variant: 'destructive' 
-      });
-    },
-  });
-
-  const cleanSpamMutation = useMutation({
+  // WordPress-style bulk cleanup mutations
+  const removeUnapprovedMutation = useMutation({
     mutationFn: async () => {
       const token = localStorage.getItem('auth_token');
-      const response = await fetch(`/api/websites/${websiteId}/comments/clean-spam`, {
+      const response = await fetch(`/api/websites/${websiteId}/comments/remove-unapproved`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         }
       });
-      if (!response.ok) throw new Error('Failed to clean spam comments');
+      if (!response.ok) throw new Error('Failed to remove unapproved comments');
       return response.json();
     },
     onSuccess: (data) => {
       refetchComments();
       toast({ 
-        title: 'Spam comments cleaned successfully', 
-        description: `${data.deleted_count} spam comment(s) removed`
+        title: 'Unapproved comments removed', 
+        description: `${data.deleted_count} unapproved comment(s) removed`
       });
     },
     onError: (error: any) => {
       toast({ 
-        title: 'Failed to clean spam comments', 
+        title: 'Failed to remove unapproved comments', 
         description: error.message,
         variant: 'destructive' 
       });
     },
   });
 
-  // Handle bulk actions
-  const handleBulkDelete = () => {
-    if (selectedComments.length === 0) return;
-    deleteCommentsMutation.mutate(selectedComments.map(String));
+  const removeSpamTrashMutation = useMutation({
+    mutationFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/websites/${websiteId}/comments/remove-spam-trash`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (!response.ok) throw new Error('Failed to remove spam and trashed comments');
+      return response.json();
+    },
+    onSuccess: (data) => {
+      refetchComments();
+      toast({ 
+        title: 'Spam and trashed comments removed', 
+        description: `${data.deleted_count} spam/trash comment(s) removed`
+      });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: 'Failed to remove spam and trashed comments', 
+        description: error.message,
+        variant: 'destructive' 
+      });
+    },
+  });
+
+  // Handle WordPress-style bulk cleanup
+  const handleRemoveUnapproved = () => {
+    removeUnapprovedMutation.mutate();
   };
 
-  const handleCleanSpam = () => {
-    cleanSpamMutation.mutate();
+  const handleRemoveSpamTrash = () => {
+    removeSpamTrashMutation.mutate();
   };
 
   // Filter comments based on status and search
@@ -410,28 +407,28 @@ export default function WebsiteComments() {
               </Select>
 
               <div className="flex gap-2">
-                {selectedComments.length > 0 && (
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={handleBulkDelete}
-                    disabled={deleteCommentsMutation.isPending}
-                    data-testid="button-bulk-delete"
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Delete Selected ({selectedComments.length})
-                  </Button>
-                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRemoveUnapproved}
+                  disabled={removeUnapprovedMutation.isPending}
+                  data-testid="button-remove-unapproved"
+                  className="text-orange-600 border-orange-300 hover:bg-orange-50"
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Remove Unapproved Comments
+                </Button>
                 
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={handleCleanSpam}
-                  disabled={cleanSpamMutation.isPending}
-                  data-testid="button-clean-spam"
+                  onClick={handleRemoveSpamTrash}
+                  disabled={removeSpamTrashMutation.isPending}
+                  data-testid="button-remove-spam-trash"
+                  className="text-red-600 border-red-300 hover:bg-red-50"
                 >
-                  <Zap className="w-4 h-4 mr-2" />
-                  Clean Spam
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Remove Spam & Trashed Comments
                 </Button>
               </div>
             </div>
@@ -442,18 +439,7 @@ export default function WebsiteComments() {
                 <CardTitle className="flex items-center justify-between">
                   <span>Recent Comments ({filteredComments.length})</span>
                   <div className="flex items-center gap-2">
-                    <Checkbox
-                      checked={selectedComments.length === filteredComments.length && filteredComments.length > 0}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedComments(filteredComments.map(c => Number(c.id)));
-                        } else {
-                          setSelectedComments([]);
-                        }
-                      }}
-                      data-testid="checkbox-select-all"
-                    />
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Select All</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">WordPress-style Bulk Cleanup</span>
                   </div>
                 </CardTitle>
               </CardHeader>
@@ -502,19 +488,9 @@ export default function WebsiteComments() {
                         className="flex items-start gap-3 p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                         data-testid={`comment-${comment.id}`}
                       >
-                        <Checkbox
-                          checked={selectedComments.includes(parseInt(comment.comment_ID || comment.id))}
-                          onCheckedChange={(checked) => {
-                            const commentId = parseInt(comment.comment_ID || comment.id);
-                            if (checked) {
-                              setSelectedComments([...selectedComments, commentId]);
-                            } else {
-                              setSelectedComments(selectedComments.filter(id => id !== commentId));
-                            }
-                          }}
-                          className="mt-1"
-                          data-testid={`checkbox-comment-${comment.comment_ID || comment.id}`}
-                        />
+                        <div className="w-5 h-5 mt-1 flex items-center justify-center">
+                          {getStatusBadge(comment.status || (comment.comment_approved === '1' ? 'approved' : 'pending')).props.children[1]}
+                        </div>
                         
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2 mb-2">
