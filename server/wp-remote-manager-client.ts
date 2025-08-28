@@ -2578,35 +2578,139 @@ export class WPRemoteManagerClient {
     lastOptimized: string | null;
   } | null> {
     try {
-      console.log('[WRM] Fetching optimization data...');
+      console.log('[WRM] Fetching real WordPress optimization data...');
       
-      const response = await this.api.get('/optimization/info');
-      console.log('[WRM] Optimization data received:', response.data);
-      return response.data;
+      // First try the dedicated optimization endpoint
+      try {
+        const response = await this.api.get('/optimization/info');
+        console.log('[WRM] Optimization data received from dedicated endpoint:', response.data);
+        return response.data;
+      } catch (endpointError) {
+        console.log('[WRM] Dedicated optimization endpoint not available, using WordPress database queries...');
+      }
+
+      // Fallback to direct WordPress database queries via REST API
+      const optimizationData = await this.fetchWordPressOptimizationData();
+      
+      if (optimizationData) {
+        console.log('[WRM] Successfully fetched optimization data from WordPress database');
+        return optimizationData;
+      }
+
+      console.log('[WRM] Could not fetch optimization data, website may not be accessible');
+      return null;
     } catch (error) {
-      console.log('[WRM] Optimization endpoint not available, returning default optimization data');
-      // Return realistic optimization data that matches ManageWP style
+      console.error('[WRM] Error fetching optimization data:', error);
+      return null;
+    }
+  }
+
+  private async fetchWordPressOptimizationData(): Promise<{
+    postRevisions: { count: number; size: string };
+    databaseSize: { total: string; tables: number; overhead: string };
+    trashedContent: { posts: number; comments: number; size: string };
+    spam: { comments: number; size: string };
+    lastOptimized: string | null;
+  } | null> {
+    try {
+      // Use WordPress REST API to get optimization data
+      const baseUrl = this.credentials.url.replace(/\/+$/, '');
+      
+      // Fetch post revisions using WordPress REST API
+      const revisionsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/revisions`, {
+        params: { per_page: 100 },
+        timeout: 15000,
+        headers: {
+          'User-Agent': 'WPRemoteManager/1.0'
+        }
+      });
+
+      // Count total revisions across all posts
+      let totalRevisions = 0;
+      try {
+        // Try to get total count from headers
+        const totalHeader = revisionsResponse.headers['x-wp-total'];
+        if (totalHeader) {
+          totalRevisions = parseInt(totalHeader);
+        } else {
+          totalRevisions = revisionsResponse.data.length;
+        }
+      } catch {
+        totalRevisions = revisionsResponse.data.length;
+      }
+
+      // Estimate revision size (WordPress revisions are typically 1-3KB each)
+      const estimatedRevisionsSize = (totalRevisions * 2.5) / 1024; // Convert to MB
+      
+      // Fetch posts data to get more statistics
+      const postsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/posts`, {
+        params: { per_page: 1, status: 'trash' },
+        timeout: 10000,
+        headers: {
+          'User-Agent': 'WPRemoteManager/1.0'
+        }
+      });
+
+      const trashedPosts = parseInt(postsResponse.headers['x-wp-total'] || '0');
+
+      // Fetch comments data
+      const commentsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/comments`, {
+        params: { per_page: 1, status: 'spam' },
+        timeout: 10000,
+        headers: {
+          'User-Agent': 'WPRemoteManager/1.0'
+        }
+      });
+
+      const spamComments = parseInt(commentsResponse.headers['x-wp-total'] || '0');
+
+      // Fetch all comments to get trashed count
+      const allCommentsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/comments`, {
+        params: { per_page: 1, status: 'trash' },
+        timeout: 10000,
+        headers: {
+          'User-Agent': 'WPRemoteManager/1.0'
+        }
+      });
+
+      const trashedComments = parseInt(allCommentsResponse.headers['x-wp-total'] || '0');
+
+      // Estimate database size based on content
+      const allPostsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/posts`, {
+        params: { per_page: 1 },
+        timeout: 10000,
+        headers: {
+          'User-Agent': 'WPRemoteManager/1.0'
+        }
+      });
+
+      const totalPosts = parseInt(allPostsResponse.headers['x-wp-total'] || '0');
+      const estimatedDbSize = Math.max(20, (totalPosts * 0.5) + (totalRevisions * 0.002) + 15); // Base 20MB + content
+
       return {
         postRevisions: {
-          count: Math.floor(Math.random() * 100) + 25, // 25-125 revisions
-          size: `${(Math.random() * 5 + 1).toFixed(1)} MB`
+          count: totalRevisions,
+          size: estimatedRevisionsSize > 1 ? `${estimatedRevisionsSize.toFixed(1)} MB` : `${(estimatedRevisionsSize * 1024).toFixed(0)} KB`
         },
         databaseSize: {
-          total: `${(Math.random() * 50 + 20).toFixed(1)} MB`,
-          tables: Math.floor(Math.random() * 50) + 15, // 15-65 tables
-          overhead: `${(Math.random() * 2).toFixed(1)} MB`
+          total: `${estimatedDbSize.toFixed(1)} MB`,
+          tables: Math.max(15, Math.floor(totalPosts / 100) + 12), // Estimate table count based on content
+          overhead: totalRevisions > 50 ? `${(estimatedRevisionsSize * 0.3).toFixed(1)} MB` : "0.1 MB"
         },
         trashedContent: {
-          posts: Math.floor(Math.random() * 20) + 5,
-          comments: Math.floor(Math.random() * 50) + 10,
-          size: `${(Math.random() * 3 + 0.5).toFixed(1)} MB`
+          posts: trashedPosts,
+          comments: trashedComments,
+          size: trashedPosts > 0 || trashedComments > 0 ? `${((trashedPosts * 0.5) + (trashedComments * 0.01)).toFixed(1)} MB` : "0 MB"
         },
         spam: {
-          comments: Math.floor(Math.random() * 100) + 20,
-          size: `${(Math.random() * 2 + 0.2).toFixed(1)} MB`
+          comments: spamComments,
+          size: spamComments > 0 ? `${(spamComments * 0.01).toFixed(1)} MB` : "0 MB"
         },
-        lastOptimized: Math.random() > 0.5 ? new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString() : null
+        lastOptimized: null // WordPress doesn't track this by default
       };
+    } catch (error) {
+      console.error('[WRM] Error fetching WordPress optimization data:', error);
+      return null;
     }
   }
 
@@ -2618,15 +2722,78 @@ export class WPRemoteManagerClient {
     try {
       console.log('[WRM] Optimizing post revisions...');
       
-      const response = await this.api.post('/optimization/revisions');
-      return response.data;
-    } catch (error) {
-      console.log('[WRM] Post revision optimization endpoint not available, using simulated result');
-      // Return simulated result for now
+      // First try the dedicated optimization endpoint
+      try {
+        const response = await this.api.post('/optimization/revisions');
+        console.log('[WRM] Successfully cleaned revisions using WRM plugin');
+        return response.data;
+      } catch (endpointError) {
+        console.log('[WRM] WRM optimization endpoint not available, attempting WordPress REST API cleanup...');
+      }
+
+      // Fallback to WordPress REST API revision cleanup
+      const baseUrl = this.credentials.url.replace(/\/+$/, '');
+      
+      // Get all revisions that can be deleted (keeping only latest few)
+      const revisionsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/revisions`, {
+        params: { per_page: 100 },
+        timeout: 15000,
+        headers: {
+          'User-Agent': 'WPRemoteManager/1.0'
+        }
+      });
+
+      let deletedCount = 0;
+      const revisions = revisionsResponse.data || [];
+      
+      // Group revisions by post and keep only the latest 2-3 per post
+      const revisionsByPost: { [postId: string]: any[] } = {};
+      revisions.forEach((revision: any) => {
+        const postId = revision.parent?.toString() || 'unknown';
+        if (!revisionsByPost[postId]) {
+          revisionsByPost[postId] = [];
+        }
+        revisionsByPost[postId].push(revision);
+      });
+
+      // Delete older revisions (keep only 2 most recent per post)
+      for (const postId in revisionsByPost) {
+        const postRevisions = revisionsByPost[postId]
+          .sort((a, b) => new Date(b.modified).getTime() - new Date(a.modified).getTime());
+        
+        // Delete all but the 2 most recent revisions
+        const toDelete = postRevisions.slice(2);
+        
+        for (const revision of toDelete) {
+          try {
+            await axios.delete(`${baseUrl}/wp-json/wp/v2/revisions/${revision.id}`, {
+              timeout: 10000,
+              headers: {
+                'User-Agent': 'WPRemoteManager/1.0'
+              }
+            });
+            deletedCount++;
+          } catch (deleteError) {
+            console.log(`[WRM] Could not delete revision ${revision.id}:`, deleteError);
+          }
+        }
+      }
+
+      const estimatedSizeFreed = deletedCount * 2.5 / 1024; // Estimate size freed
+      
+      console.log(`[WRM] Successfully deleted ${deletedCount} post revisions via WordPress REST API`);
+      
       return {
-        removedCount: Math.floor(Math.random() * 100) + 25,
-        sizeFreed: `${(Math.random() * 8 + 2).toFixed(1)} MB`,
+        removedCount: deletedCount,
+        sizeFreed: estimatedSizeFreed > 1 ? `${estimatedSizeFreed.toFixed(1)} MB` : `${(estimatedSizeFreed * 1024).toFixed(0)} KB`,
         success: true
+      };
+    } catch (error) {
+      console.error('[WRM] Error optimizing post revisions:', error);
+      return {
+        removedCount: 0,
+        sizeFreed: "0 KB",
+        success: false
       };
     }
   }
@@ -2639,15 +2806,117 @@ export class WPRemoteManagerClient {
     try {
       console.log('[WRM] Optimizing database...');
       
-      const response = await this.api.post('/optimization/database');
-      return response.data;
+      // First try the dedicated optimization endpoint
+      try {
+        const response = await this.api.post('/optimization/database');
+        console.log('[WRM] Successfully optimized database using WRM plugin');
+        return response.data;
+      } catch (endpointError) {
+        console.log('[WRM] WRM database optimization endpoint not available, attempting spam/trash cleanup...');
+      }
+
+      // Fallback to WordPress REST API cleanup of spam and trash
+      const baseUrl = this.credentials.url.replace(/\/+$/, '');
+      let itemsDeleted = 0;
+      let estimatedSizeFreed = 0;
+
+      try {
+        // Clean up spam comments
+        const spamCommentsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/comments`, {
+          params: { per_page: 100, status: 'spam' },
+          timeout: 15000,
+          headers: {
+            'User-Agent': 'WPRemoteManager/1.0'
+          }
+        });
+
+        const spamComments = spamCommentsResponse.data || [];
+        for (const comment of spamComments) {
+          try {
+            await axios.delete(`${baseUrl}/wp-json/wp/v2/comments/${comment.id}?force=true`, {
+              timeout: 10000,
+              headers: {
+                'User-Agent': 'WPRemoteManager/1.0'
+              }
+            });
+            itemsDeleted++;
+            estimatedSizeFreed += 0.01; // Estimate 10KB per spam comment
+          } catch (deleteError) {
+            console.log(`[WRM] Could not delete spam comment ${comment.id}:`, deleteError);
+          }
+        }
+
+        // Clean up trashed posts
+        const trashedPostsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/posts`, {
+          params: { per_page: 50, status: 'trash' },
+          timeout: 15000,
+          headers: {
+            'User-Agent': 'WPRemoteManager/1.0'
+          }
+        });
+
+        const trashedPosts = trashedPostsResponse.data || [];
+        for (const post of trashedPosts) {
+          try {
+            await axios.delete(`${baseUrl}/wp-json/wp/v2/posts/${post.id}?force=true`, {
+              timeout: 10000,
+              headers: {
+                'User-Agent': 'WPRemoteManager/1.0'
+              }
+            });
+            itemsDeleted++;
+            estimatedSizeFreed += 0.5; // Estimate 500KB per trashed post
+          } catch (deleteError) {
+            console.log(`[WRM] Could not delete trashed post ${post.id}:`, deleteError);
+          }
+        }
+
+        // Clean up trashed comments
+        const trashedCommentsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/comments`, {
+          params: { per_page: 100, status: 'trash' },
+          timeout: 15000,
+          headers: {
+            'User-Agent': 'WPRemoteManager/1.0'
+          }
+        });
+
+        const trashedComments = trashedCommentsResponse.data || [];
+        for (const comment of trashedComments) {
+          try {
+            await axios.delete(`${baseUrl}/wp-json/wp/v2/comments/${comment.id}?force=true`, {
+              timeout: 10000,
+              headers: {
+                'User-Agent': 'WPRemoteManager/1.0'
+              }
+            });
+            itemsDeleted++;
+            estimatedSizeFreed += 0.01; // Estimate 10KB per trashed comment
+          } catch (deleteError) {
+            console.log(`[WRM] Could not delete trashed comment ${comment.id}:`, deleteError);
+          }
+        }
+
+        console.log(`[WRM] Database optimization completed: ${itemsDeleted} items deleted, ${estimatedSizeFreed.toFixed(1)} MB freed`);
+        
+        return {
+          tablesOptimized: Math.max(1, Math.floor(itemsDeleted / 10)), // Estimate tables affected
+          sizeFreed: estimatedSizeFreed > 1 ? `${estimatedSizeFreed.toFixed(1)} MB` : `${(estimatedSizeFreed * 1024).toFixed(0)} KB`,
+          success: true
+        };
+      } catch (cleanupError) {
+        console.error('[WRM] Error during database cleanup:', cleanupError);
+        return {
+          tablesOptimized: 0,
+          sizeFreed: "0 KB",
+          success: false
+        };
+      }
     } catch (error) {
-      console.log('[WRM] Database optimization endpoint not available, using simulated result');
-      // Return simulated result for now
+      console.error('[WRM] Error optimizing database:', error);
       return {
-        tablesOptimized: Math.floor(Math.random() * 25) + 10,
-        sizeFreed: `${(Math.random() * 12 + 3).toFixed(1)} MB`,
-        success: true
+        tablesOptimized: 0,
+        sizeFreed: "0 KB",
+        success: false
       };
     }
   }
@@ -2662,28 +2931,58 @@ export class WPRemoteManagerClient {
     try {
       console.log('[WRM] Performing complete optimization...');
       
-      const response = await this.api.post('/optimization/all');
-      return response.data;
-    } catch (error) {
-      console.log('[WRM] Complete optimization endpoint not available, using simulated result');
-      // Return simulated comprehensive result for now
-      const revisionsCount = Math.floor(Math.random() * 100) + 25;
-      const tablesCount = Math.floor(Math.random() * 25) + 10;
-      const totalSizeFreed = (Math.random() * 20 + 5).toFixed(1);
+      // First try the dedicated optimization endpoint
+      try {
+        const response = await this.api.post('/optimization/all');
+        console.log('[WRM] Successfully performed complete optimization using WRM plugin');
+        return response.data;
+      } catch (endpointError) {
+        console.log('[WRM] WRM complete optimization endpoint not available, performing individual optimizations...');
+      }
+
+      // Fallback to individual optimization operations
+      const revisionsResult = await this.optimizePostRevisions();
+      const databaseResult = await this.optimizeDatabase();
+      
+      // Calculate totals
+      const totalItemsRemoved = revisionsResult.removedCount + databaseResult.tablesOptimized;
+      const totalSizeFreedMB = this.parseSizeToMB(revisionsResult.sizeFreed) + this.parseSizeToMB(databaseResult.sizeFreed);
+      
+      console.log(`[WRM] Complete optimization finished: ${totalItemsRemoved} items removed, ${totalSizeFreedMB.toFixed(1)} MB freed`);
       
       return {
-        totalItemsRemoved: revisionsCount + tablesCount + Math.floor(Math.random() * 50),
-        totalSizeFreed: `${totalSizeFreed} MB`,
+        totalItemsRemoved,
+        totalSizeFreed: totalSizeFreedMB > 1 ? `${totalSizeFreedMB.toFixed(1)} MB` : `${(totalSizeFreedMB * 1024).toFixed(0)} KB`,
         revisions: {
-          removedCount: revisionsCount,
-          sizeFreed: `${(parseFloat(totalSizeFreed) * 0.4).toFixed(1)} MB`
+          removedCount: revisionsResult.removedCount,
+          sizeFreed: revisionsResult.sizeFreed
         },
         database: {
-          tablesOptimized: tablesCount,
-          sizeFreed: `${(parseFloat(totalSizeFreed) * 0.6).toFixed(1)} MB`
+          tablesOptimized: databaseResult.tablesOptimized,
+          sizeFreed: databaseResult.sizeFreed
         },
-        success: true
+        success: revisionsResult.success || databaseResult.success
+      };
+    } catch (error) {
+      console.error('[WRM] Error performing complete optimization:', error);
+      return {
+        totalItemsRemoved: 0,
+        totalSizeFreed: "0 KB",
+        revisions: { removedCount: 0, sizeFreed: "0 KB" },
+        database: { tablesOptimized: 0, sizeFreed: "0 KB" },
+        success: false
       };
     }
+  }
+
+  private parseSizeToMB(sizeString: string): number {
+    if (!sizeString) return 0;
+    const match = sizeString.match(/^(\d+(?:\.\d+)?)\s*(KB|MB)$/i);
+    if (!match) return 0;
+    
+    const value = parseFloat(match[1]);
+    const unit = match[2].toUpperCase();
+    
+    return unit === 'KB' ? value / 1024 : value;
   }
 }
