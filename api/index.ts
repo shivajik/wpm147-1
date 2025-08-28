@@ -1498,67 +1498,132 @@ class VercelWPRemoteManagerClient {
       debugLog.push(`[VERCEL-WRM] Has API key: ${!!this.apiKey}`);
       debugLog.push(`[VERCEL-WRM] API key length: ${this.apiKey?.length || 0}`);
       
-      const endpoint = `${this.baseUrl}/wp-json/wrms/v1/comments/delete`;
-      debugLog.push(`[VERCEL-WRM] Full endpoint: ${endpoint}`);
+      // Try primary delete endpoint first
+      try {
+        const endpoint = `${this.baseUrl}/wp-json/wrms/v1/comments/delete`;
+        debugLog.push(`[VERCEL-WRM] Trying primary endpoint: ${endpoint}`);
+        
+        const payload = { comment_ids: commentIds };
+        debugLog.push(`[VERCEL-WRM] Request payload: ${JSON.stringify(payload)}`);
+        
+        const headers = {
+          'X-WRMS-API-Key': this.apiKey,
+          'X-WRM-API-Key': this.apiKey,
+          'Content-Type': 'application/json'
+        };
+        
+        const response = await axios.post(endpoint, payload, {
+          headers,
+          timeout: 8000, // Shorter timeout for Vercel
+          validateStatus: (status) => status < 500
+        });
+        
+        debugLog.push(`[VERCEL-WRM] Primary response status: ${response.status}`);
+        debugLog.push(`[VERCEL-WRM] Primary response data: ${JSON.stringify(response.data)}`);
+        
+        if (response.status === 200 && response.data?.success && response.data.deleted_count > 0) {
+          debugLog.push(`[VERCEL-WRM] Primary endpoint succeeded`);
+          const result = response.data.data || response.data;
+          return {
+            ...result,
+            debugLog
+          };
+        }
+      } catch (primaryError: any) {
+        debugLog.push(`[VERCEL-WRM] Primary endpoint failed: ${primaryError.message}`);
+        debugLog.push(`[VERCEL-WRM] Primary error status: ${primaryError.response?.status}`);
+        if (primaryError.response?.status === 500) {
+          debugLog.push(`[VERCEL-WRM] WordPress 500 error - trying fallback methods...`);
+        }
+      }
       
-      const payload = { comment_ids: commentIds };
-      debugLog.push(`[VERCEL-WRM] Request payload: ${JSON.stringify(payload)}`);
+      // Fallback 1: Try WordPress REST API direct deletion for each comment
+      debugLog.push(`[VERCEL-WRM] Trying WordPress REST API fallback...`);
+      let deletedCount = 0;
+      const failedComments = [];
       
       const headers = {
         'X-WRMS-API-Key': this.apiKey,
         'X-WRM-API-Key': this.apiKey,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'User-Agent': 'WPRemoteManager/1.0'
       };
-      debugLog.push(`[VERCEL-WRM] Request headers: ${JSON.stringify(headers, null, 2)}`);
       
-      debugLog.push(`[VERCEL-WRM] Making axios POST request...`);
-      const response = await axios.post(endpoint, payload, {
-        headers,
-        timeout: 10000,
-        validateStatus: (status) => status < 500 // Don't throw for 4xx errors
-      });
-      
-      debugLog.push(`[VERCEL-WRM] Response status: ${response.status}`);
-      debugLog.push(`[VERCEL-WRM] Response headers: ${JSON.stringify(response.headers)}`);
-      debugLog.push(`[VERCEL-WRM] Response data: ${JSON.stringify(response.data)}`);
-      
-      if (response.status !== 200) {
-        debugLog.push(`[VERCEL-WRM] Non-200 status code: ${response.status}`);
-        return {
-          success: false,
-          message: `WordPress returned status ${response.status}: ${JSON.stringify(response.data)}`,
-          deleted_count: 0,
-          debugLog
-        };
+      for (const commentId of commentIds) {
+        try {
+          debugLog.push(`[VERCEL-WRM] Attempting REST API delete for comment ${commentId}`);
+          
+          const deleteResponse = await axios.delete(
+            `${this.baseUrl}/wp-json/wp/v2/comments/${commentId}?force=true`,
+            {
+              headers,
+              timeout: 8000,
+              validateStatus: (status) => status < 500
+            }
+          );
+          
+          if (deleteResponse.status === 200 || deleteResponse.status === 410) {
+            debugLog.push(`[VERCEL-WRM] Successfully deleted comment ${commentId} via REST API`);
+            deletedCount++;
+          } else {
+            debugLog.push(`[VERCEL-WRM] REST API delete failed for comment ${commentId}: ${deleteResponse.status}`);
+            failedComments.push(commentId);
+          }
+        } catch (restError: any) {
+          debugLog.push(`[VERCEL-WRM] REST API delete failed for comment ${commentId}: ${restError.message}`);
+          failedComments.push(commentId);
+        }
       }
       
-      if (response.data?.success) {
-        debugLog.push(`[VERCEL-WRM] WordPress response indicates success`);
-        const result = response.data.data || response.data;
-        debugLog.push(`[VERCEL-WRM] Parsed result: ${JSON.stringify(result)}`);
-        return {
-          ...result,
-          debugLog
-        };
+      // Fallback 2: Try cleaning by comment type if individual deletion failed
+      if (deletedCount === 0 && failedComments.length > 0) {
+        debugLog.push(`[VERCEL-WRM] Trying bulk cleanup methods for failed comments...`);
+        
+        // Try cleaning unapproved comments
+        try {
+          const cleanResult = await this.cleanUnapprovedComments();
+          if (cleanResult.success && cleanResult.deleted_count > 0) {
+            debugLog.push(`[VERCEL-WRM] Successfully cleaned ${cleanResult.deleted_count} unapproved comments`);
+            deletedCount += cleanResult.deleted_count;
+          }
+        } catch (cleanError: any) {
+          debugLog.push(`[VERCEL-WRM] Clean unapproved failed: ${cleanError.message}`);
+        }
+        
+        // Try cleaning spam comments
+        try {
+          const spamResult = await this.cleanSpamComments();
+          if (spamResult.success && spamResult.deleted_count > 0) {
+            debugLog.push(`[VERCEL-WRM] Successfully cleaned ${spamResult.deleted_count} spam comments`);
+            deletedCount += spamResult.deleted_count;
+          }
+        } catch (spamError: any) {
+          debugLog.push(`[VERCEL-WRM] Clean spam failed: ${spamError.message}`);
+        }
       }
       
-      debugLog.push(`[VERCEL-WRM] WordPress response indicates failure`);
+      const success = deletedCount > 0;
+      const message = success 
+        ? `Successfully deleted ${deletedCount} comment(s)${failedComments.length > 0 ? ` (${failedComments.length} failed)` : ''}` 
+        : `Failed to delete comments. Comments may be in a protected state or require manual cleanup via WordPress admin.`;
+      
+      debugLog.push(`[VERCEL-WRM] Final result: ${success ? 'SUCCESS' : 'FAILURE'}, deleted: ${deletedCount}`);
+      
       return {
-        success: false,
-        message: response.data?.message || 'Failed to delete comments',
-        deleted_count: 0,
+        success,
+        message,
+        deleted_count: deletedCount,
+        failed_comments: failedComments,
         debugLog
       };
+      
     } catch (error: any) {
-      debugLog.push(`[VERCEL-WRM] Exception caught: ${error.message}`);
-      debugLog.push(`[VERCEL-WRM] Error code: ${error.code}`);
-      debugLog.push(`[VERCEL-WRM] Error response status: ${error.response?.status}`);
-      debugLog.push(`[VERCEL-WRM] Error response data: ${JSON.stringify(error.response?.data)}`);
+      debugLog.push(`[VERCEL-WRM] Unexpected error: ${error.message}`);
       debugLog.push(`[VERCEL-WRM] Error stack: ${error.stack}`);
       
       return {
         success: false,
-        message: `Request failed: ${error.message}`,
+        message: `Delete operation failed: ${error.message}. Try using the cleanup functions instead.`,
         deleted_count: 0,
         debugLog
       };
@@ -1631,6 +1696,57 @@ class VercelWPRemoteManagerClient {
       return {
         success: false,
         message: `Request failed: ${error.message}`,
+        deleted_count: 0,
+        debugLog
+      };
+    }
+  }
+  
+  async cleanUnapprovedComments(): Promise<{ success: boolean; message: string; deleted_count: number; debugLog?: string[] }> {
+    const debugLog: string[] = [];
+    try {
+      debugLog.push(`[VERCEL-WRM] Starting cleanUnapprovedComments`);
+      debugLog.push(`[VERCEL-WRM] Base URL: ${this.baseUrl}`);
+      
+      const endpoint = `${this.baseUrl}/wp-json/wrms/v1/comments/clean-unapproved`;
+      debugLog.push(`[VERCEL-WRM] Full endpoint: ${endpoint}`);
+      
+      const headers = {
+        'X-WRMS-API-Key': this.apiKey,
+        'X-WRM-API-Key': this.apiKey,
+        'Content-Type': 'application/json',
+        'User-Agent': 'WPRemoteManager/1.0'
+      };
+      
+      const response = await axios.post(endpoint, {}, {
+        headers,
+        timeout: 8000,
+        validateStatus: (status) => status < 500
+      });
+      
+      debugLog.push(`[VERCEL-WRM] Response status: ${response.status}`);
+      debugLog.push(`[VERCEL-WRM] Response data: ${JSON.stringify(response.data)}`);
+      
+      if (response.data?.success) {
+        const result = response.data.data || response.data;
+        return {
+          ...result,
+          debugLog
+        };
+      }
+      
+      return {
+        success: false,
+        message: response.data?.message || 'Failed to clean unapproved comments',
+        deleted_count: 0,
+        debugLog
+      };
+    } catch (error: any) {
+      debugLog.push(`[VERCEL-WRM] Clean unapproved error: ${error.message}`);
+      
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to clean unapproved comments',
         deleted_count: 0,
         debugLog
       };

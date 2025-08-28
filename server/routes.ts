@@ -7612,6 +7612,63 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
     }
   });
 
+  // Clean unapproved comments endpoint
+  app.post("/api/websites/:id/comments/clean-unapproved", authenticateToken, async (req, res) => {
+    const debugLog: string[] = [];
+    try {
+      debugLog.push(`[LOCALHOST-UNAPPROVED] Starting unapproved cleanup request`);
+      debugLog.push(`[LOCALHOST-UNAPPROVED] Timestamp: ${new Date().toISOString()}`);
+      
+      const userId = (req as AuthRequest).user!.id;
+      debugLog.push(`[LOCALHOST-UNAPPROVED] User authenticated: ID ${userId}`);
+      
+      const websiteId = parseInt(req.params.id);
+      debugLog.push(`[LOCALHOST-UNAPPROVED] Website ID: ${websiteId}`);
+      
+      const website = await storage.getWebsite(websiteId, userId);
+      
+      if (!website) {
+        debugLog.push(`[LOCALHOST-UNAPPROVED] Website not found for user ${userId}`);
+        return res.status(404).json({ message: "Website not found", debugLog });
+      }
+
+      debugLog.push(`[LOCALHOST-UNAPPROVED] Website found: ${website.name} (${website.url})`);
+      debugLog.push(`[LOCALHOST-UNAPPROVED] Has API key: ${!!website.wrmApiKey}`);
+
+      if (!website.wrmApiKey) {
+        debugLog.push(`[LOCALHOST-UNAPPROVED] No WRM API key configured`);
+        return res.status(400).json({ message: "WordPress Remote Manager API key not configured", debugLog });
+      }
+
+      debugLog.push(`[LOCALHOST-UNAPPROVED] Creating WRM client for ${website.url}`);
+      const credentials: WPRemoteManagerCredentials = {
+        url: website.url,
+        apiKey: website.wrmApiKey
+      };
+
+      const wrmClient = new WPRemoteManagerClient(credentials);
+      debugLog.push(`[LOCALHOST-UNAPPROVED] Calling cleanUnapprovedComments method...`);
+      const result = await wrmClient.cleanUnapprovedComments();
+      
+      debugLog.push(`[LOCALHOST-UNAPPROVED] WRM client result: ${JSON.stringify(result)}`);
+      debugLog.push(`[LOCALHOST-UNAPPROVED] Operation completed`);
+      
+      res.json({
+        ...result,
+        debugLog
+      });
+    } catch (error) {
+      debugLog.push(`[LOCALHOST-UNAPPROVED] Error occurred: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error("Error cleaning unapproved WordPress comments:", error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : "Failed to clean unapproved comments",
+        success: false,
+        deleted_count: 0,
+        debugLog
+      });
+    }
+  });
+
   app.post("/api/websites/:id/comments/clean-spam", authenticateToken, async (req, res) => {
     const debugLog: string[] = [];
     try {
