@@ -124,9 +124,13 @@ export default function WebsiteComments() {
   // Mutations for comment actions
   const deleteCommentsMutation = useMutation({
     mutationFn: async (commentIds: string[]) => {
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(`/api/websites/${websiteId}/comments/delete`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ comment_ids: commentIds })
       });
       if (!response.ok) throw new Error('Failed to delete comments');
@@ -151,9 +155,13 @@ export default function WebsiteComments() {
 
   const cleanSpamMutation = useMutation({
     mutationFn: async () => {
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(`/api/websites/${websiteId}/comments/clean-spam`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
       });
       if (!response.ok) throw new Error('Failed to clean spam comments');
       return response.json();
