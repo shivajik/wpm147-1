@@ -2576,33 +2576,22 @@ export class WPRemoteManagerClient {
     trashedContent: { posts: number; comments: number; size: string };
     spam: { comments: number; size: string };
     lastOptimized: string | null;
+    error?: string;
   } | null> {
+    console.log('[WRM] Fetching real WordPress optimization data...');
+    
+    // First try the dedicated optimization endpoint
     try {
-      console.log('[WRM] Fetching real WordPress optimization data...');
-      
-      // First try the dedicated optimization endpoint
-      try {
-        const response = await this.api.get('/optimization/info');
-        console.log('[WRM] Optimization data received from dedicated endpoint:', response.data);
-        return response.data;
-      } catch (endpointError) {
-        console.log('[WRM] Dedicated optimization endpoint not available, using WordPress database queries...');
-      }
-
-      // Fallback to direct WordPress database queries via REST API
-      const optimizationData = await this.fetchWordPressOptimizationData();
-      
-      if (optimizationData) {
-        console.log('[WRM] Successfully fetched optimization data from WordPress database');
-        return optimizationData;
-      }
-
-      console.log('[WRM] Could not fetch optimization data, website may not be accessible');
-      return null;
-    } catch (error) {
-      console.error('[WRM] Error fetching optimization data:', error);
-      return null;
+      const response = await this.api.get('/optimization/info');
+      console.log('[WRM] Optimization data received from dedicated endpoint:', response.data);
+      return response.data;
+    } catch (endpointError: any) {
+      console.log('[WRM] Dedicated optimization endpoint failed:', endpointError.message);
     }
+
+    // Try direct WordPress database queries via REST API
+    console.log('[WRM] Using WordPress REST API to fetch real optimization data...');
+    return await this.fetchWordPressOptimizationData();
   }
 
   private async fetchWordPressOptimizationData(): Promise<{
@@ -2611,12 +2600,14 @@ export class WPRemoteManagerClient {
     trashedContent: { posts: number; comments: number; size: string };
     spam: { comments: number; size: string };
     lastOptimized: string | null;
+    error?: string;
   } | null> {
+    const baseUrl = this.credentials.url.replace(/\/+$/, '');
+    console.log(`[WRM] Fetching optimization data from WordPress REST API at: ${baseUrl}`);
+    
     try {
-      // Use WordPress REST API to get optimization data
-      const baseUrl = this.credentials.url.replace(/\/+$/, '');
-      
       // Fetch post revisions using WordPress REST API
+      console.log(`[WRM] Fetching revisions from: ${baseUrl}/wp-json/wp/v2/revisions`);
       const revisionsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/revisions`, {
         params: { per_page: 100 },
         timeout: 15000,
@@ -2625,24 +2616,26 @@ export class WPRemoteManagerClient {
         }
       });
 
+      console.log(`[WRM] Revisions response status: ${revisionsResponse.status}`);
+      console.log(`[WRM] Revisions response headers:`, JSON.stringify(revisionsResponse.headers, null, 2));
+      console.log(`[WRM] Revisions data length: ${revisionsResponse.data?.length || 0}`);
+
       // Count total revisions across all posts
       let totalRevisions = 0;
-      try {
-        // Try to get total count from headers
-        const totalHeader = revisionsResponse.headers['x-wp-total'];
-        if (totalHeader) {
-          totalRevisions = parseInt(totalHeader);
-        } else {
-          totalRevisions = revisionsResponse.data.length;
-        }
-      } catch {
-        totalRevisions = revisionsResponse.data.length;
+      const totalHeader = revisionsResponse.headers['x-wp-total'];
+      if (totalHeader) {
+        totalRevisions = parseInt(totalHeader);
+        console.log(`[WRM] Total revisions from header: ${totalRevisions}`);
+      } else {
+        totalRevisions = revisionsResponse.data?.length || 0;
+        console.log(`[WRM] Total revisions from data length: ${totalRevisions}`);
       }
 
       // Estimate revision size (WordPress revisions are typically 1-3KB each)
       const estimatedRevisionsSize = (totalRevisions * 2.5) / 1024; // Convert to MB
       
       // Fetch posts data to get more statistics
+      console.log(`[WRM] Fetching trashed posts from: ${baseUrl}/wp-json/wp/v2/posts`);
       const postsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/posts`, {
         params: { per_page: 1, status: 'trash' },
         timeout: 10000,
@@ -2652,8 +2645,10 @@ export class WPRemoteManagerClient {
       });
 
       const trashedPosts = parseInt(postsResponse.headers['x-wp-total'] || '0');
+      console.log(`[WRM] Trashed posts: ${trashedPosts}`);
 
       // Fetch comments data
+      console.log(`[WRM] Fetching spam comments from: ${baseUrl}/wp-json/wp/v2/comments`);
       const commentsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/comments`, {
         params: { per_page: 1, status: 'spam' },
         timeout: 10000,
@@ -2663,8 +2658,10 @@ export class WPRemoteManagerClient {
       });
 
       const spamComments = parseInt(commentsResponse.headers['x-wp-total'] || '0');
+      console.log(`[WRM] Spam comments: ${spamComments}`);
 
       // Fetch all comments to get trashed count
+      console.log(`[WRM] Fetching trashed comments from: ${baseUrl}/wp-json/wp/v2/comments`);
       const allCommentsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/comments`, {
         params: { per_page: 1, status: 'trash' },
         timeout: 10000,
@@ -2674,8 +2671,10 @@ export class WPRemoteManagerClient {
       });
 
       const trashedComments = parseInt(allCommentsResponse.headers['x-wp-total'] || '0');
+      console.log(`[WRM] Trashed comments: ${trashedComments}`);
 
       // Estimate database size based on content
+      console.log(`[WRM] Fetching total posts from: ${baseUrl}/wp-json/wp/v2/posts`);
       const allPostsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/posts`, {
         params: { per_page: 1 },
         timeout: 10000,
@@ -2685,9 +2684,11 @@ export class WPRemoteManagerClient {
       });
 
       const totalPosts = parseInt(allPostsResponse.headers['x-wp-total'] || '0');
+      console.log(`[WRM] Total posts: ${totalPosts}`);
+      
       const estimatedDbSize = Math.max(20, (totalPosts * 0.5) + (totalRevisions * 0.002) + 15); // Base 20MB + content
 
-      return {
+      const optimizationData = {
         postRevisions: {
           count: totalRevisions,
           size: estimatedRevisionsSize > 1 ? `${estimatedRevisionsSize.toFixed(1)} MB` : `${(estimatedRevisionsSize * 1024).toFixed(0)} KB`
@@ -2708,9 +2709,21 @@ export class WPRemoteManagerClient {
         },
         lastOptimized: null // WordPress doesn't track this by default
       };
-    } catch (error) {
-      console.error('[WRM] Error fetching WordPress optimization data:', error);
-      return null;
+
+      console.log('[WRM] Successfully fetched real WordPress optimization data:', JSON.stringify(optimizationData, null, 2));
+      return optimizationData;
+    } catch (error: any) {
+      const errorMessage = `Failed to fetch WordPress optimization data: ${error.message}. URL: ${baseUrl}. Status: ${error.response?.status}. Data: ${JSON.stringify(error.response?.data)}`;
+      console.error('[WRM] Error fetching WordPress optimization data:', errorMessage);
+      
+      return {
+        postRevisions: { count: 0, size: "0 KB" },
+        databaseSize: { total: "0 MB", tables: 0, overhead: "0 MB" },
+        trashedContent: { posts: 0, comments: 0, size: "0 MB" },
+        spam: { comments: 0, size: "0 MB" },
+        lastOptimized: null,
+        error: errorMessage
+      };
     }
   }
 
@@ -2718,23 +2731,26 @@ export class WPRemoteManagerClient {
     removedCount: number;
     sizeFreed: string;
     success: boolean;
+    error?: string;
   }> {
+    console.log('[WRM] Optimizing post revisions...');
+    
+    // First try the dedicated optimization endpoint
     try {
-      console.log('[WRM] Optimizing post revisions...');
-      
-      // First try the dedicated optimization endpoint
-      try {
-        const response = await this.api.post('/optimization/revisions');
-        console.log('[WRM] Successfully cleaned revisions using WRM plugin');
-        return response.data;
-      } catch (endpointError) {
-        console.log('[WRM] WRM optimization endpoint not available, attempting WordPress REST API cleanup...');
-      }
+      const response = await this.api.post('/optimization/revisions');
+      console.log('[WRM] Successfully cleaned revisions using WRM plugin');
+      return response.data;
+    } catch (endpointError: any) {
+      console.log('[WRM] WRM optimization endpoint failed:', endpointError.message);
+    }
 
-      // Fallback to WordPress REST API revision cleanup
-      const baseUrl = this.credentials.url.replace(/\/+$/, '');
-      
+    // Use WordPress REST API revision cleanup
+    const baseUrl = this.credentials.url.replace(/\/+$/, '');
+    console.log(`[WRM] Attempting WordPress REST API cleanup at: ${baseUrl}`);
+    
+    try {
       // Get all revisions that can be deleted (keeping only latest few)
+      console.log(`[WRM] Fetching revisions for cleanup from: ${baseUrl}/wp-json/wp/v2/revisions`);
       const revisionsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/revisions`, {
         params: { per_page: 100 },
         timeout: 15000,
@@ -2742,6 +2758,9 @@ export class WPRemoteManagerClient {
           'User-Agent': 'WPRemoteManager/1.0'
         }
       });
+
+      console.log(`[WRM] Revisions response status: ${revisionsResponse.status}`);
+      console.log(`[WRM] Found ${revisionsResponse.data?.length || 0} revisions to process`);
 
       let deletedCount = 0;
       const revisions = revisionsResponse.data || [];
@@ -2756,6 +2775,8 @@ export class WPRemoteManagerClient {
         revisionsByPost[postId].push(revision);
       });
 
+      console.log(`[WRM] Grouped revisions into ${Object.keys(revisionsByPost).length} posts`);
+
       // Delete older revisions (keep only 2 most recent per post)
       for (const postId in revisionsByPost) {
         const postRevisions = revisionsByPost[postId]
@@ -2763,9 +2784,11 @@ export class WPRemoteManagerClient {
         
         // Delete all but the 2 most recent revisions
         const toDelete = postRevisions.slice(2);
+        console.log(`[WRM] Post ${postId}: ${postRevisions.length} total revisions, deleting ${toDelete.length} old revisions`);
         
         for (const revision of toDelete) {
           try {
+            console.log(`[WRM] Deleting revision ${revision.id}`);
             await axios.delete(`${baseUrl}/wp-json/wp/v2/revisions/${revision.id}`, {
               timeout: 10000,
               headers: {
@@ -2773,27 +2796,31 @@ export class WPRemoteManagerClient {
               }
             });
             deletedCount++;
-          } catch (deleteError) {
-            console.log(`[WRM] Could not delete revision ${revision.id}:`, deleteError);
+            console.log(`[WRM] Successfully deleted revision ${revision.id}`);
+          } catch (deleteError: any) {
+            const errorMsg = `Could not delete revision ${revision.id}: ${deleteError.message} (Status: ${deleteError.response?.status})`;
+            console.error(`[WRM] ${errorMsg}`);
           }
         }
       }
 
       const estimatedSizeFreed = deletedCount * 2.5 / 1024; // Estimate size freed
       
-      console.log(`[WRM] Successfully deleted ${deletedCount} post revisions via WordPress REST API`);
+      console.log(`[WRM] Optimization complete: deleted ${deletedCount} post revisions, freed ${estimatedSizeFreed.toFixed(3)} MB`);
       
       return {
         removedCount: deletedCount,
         sizeFreed: estimatedSizeFreed > 1 ? `${estimatedSizeFreed.toFixed(1)} MB` : `${(estimatedSizeFreed * 1024).toFixed(0)} KB`,
         success: true
       };
-    } catch (error) {
-      console.error('[WRM] Error optimizing post revisions:', error);
+    } catch (error: any) {
+      const errorMessage = `Failed to optimize post revisions: ${error.message}. URL: ${baseUrl}. Status: ${error.response?.status}`;
+      console.error('[WRM] Error optimizing post revisions:', errorMessage);
       return {
         removedCount: 0,
         sizeFreed: "0 KB",
-        success: false
+        success: false,
+        error: errorMessage
       };
     }
   }

@@ -2019,17 +2019,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         apiKey: website.wrmApiKey
       });
 
-      try {
-        const result = await wrmClient.optimizePostRevisions();
-        res.json(result);
-      } catch (error) {
-        // Simulate optimization result if WRM doesn't have this endpoint yet
-        res.json({
-          removedCount: Math.floor(Math.random() * 50) + 10,
-          sizeFreed: `${(Math.random() * 5 + 1).toFixed(1)} MB`,
-          success: true
-        });
-      }
+      const result = await wrmClient.optimizePostRevisions();
+      res.json(result);
     } catch (error) {
       console.error("Error optimizing post revisions:", error);
       res.status(500).json({ 
@@ -2058,17 +2049,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         apiKey: website.wrmApiKey
       });
 
-      try {
-        const result = await wrmClient.optimizeDatabase();
-        res.json(result);
-      } catch (error) {
-        // Simulate optimization result if WRM doesn't have this endpoint yet
-        res.json({
-          tablesOptimized: Math.floor(Math.random() * 20) + 5,
-          sizeFreed: `${(Math.random() * 10 + 2).toFixed(1)} MB`,
-          success: true
-        });
-      }
+      const result = await wrmClient.optimizeDatabase();
+      res.json(result);
     } catch (error) {
       console.error("Error optimizing database:", error);
       res.status(500).json({ 
@@ -2097,29 +2079,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         apiKey: website.wrmApiKey
       });
 
-      try {
-        const result = await wrmClient.optimizeAll();
-        res.json(result);
-      } catch (error) {
-        // Simulate comprehensive optimization result if WRM doesn't have this endpoint yet
-        const revisionsCount = Math.floor(Math.random() * 50) + 10;
-        const tablesCount = Math.floor(Math.random() * 20) + 5;
-        const totalSizeFreed = (Math.random() * 15 + 3).toFixed(1);
-        
-        res.json({
-          totalItemsRemoved: revisionsCount + tablesCount + Math.floor(Math.random() * 30),
-          totalSizeFreed: `${totalSizeFreed} MB`,
-          revisions: {
-            removedCount: revisionsCount,
-            sizeFreed: `${(parseFloat(totalSizeFreed) * 0.4).toFixed(1)} MB`
-          },
-          database: {
-            tablesOptimized: tablesCount,
-            sizeFreed: `${(parseFloat(totalSizeFreed) * 0.6).toFixed(1)} MB`
-          },
-          success: true
-        });
-      }
+      const result = await wrmClient.optimizeAll();
+      res.json(result);
     } catch (error) {
       console.error("Error performing complete optimization:", error);
       res.status(500).json({ 
