@@ -4585,8 +4585,25 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
   app.get("/api/client-reports", authenticateToken, async (req, res) => {
     try {
       const userId = (req as AuthRequest).user!.id;
-      const reports = await storage.getClientReports(userId);
-      res.json(reports);
+      
+      // Extract pagination parameters
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 15;
+      const offset = (page - 1) * limit;
+      
+      const { reports, total } = await storage.getClientReportsWithPagination(userId, limit, offset);
+      
+      res.json({
+        reports,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+          hasNextPage: page * limit < total,
+          hasPrevPage: page > 1
+        }
+      });
     } catch (error) {
       console.error("Error fetching client reports:", error);
       res.status(500).json({ 

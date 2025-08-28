@@ -7891,7 +7891,19 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
       }
 
       try {
-        // First get all reports with client data in a single query
+        // Extract pagination parameters
+        const page = parseInt(url.searchParams.get('page') || '1');
+        const limit = parseInt(url.searchParams.get('limit') || '15');
+        const offset = (page - 1) * limit;
+
+        // Get total count first
+        const totalResult = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(clientReports)
+          .where(eq(clientReports.userId, user.id));
+        const total = totalResult[0]?.count || 0;
+
+        // First get paginated reports with client data
         const reportsWithClients = await db
           .select({
             report: clientReports,
@@ -7903,7 +7915,9 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
             eq(clients.userId, user.id)
           ))
           .where(eq(clientReports.userId, user.id))
-          .orderBy(desc(clientReports.createdAt));
+          .orderBy(desc(clientReports.createdAt))
+          .limit(limit)
+          .offset(offset);
 
         // Get unique client IDs to fetch website data efficiently
         const clientIds = [...new Set(reportsWithClients
@@ -7950,7 +7964,17 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
           };
         });
 
-        return res.status(200).json(enrichedReports);
+        return res.status(200).json({
+          reports: enrichedReports,
+          pagination: {
+            page,
+            limit,
+            total,
+            totalPages: Math.ceil(total / limit),
+            hasNextPage: page * limit < total,
+            hasPrevPage: page > 1
+          }
+        });
       } catch (error) {
         console.error('Error fetching client reports:', error);
         return res.status(500).json({ message: 'Failed to fetch client reports' });

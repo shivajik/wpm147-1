@@ -183,6 +183,7 @@ export interface IStorage {
 
   // Client Report operations
   getClientReports(userId: number): Promise<ClientReport[]>;
+  getClientReportsWithPagination(userId: number, limit: number, offset: number): Promise<{ reports: ClientReport[]; total: number }>;
   getClientReport(id: number, userId: number): Promise<ClientReport | undefined>;
   createClientReport(reportData: InsertClientReport): Promise<ClientReport>;
   updateClientReport(id: number, reportData: Partial<InsertClientReport>, userId: number): Promise<ClientReport>;
@@ -1208,6 +1209,25 @@ export class DatabaseStorage implements IStorage {
       .from(clientReports)
       .where(eq(clientReports.userId, userId))
       .orderBy(desc(clientReports.createdAt));
+  }
+
+  async getClientReportsWithPagination(userId: number, limit: number, offset: number): Promise<{ reports: ClientReport[]; total: number }> {
+    // Get total count
+    const totalResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(clientReports)
+      .where(eq(clientReports.userId, userId));
+    const total = totalResult[0]?.count || 0;
+
+    // Get paginated reports
+    const reports = await db.select()
+      .from(clientReports)
+      .where(eq(clientReports.userId, userId))
+      .orderBy(desc(clientReports.createdAt))
+      .limit(limit)
+      .offset(offset);
+
+    return { reports, total };
   }
 
   async getClientReport(id: number, userId: number): Promise<ClientReport | undefined> {
