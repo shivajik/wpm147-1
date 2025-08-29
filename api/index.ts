@@ -9937,6 +9937,16 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
         console.log(`[PRODUCTION-STEP2] Starting real maintenance data fetch for ${websiteIds.length} websites between ${dateFrom.toISOString()} and ${dateTo.toISOString()}`);
         const maintenanceData = await fetchMaintenanceDataFromLogs(websiteIds, user.id, dateFrom, dateTo);
 
+// Output all debug logs from the maintenance data function
+if (maintenanceData._debugLogs && maintenanceData._debugLogs.length > 0) {
+  console.log(`[PRODUCTION-STEP2] Maintenance data debug logs (${maintenanceData._debugLogs.length} entries):`);
+  maintenanceData._debugLogs.forEach(log => {
+    // The logs already contain timestamps, so just output them directly
+    console.log(log);
+  });
+} else {
+  console.log(`[PRODUCTION-STEP2] No debug logs available from maintenance data fetch`);
+}
         console.log(`[PRODUCTION-STEP2] Maintenance data fetched successfully:`, {
           hasOverview: !!maintenanceData.overview,
           totalUpdates: maintenanceData.updates?.total || 0,
