@@ -1958,37 +1958,69 @@ class WPRemoteManagerClient {
   }
 
   async getPlugins() {
-    const response = await this.makeRequest('/plugins');
-    
-    // Handle the WordPress API response format which wraps data in 'success' and 'plugins'
-    if (response && response.success && response.plugins) {
-      return response.plugins;
+    try {
+      const response = await this.makeRequest('/plugins');
+      let pluginsArray: any[] = [];
+
+      if (response?.success && Array.isArray(response.plugins)) {
+        pluginsArray = response.plugins;
+      } else if (Array.isArray(response)) {
+        pluginsArray = response;
+      } else if (response?.plugins && Array.isArray(response.plugins)) {
+        pluginsArray = response.plugins;
+      }
+
+      return pluginsArray.map((plugin: any) => {
+        return {
+          plugin: plugin.path || plugin.name,
+          name: plugin.name || 'Unknown Plugin',
+          version: plugin.version || '1.0.0',
+          active: Boolean(plugin.active || plugin.status === 'active'),
+          network_active: plugin.network_active || false,
+          author: plugin.author || 'Unknown',
+          description: plugin.description || '',
+          update_available: Boolean(plugin.update_available),
+          new_version: plugin.new_version || undefined,
+          auto_update: Boolean(plugin.auto_update)
+        };
+      });
+    } catch (err: any) {
+      console.error('Production getPlugins error:', err.message);
+      return [];
     }
-    
-    // If response is already in the expected format, return as-is
-    if (response && Array.isArray(response)) {
-      return response;
-    }
-    
-    // Fallback - return the raw response
-    return response;
   }
 
   async getThemes() {
-    const response = await this.makeRequest('/themes');
-    
-    // Handle the WordPress API response format which wraps data in 'success' and 'themes'
-    if (response && response.success && response.themes) {
-      return response.themes;
+    try {
+      const response = await this.makeRequest('/themes');
+      let themesArray: any[] = [];
+
+      if (response?.success && Array.isArray(response.themes)) {
+        themesArray = response.themes;
+      } else if (Array.isArray(response)) {
+        themesArray = response;
+      } else if (response?.themes && Array.isArray(response.themes)) {
+        themesArray = response.themes;
+      }
+
+      return themesArray.map((theme: any) => {
+        return {
+          stylesheet: theme.stylesheet || theme.slug || theme.name || 'unknown-theme',
+          name: theme.name || 'Unknown Theme',
+          version: theme.version || '1.0.0',
+          active: Boolean(theme.active || theme.status === 'active'),
+          author: theme.author || 'Unknown',
+          description: theme.description || '',
+          update_available: Boolean(theme.update_available),
+          new_version: theme.new_version || undefined,
+          screenshot: theme.screenshot || '',
+          template: theme.template || theme.stylesheet || 'unknown-template'
+        };
+      });
+    } catch (err: any) {
+      console.error('Production getThemes error:', err.message);
+      return [];
     }
-    
-    // If response is already in the expected format, return as-is
-    if (response && Array.isArray(response)) {
-      return response;
-    }
-    
-    // Fallback - return the raw response
-    return response;
   }
 
   async activateTheme(theme: string) {
@@ -3078,7 +3110,7 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
               if (enhancedWebsite.activeTheme) {
                 maintenanceData.backups.latest.activeTheme = enhancedWebsite.activeTheme;
               }
-              
+
               if (enhancedWebsite.activePluginsCount) {
                 maintenanceData.backups.latest.activePlugins = enhancedWebsite.activePluginsCount;
               }
