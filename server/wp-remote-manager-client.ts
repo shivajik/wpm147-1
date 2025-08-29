@@ -1244,14 +1244,18 @@ export class WPRemoteManagerClient {
    */
   async activateTheme(themeId: string): Promise<any> {
     try {
-      const response = await this.api.post('/activate-theme', { theme: themeId });
+      // Use the correct endpoint that matches the WordPress plugin
+      const response = await this.api.post('/themes/activate', { 
+        stylesheet: themeId,
+        theme: themeId // Send both for compatibility
+      });
       return response.data;
     } catch (error: any) {
       console.error('WP Remote Manager Theme Activation Error:', error.response?.data || error.message);
       
-      // Try fallback approach using WordPress REST API directly
+      // Try legacy endpoint as fallback
       try {
-        const fallbackResponse = await this.api.post('/themes/activate', { stylesheet: themeId });
+        const fallbackResponse = await this.api.post('/activate-theme', { theme: themeId });
         return fallbackResponse.data;
       } catch (fallbackError: any) {
         console.error('WP Remote Manager Theme Activation Fallback Error:', fallbackError.response?.data || fallbackError.message);
@@ -2521,6 +2525,33 @@ export class WPRemoteManagerClient {
       });
 
       console.log(`[WRM] Plugin activation response:`, response.data);
+      
+      // Verify activation was successful by checking plugin status
+      // Some plugins like all-in-one-wp-migration may report success but not actually activate
+      if (response.data && response.data.success !== false) {
+        try {
+          // Wait a moment for the plugin to activate
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // Check if plugin is actually active now
+          const plugins = await this.getPlugins();
+          const activatedPlugin = plugins.find((p: any) => p.plugin === pluginSlug);
+          
+          if (activatedPlugin && !activatedPlugin.active) {
+            console.warn(`[WRM] Plugin ${pluginSlug} reported success but is not actually active`);
+            // Try a direct WordPress activation call as fallback
+            const directResponse = await this.api.post('/plugins/toggle', {
+              plugin: pluginSlug,
+              action: 'activate'
+            });
+            console.log(`[WRM] Direct activation attempt result:`, directResponse.data);
+          }
+        } catch (verificationError) {
+          console.warn(`[WRM] Could not verify plugin activation status:`, verificationError);
+          // Continue with original response since activation may have worked
+        }
+      }
+
       return response.data;
     } catch (error: any) {
       console.error(`[WRM] Failed to activate plugin ${pluginSlug}:`, error.response?.data || error.message);
