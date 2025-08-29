@@ -43,7 +43,7 @@ import AppLayout from "@/components/layout/app-layout";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { MaintenanceSidebar } from "@/components/maintenance/maintenance-sidebar";
 import { useToast } from '@/hooks/use-toast';
-import { queryClient } from '@/lib/queryClient';
+import { queryClient, apiCall } from '@/lib/queryClient';
 import { useState } from "react";
 
 export default function WebsiteThemes() {
@@ -90,12 +90,9 @@ export default function WebsiteThemes() {
   // Mutations for theme actions
   const activateThemeMutation = useMutation({
     mutationFn: async (themeId: string) => {
-      const response = await fetch(`/api/websites/${websiteId}/themes/${themeId}/activate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+      return apiCall(`/api/websites/${websiteId}/themes/${themeId}/activate`, {
+        method: 'POST'
       });
-      if (!response.ok) throw new Error('Failed to activate theme');
-      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/websites', websiteId, 'wordpress-data'] });
@@ -108,12 +105,9 @@ export default function WebsiteThemes() {
 
   const deleteThemeMutation = useMutation({
     mutationFn: async (themeId: string) => {
-      const response = await fetch(`/api/websites/${websiteId}/themes/${themeId}`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' }
+      return apiCall(`/api/websites/${websiteId}/themes/${themeId}`, {
+        method: 'DELETE'
       });
-      if (!response.ok) throw new Error('Failed to delete theme');
-      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/websites', websiteId, 'wordpress-data'] });
@@ -126,12 +120,9 @@ export default function WebsiteThemes() {
 
   const updateThemeMutation = useMutation({
     mutationFn: async (themeId: string) => {
-      const response = await fetch(`/api/websites/${websiteId}/themes/${themeId}/update`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+      return apiCall(`/api/websites/${websiteId}/themes/${themeId}/update`, {
+        method: 'POST'
       });
-      if (!response.ok) throw new Error('Failed to update theme');
-      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/websites', websiteId, 'wordpress-data'] });

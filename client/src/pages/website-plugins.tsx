@@ -50,7 +50,7 @@ import AppLayout from "@/components/layout/app-layout";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { MaintenanceSidebar } from "@/components/maintenance/maintenance-sidebar";
 import { useToast } from '@/hooks/use-toast';
-import { queryClient } from '@/lib/queryClient';
+import { queryClient, apiCall } from '@/lib/queryClient';
 import { useState } from "react";
 import { safeParseWRMResponse, debugDataStructure } from "@/lib/json-safe-parser";
 
@@ -160,12 +160,9 @@ export default function WebsitePlugins() {
   const togglePluginMutation = useMutation({
     mutationFn: async ({ pluginId, action }: { pluginId: string, action: 'activate' | 'deactivate' }) => {
       const encodedPluginId = encodeURIComponent(pluginId);
-      const response = await fetch(`/api/websites/${websiteId}/plugins/${encodedPluginId}/${action}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+      return apiCall(`/api/websites/${websiteId}/plugins/${encodedPluginId}/${action}`, {
+        method: 'POST'
       });
-      if (!response.ok) throw new Error('Failed to toggle plugin');
-      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/websites', websiteId, 'wordpress-data'] });
@@ -179,12 +176,9 @@ export default function WebsitePlugins() {
 
   const deletePluginMutation = useMutation({
     mutationFn: async (pluginId: string) => {
-      const response = await fetch(`/api/websites/${websiteId}/plugins/${pluginId}`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' }
+      return apiCall(`/api/websites/${websiteId}/plugins/${pluginId}`, {
+        method: 'DELETE'
       });
-      if (!response.ok) throw new Error('Failed to delete plugin');
-      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/websites', websiteId, 'wordpress-data'] });
@@ -198,12 +192,9 @@ export default function WebsitePlugins() {
 
   const updatePluginMutation = useMutation({
     mutationFn: async (pluginId: string) => {
-      const response = await fetch(`/api/websites/${websiteId}/plugins/${pluginId}/update`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+      return apiCall(`/api/websites/${websiteId}/plugins/${pluginId}/update`, {
+        method: 'POST'
       });
-      if (!response.ok) throw new Error('Failed to update plugin');
-      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/websites', websiteId, 'wordpress-data'] });
