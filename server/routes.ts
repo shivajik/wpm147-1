@@ -3529,10 +3529,9 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
     }
   });
 
-  // Plugin activation endpoint (new URL pattern for website-plugins.tsx)
   app.post("/api/websites/:id/plugins/:pluginPath/activate", authenticateToken, async (req, res) => {
     const websiteId = parseInt(req.params.id);
-    const pluginPath = decodeURIComponent(req.params.pluginPath); // 👈 decode it
+    const pluginPath = decodeURIComponent(req.params.pluginPath);
 
     try {
       const userId = (req as AuthRequest).user!.id;
@@ -3545,31 +3544,54 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
       console.log(`[Plugin Activation] Activating plugin: ${pluginPath} for website ${websiteId}`);
 
       const result = await wrmClient.activatePlugin(pluginPath);
-    try {
-      const result = await wrmClient.activatePlugin(pluginPath);
 
-      // If WRM explicitly says failure
-      if (!result?.success) {
-        return res.status(400).json({ success: false,
-          message: `Plugin ${pluginPath} could not be activated`,
+    // ENHANCED SUCCESS CHECKING
+    if (result.success === true) {
+      // Verify the plugin is actually active
+      if (result.plugin?.active === true) {
+        return res.json({ 
+          success: true, 
+          message: `Plugin ${pluginPath} activated successfully`,
+          verified: true,
+          result
+        });
+      } else {
+        // API said success but plugin is not active - common with All-in-One WP Migration
+        return res.status(207).json({ // 207 Multi-Status
+          success: false,
+          message: `Plugin activation reported success but plugin remains inactive. This may be due to plugin-specific restrictions.`,
+          plugin: result.plugin,
+          requiresManualIntervention: pluginPath.includes('all-in-one-wp-migration'),
           result
         });
       }
-
-      res.json({ success: true, message: `Plugin ${pluginPath} activated successfully`, result });
-    } catch (error) {
-      console.error('Error activating plugin:', error);
-      res.status(500).json({
+    } else {
+      // API reported failure
+      return res.status(400).json({ 
         success: false,
-        message: `Failed to activate plugin ${pluginPath}`,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        message: result.message || `Failed to activate plugin ${pluginPath}`,
+        error: result.error,
+        requiresManualIntervention: pluginPath.includes('all-in-one-wp-migration'),
+        result
       });
     }
-    } catch (error) {
-      console.error('Error activating plugin:', error);
-      res.status(500).json({ message: 'Failed to activate plugin', error: error instanceof Error ? error.message : 'Unknown error' });
-    }
-  });
+  } catch (error) {
+    console.error('Error activating plugin:', error);
+    
+    // Specific handling for All-in-One WP Migration
+    const isMigrationPlugin = pluginPath.includes('all-in-one-wp-migration');
+    const errorMessage = isMigrationPlugin 
+      ? 'All-in-One WP Migration plugin requires manual activation due to its security restrictions. Please activate it directly in WordPress admin.'
+      : 'Failed to activate plugin';
+
+    return res.status(500).json({ 
+      success: false,
+      message: errorMessage,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      requiresManualIntervention: isMigrationPlugin
+    });
+  }
+});
 
   // Plugin deactivation endpoint (new URL pattern for website-plugins.tsx)
   app.post("/api/websites/:id/plugins/:pluginPath/deactivate", authenticateToken, async (req, res) => {

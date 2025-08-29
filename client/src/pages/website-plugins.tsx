@@ -164,15 +164,38 @@ export default function WebsitePlugins() {
         method: 'POST'
       });
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/websites', websiteId, 'wordpress-data'] });
       queryClient.invalidateQueries({ queryKey: ['/api/websites', websiteId, 'wrm-plugins'] });
+    
+    if (data.requiresManualIntervention) {
+      toast({ 
+        title: 'Manual Activation Required', 
+        description: 'This plugin requires activation directly in WordPress admin due to security restrictions.',
+        variant: 'destructive'
+      });
+    } else {
       toast({ title: 'Plugin status updated successfully' });
-    },
-    onError: () => {
-      toast({ title: 'Failed to update plugin status', variant: 'destructive' });
     }
-  });
+  },
+  onError: (error: any) => {
+    const errorData = error.response?.data;
+    
+    if (errorData?.requiresManualIntervention) {
+      toast({ 
+        title: 'Manual Activation Required', 
+        description: errorData.message || 'Please activate this plugin directly in WordPress admin.',
+        variant: 'destructive'
+      });
+    } else {
+      toast({ 
+        title: 'Failed to update plugin status', 
+        description: errorData?.message || 'An unexpected error occurred',
+        variant: 'destructive' 
+      });
+    }
+  }
+});
 
   const deletePluginMutation = useMutation({
     mutationFn: async (pluginId: string) => {
