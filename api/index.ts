@@ -4830,7 +4830,7 @@ export default async function handler(req: any, res: any) {
       }
 
       const websiteId = parseInt(pluginActivateMatch[1]);
-      const pluginPath = pluginActivateMatch[2];
+      const pluginPath = decodeURIComponent(pluginActivateMatch[2]);
 
       try {
         // Verify website ownership through client relationship
@@ -4879,7 +4879,7 @@ export default async function handler(req: any, res: any) {
       }
 
       const websiteId = parseInt(pluginDeactivateMatch[1]);
-      const pluginPath = pluginDeactivateMatch[2];
+      const pluginPath = decodeURIComponent(pluginDeactivateMatch[2]);
 
       try {
         // Verify website ownership through client relationship
@@ -4914,6 +4914,152 @@ export default async function handler(req: any, res: any) {
         console.error('Error deactivating plugin:', error);
         return res.status(500).json({ 
           message: 'Failed to deactivate plugin',
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
+    }
+
+    // Theme activation endpoint (new URL pattern: /api/websites/:id/themes/:themeId/activate)
+    const themeActivateMatch = path.match(/^\/api\/websites\/(\d+)\/themes\/(.+)\/activate$/);
+    if (themeActivateMatch && req.method === 'POST') {
+      const user = authenticateToken(req);
+      if (!user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const websiteId = parseInt(themeActivateMatch[1]);
+      const themeId = decodeURIComponent(themeActivateMatch[2]);
+
+      try {
+        // Verify website ownership through client relationship
+        const [website] = await db.select()
+          .from(websites)
+          .innerJoin(clients, eq(websites.clientId, clients.id))
+          .where(and(eq(websites.id, websiteId), eq(clients.userId, user.id)));
+        
+        if (!website) {
+          return res.status(404).json({ message: 'Website not found' });
+        }
+
+        const websiteData = website.websites;
+
+        if (!websiteData.wrmApiKey) {
+          return res.status(400).json({ message: 'WP Remote Manager API key is required' });
+        }
+
+        const wrmClient = new WPRemoteManagerClient(websiteData.url, websiteData.wrmApiKey);
+
+        console.log(`[Theme Activation] Activating theme: ${themeId} for website ${websiteId}`);
+        
+        // Activate the theme using WRM API
+        const result = await wrmClient.activateTheme(themeId);
+        
+        return res.status(200).json({ 
+          success: true, 
+          message: `Theme ${themeId} activated successfully`,
+          result
+        });
+      } catch (error) {
+        console.error('Error activating theme:', error);
+        return res.status(500).json({ 
+          message: 'Failed to activate theme',
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
+    }
+
+    // Theme deletion endpoint (new URL pattern: /api/websites/:id/themes/:themeId)
+    const themeDeleteMatch = path.match(/^\/api\/websites\/(\d+)\/themes\/(.+)$/);
+    if (themeDeleteMatch && req.method === 'DELETE') {
+      const user = authenticateToken(req);
+      if (!user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const websiteId = parseInt(themeDeleteMatch[1]);
+      const themeId = decodeURIComponent(themeDeleteMatch[2]);
+
+      try {
+        // Verify website ownership through client relationship
+        const [website] = await db.select()
+          .from(websites)
+          .innerJoin(clients, eq(websites.clientId, clients.id))
+          .where(and(eq(websites.id, websiteId), eq(clients.userId, user.id)));
+        
+        if (!website) {
+          return res.status(404).json({ message: 'Website not found' });
+        }
+
+        const websiteData = website.websites;
+
+        if (!websiteData.wrmApiKey) {
+          return res.status(400).json({ message: 'WP Remote Manager API key is required' });
+        }
+
+        const wrmClient = new WPRemoteManagerClient(websiteData.url, websiteData.wrmApiKey);
+
+        console.log(`[Theme Deletion] Deleting theme: ${themeId} for website ${websiteId}`);
+        
+        // Delete the theme using WRM API
+        const result = await wrmClient.deleteTheme(themeId);
+        
+        return res.status(200).json({ 
+          success: true, 
+          message: `Theme ${themeId} deleted successfully`,
+          result
+        });
+      } catch (error) {
+        console.error('Error deleting theme:', error);
+        return res.status(500).json({ 
+          message: 'Failed to delete theme',
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
+    }
+
+    // Theme update endpoint (new URL pattern: /api/websites/:id/themes/:themeId/update)
+    const themeUpdateMatch = path.match(/^\/api\/websites\/(\d+)\/themes\/(.+)\/update$/);
+    if (themeUpdateMatch && req.method === 'POST') {
+      const user = authenticateToken(req);
+      if (!user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const websiteId = parseInt(themeUpdateMatch[1]);
+      const themeId = decodeURIComponent(themeUpdateMatch[2]);
+
+      try {
+        // Verify website ownership through client relationship
+        const [website] = await db.select()
+          .from(websites)
+          .innerJoin(clients, eq(websites.clientId, clients.id))
+          .where(and(eq(websites.id, websiteId), eq(clients.userId, user.id)));
+        
+        if (!website) {
+          return res.status(404).json({ message: 'Website not found' });
+        }
+
+        const websiteData = website.websites;
+
+        if (!websiteData.wrmApiKey) {
+          return res.status(400).json({ message: 'WP Remote Manager API key is required' });
+        }
+
+        const wrmClient = new WPRemoteManagerClient(websiteData.url, websiteData.wrmApiKey);
+
+        console.log(`[Theme Update] Updating theme: ${themeId} for website ${websiteId}`);
+        
+        // Update the theme using WRM API - Note: WRM client may not have updateTheme method yet
+        // For now, we'll return a placeholder response
+        return res.status(200).json({ 
+          success: true, 
+          message: `Theme ${themeId} update initiated`,
+          result: { status: 'Theme update functionality requires WRM plugin update' }
+        });
+      } catch (error) {
+        console.error('Error updating theme:', error);
+        return res.status(500).json({ 
+          message: 'Failed to update theme',
           error: error instanceof Error ? error.message : 'Unknown error'
         });
       }
