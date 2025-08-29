@@ -5696,7 +5696,7 @@ if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') 
           date: reportData.backups?.latest?.date || new Date().toISOString(),
           size: reportData.backups?.latest?.size || '0 MB',
           wordpressVersion: reportData.backups?.latest?.wordpressVersion || reportData.health?.wpVersion || 'Unknown',
-          activeTheme: reportData.backups?.latest?.activeTheme || 'Current Theme',
+          activeTheme: reportData.backups?.latest?.activeTheme || 'Unknown',
           activePlugins: reportData.backups?.latest?.activePlugins || 0,
           publishedPosts: reportData.backups?.latest?.publishedPosts || 0,
           approvedComments: reportData.backups?.latest?.approvedComments || 0
@@ -9579,7 +9579,7 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
               date: reportData.backups?.latest?.date || new Date().toISOString(),
               size: reportData.backups?.latest?.size || '0 MB',
               wordpressVersion: realWordPressVersion,
-              activeTheme: reportData.backups?.latest?.activeTheme || 'Current Theme',
+              activeTheme: reportData.backups?.latest?.activeTheme || 'Unknown',
               activePlugins: reportData.backups?.latest?.activePlugins || 0,
               publishedPosts: reportData.backups?.latest?.publishedPosts || 0,
               approvedComments: reportData.backups?.latest?.approvedComments || 0

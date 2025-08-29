@@ -384,7 +384,7 @@ async function fetchMainApiData(websiteId: number, reportId: number, userId: num
           date: reportData.backups?.latest?.date || new Date().toISOString(),
           size: reportData.backups?.latest?.size || '0 MB',
           wordpressVersion: realWordPressVersion,
-          activeTheme: reportData.backups?.latest?.activeTheme || 'Current Theme',
+          activeTheme: reportData.backups?.latest?.activeTheme || 'Unknown',
           activePlugins: reportData.backups?.latest?.activePlugins || 0,
           publishedPosts: reportData.backups?.latest?.publishedPosts || 0,
           approvedComments: reportData.backups?.latest?.approvedComments || 0

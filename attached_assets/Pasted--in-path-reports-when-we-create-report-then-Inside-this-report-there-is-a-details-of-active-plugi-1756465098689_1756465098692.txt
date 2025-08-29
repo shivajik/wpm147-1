@@ -1,0 +1,74 @@
+
+in path /reports when we  create report then Inside this report there is a details of active plugins but the countings are not available so fix that
+
+my production api's in api/index.ts and
+in loclahost api's in server/routes.ts
+
+step 1 when we create report
+Request URL
+https://www.aiowebcare.com/api/client-reports
+Request Method
+POST
+Status Code
+201 Created
+
+step2 after creating we generate it
+Request URL
+https://www.aiowebcare.com/api/client-reports/70/generate
+Request Method
+POST
+Status Code
+200 OK
+
+step3 this open a report in new tab
+equest URL
+https://www.aiowebcare.com/api/client-reports/70
+Request Method
+GET
+Status Code
+200 OK
+
+
+In my opinion I think that when we are generating the report at the time we should enter all the data Still if you think you can read the code so you can understand more information about that
+
+j If you analyze after all this step I am getting mostly data but I am not getting the information of active themes active plugins how many of that are active I am not getting that data
+And remember that I do not want any kind of a fall back or a fake data I want real data
+
+I do not want any kind of a fall back or a false data I want real data
+The below response represents the local host here you can see the active theme name but in the production it is not coming
+{
+    "id": 78,
+    "title": "collge local after pull (Improve website maintenance data)",
+    "client": {
+        "name": "mayank",
+        "email": "mayank@ksoft.com",
+        "contactPerson": ""
+    },
+    "website": {
+        "name": "AS College Chincholi",
+        "url": "https://ascollegechincholi.com",
+        "ipAddress": "Unknown",
+        "wordpressVersion": "6.8.2"
+    },
+    "dateFrom": "2025-07-30T00:00:00.000Z",
+    "dateTo": "2025-08-29T00:00:00.000Z",
+    "reportType": "maintenance",
+    "backups": {
+        "total": 0,
+        "latest": {
+            "date": "2025-08-29T10:52:32.833Z",
+            "size": "0 MB",
+            "activeTheme": "Education Zone Pro",
+            "activePlugins": 0,
+            "publishedPosts": 0,
+            "approvedComments": 0,
+            "wordpressVersion": "6.8.2"
+        },
+        "totalAvailable": 0
+    },
+
+And also you should need to work on the active plugins numbers so we can get the real numbers In both the local and the production
+loclahsot api's logic in server/routes.ts
+and production logic in api/index.ts 
+
+
