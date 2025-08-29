@@ -1999,6 +1999,32 @@ class WPRemoteManagerClient {
     return this.makeRequest('/themes/delete', 'POST', { theme });
   }
 
+  async activatePlugin(plugin: string) {
+    console.log(`[WRM-Vercel] ==> Starting plugin activation for: ${plugin}`);
+    console.log(`[WRM-Vercel] ==> Using endpoint: /plugins/activate with parameter plugin=${plugin}`);
+    console.log(`[WRM-Vercel] ==> Toggling plugin ${plugin} with action activate`);
+    
+    const response = await this.makeRequest('/plugins/activate', 'POST', { plugin });
+    
+    console.log(`[WRM-Vercel] ==> Plugin activation response received:`, response);
+    console.log(`[WRM-Vercel] ==> Plugin activation status:`, response?.success ? 'SUCCESS' : 'FAILED');
+    
+    return response;
+  }
+
+  async deactivatePlugin(plugin: string) {
+    console.log(`[WRM-Vercel] ==> Starting plugin deactivation for: ${plugin}`);
+    console.log(`[WRM-Vercel] ==> Using endpoint: /plugins/deactivate with parameter plugin=${plugin}`);
+    console.log(`[WRM-Vercel] ==> Toggling plugin ${plugin} with action deactivate`);
+    
+    const response = await this.makeRequest('/plugins/deactivate', 'POST', { plugin });
+    
+    console.log(`[WRM-Vercel] ==> Plugin deactivation response received:`, response);
+    console.log(`[WRM-Vercel] ==> Plugin deactivation status:`, response?.success ? 'SUCCESS' : 'FAILED');
+    
+    return response;
+  }
+
   async getUsers() {
     return this.makeRequest('/users');
   }
