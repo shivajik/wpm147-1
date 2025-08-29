@@ -3596,7 +3596,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
   // Plugin deactivation endpoint (new URL pattern for website-plugins.tsx)
   app.post("/api/websites/:id/plugins/:pluginPath/deactivate", authenticateToken, async (req, res) => {
     const websiteId = parseInt(req.params.id);
-    const pluginPath = req.params.pluginPath;
+    const pluginPath = decodeURIComponent(req.params.pluginPath);
     
     try {
       const userId = (req as AuthRequest).user!.id;

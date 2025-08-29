@@ -4942,7 +4942,7 @@ export default async function handler(req: any, res: any) {
           return res.status(400).json({ message: 'WP Remote Manager API key is required' });
         }
 
-        const wrmClient = new WPRemoteManagerClient(websiteData.url, websiteData.wrmApiKey);
+        const wrmClient = new WPRemoteManagerClient({ url: websiteData.url, apiKey: websiteData.wrmApiKey });
 
         console.log(`[Plugin Activation] Activating plugin: ${pluginPath} for website ${websiteId}`);
 
@@ -5025,7 +5025,7 @@ export default async function handler(req: any, res: any) {
           return res.status(400).json({ message: 'WP Remote Manager API key is required' });
         }
 
-        const wrmClient = new WPRemoteManagerClient(websiteData.url, websiteData.wrmApiKey);
+        const wrmClient = new WPRemoteManagerClient({ url: websiteData.url, apiKey: websiteData.wrmApiKey });
 
         console.log(`[Plugin Deactivation] Deactivating plugin: ${pluginPath} for website ${websiteId}`);
         
