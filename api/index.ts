@@ -4882,11 +4882,27 @@ export default async function handler(req: any, res: any) {
         // Activate the plugin using WRM API
         const result = await wrmClient.activatePlugin(pluginPath);
         
-        return res.status(200).json({ 
-          success: true, 
-          message: `Plugin ${pluginPath} activated successfully`,
+    try {
+      const result = await wrmClient.activatePlugin(pluginPath);
+
+      // If WRM explicitly says failure
+      if (!result?.success) {
+        return res.status(400).json({ 
+          success: false,
+          message: `Plugin ${pluginPath} could not be activated`,
           result
         });
+      }
+
+      res.json({ success: true, message: `Plugin ${pluginPath} activated successfully`, result });
+    } catch (error) {
+      console.error('Error activating plugin:', error);
+      res.status(500).json({
+        success: false,
+        message: `Failed to activate plugin ${pluginPath}`,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
       } catch (error) {
         console.error('Error activating plugin:', error);
         return res.status(500).json({ 
@@ -4931,11 +4947,20 @@ export default async function handler(req: any, res: any) {
         // Deactivate the plugin using WRM API
         const result = await wrmClient.deactivatePlugin(pluginPath);
         
+  if (result.success === true) {
         return res.status(200).json({ 
           success: true, 
           message: `Plugin ${pluginPath} deactivated successfully`,
           result
         });
+      } else {
+        return res.status(400).json({ 
+          success: false,
+          message: result.message || `Failed to deactivate plugin ${pluginPath}`,
+          error: result.error,
+          result
+        });
+      }
       } catch (error) {
         console.error('Error deactivating plugin:', error);
         return res.status(500).json({ 
