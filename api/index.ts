@@ -3083,11 +3083,17 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
 
               // Get active theme information from themes API
               const themesData = await wrmClient.getThemes();
+              console.log(`[WP_THEMES] Fetched ${Array.isArray(themesData) ? themesData.length : 0} themes for ${websiteData.url}`);
               if (themesData && Array.isArray(themesData)) {
                 const activeTheme = themesData.find((theme: any) => theme.active);
                 if (activeTheme) {
                   enhancedWebsite.activeTheme = activeTheme.name;
+                  console.log(`[WP_THEMES] Found active theme: "${activeTheme.name}"`);
+                } else {
+                  console.log(`[WP_THEMES] No active theme found in response`);
                 }
+              } else {
+                console.log(`[WP_THEMES] Invalid themes response:`, themesData);
               }
               
               // Get real WordPress plugins data and count active ones (same logic as frontend/endpoint)
@@ -3107,17 +3113,19 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
               // Count active plugins using same frontend logic  
               const activePluginsCount = plugins.filter((p: any) => p && p.active).length;
               enhancedWebsite.activePluginsCount = activePluginsCount;
-              if (enhancedWebsite.activeTheme) {
-                maintenanceData.backups.latest.activeTheme = enhancedWebsite.activeTheme;
-              }
-
-              if (enhancedWebsite.activePluginsCount) {
-                maintenanceData.backups.latest.activePlugins = enhancedWebsite.activePluginsCount;
-              }
-              console.log(`[MAINTENANCE_DATA] Found ${plugins.length} total plugins, ${activePluginsCount} active for website ${websiteData.url}`);
+              // Always set the fetched data
+              maintenanceData.backups.latest.activeTheme = enhancedWebsite.activeTheme || 'Unknown';
+              maintenanceData.backups.latest.activePlugins = enhancedWebsite.activePluginsCount || 0;
+              console.log(`[WP_DATA_SUCCESS] WordPress data fetched successfully for ${websiteData.url}:`);
+              console.log(`[WP_DATA_SUCCESS] - Active Theme: "${enhancedWebsite.activeTheme}"`);
+              console.log(`[WP_DATA_SUCCESS] - Active Plugins: ${activePluginsCount} out of ${plugins.length} total`);
               
             } catch (healthError) {
-              console.log(`Could not fetch real WordPress data for ${websiteData.url}:`, healthError instanceof Error ? healthError.message : 'Unknown error');
+              console.error(`[WP_DATA_FETCH] Failed to fetch WordPress data for ${websiteData.url}:`, healthError instanceof Error ? healthError.message : 'Unknown error');
+              console.error(`[WP_DATA_FETCH] Error details:`, healthError);
+              // Set fallback values when API fails
+              maintenanceData.backups.latest.activeTheme = 'Unknown';
+              maintenanceData.backups.latest.activePlugins = 0;
             }
           }
           
@@ -3136,8 +3144,8 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
                 date: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
                 size: `${Math.floor(Math.random() * 500 + 100)} MB`,
                 wordpressVersion: enhancedWebsite.wpVersion || wpData.core?.version || wpData.version || 'Unknown',
-                activeTheme: enhancedWebsite.activeTheme || wpData.theme?.name || wpData.themes?.find((t: any) => t.active)?.name || 'Unknown',
-                activePlugins: enhancedWebsite.activePluginsCount || wpData.plugins?.filter((p: any) => p && p.active).length || 0,
+                activeTheme: enhancedWebsite.activeTheme || wpData.theme?.name || wpData.themes?.find((t: any) => t.active)?.name || maintenanceData.backups.latest.activeTheme || 'Unknown',
+                activePlugins: enhancedWebsite.activePluginsCount || wpData.plugins?.filter((p: any) => p && p.active).length || maintenanceData.backups.latest.activePlugins || 0,
                 publishedPosts: parseInt(enhancedWebsite.postsCount) || wpData.posts?.published || Math.floor(Math.random() * 100) + 10,
                 approvedComments: wpData.comments?.approved || Math.floor(Math.random() * 50)
               };
