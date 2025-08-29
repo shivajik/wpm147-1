@@ -3075,7 +3075,13 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
               // Count active plugins using same frontend logic  
               const activePluginsCount = plugins.filter((p: any) => p && p.active).length;
               enhancedWebsite.activePluginsCount = activePluginsCount;
+              if (enhancedWebsite.activeTheme) {
+                maintenanceData.backups.latest.activeTheme = enhancedWebsite.activeTheme;
+              }
               
+              if (enhancedWebsite.activePluginsCount) {
+                maintenanceData.backups.latest.activePlugins = enhancedWebsite.activePluginsCount;
+              }
               console.log(`[MAINTENANCE_DATA] Found ${plugins.length} total plugins, ${activePluginsCount} active for website ${websiteData.url}`);
               
             } catch (healthError) {
