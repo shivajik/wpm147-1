@@ -3058,6 +3058,14 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
                 }
               }
               
+              // Get real WordPress plugins data and count active ones (like frontend logic)
+              const pluginsData = await wrmClient.getPlugins();
+              if (Array.isArray(pluginsData)) {
+                // Use same logic as frontend: count plugins where p.active === true
+                const activePluginsCount = pluginsData.filter((p: any) => p && p.active).length;
+                enhancedWebsite.activePluginsCount = activePluginsCount;
+              }
+              
             } catch (healthError) {
               console.log(`Could not fetch real WordPress data for ${websiteData.url}:`, healthError instanceof Error ? healthError.message : 'Unknown error');
             }
@@ -3079,7 +3087,7 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
                 size: `${Math.floor(Math.random() * 500 + 100)} MB`,
                 wordpressVersion: enhancedWebsite.wpVersion || wpData.core?.version || wpData.version || 'Unknown',
                 activeTheme: enhancedWebsite.activeTheme || wpData.theme?.name || wpData.themes?.find((t: any) => t.active)?.name || 'Unknown',
-                activePlugins: enhancedWebsite.pluginsCount || wpData.plugins?.filter((p: any) => p.active).length || 0,
+                activePlugins: enhancedWebsite.activePluginsCount || wpData.plugins?.filter((p: any) => p && p.active).length || 0,
                 publishedPosts: parseInt(enhancedWebsite.postsCount) || wpData.posts?.published || Math.floor(Math.random() * 100) + 10,
                 approvedComments: wpData.comments?.approved || Math.floor(Math.random() * 50)
               };

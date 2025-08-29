@@ -5591,8 +5591,27 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
           if (enhancedWebsite.activeTheme) {
             maintenanceData.backups.latest.activeTheme = enhancedWebsite.activeTheme;
           }
-          if (enhancedWebsite.pluginsCount) {
-            maintenanceData.backups.latest.activePlugins = enhancedWebsite.pluginsCount;
+          // Fetch real WordPress plugins and count active ones (like frontend logic)
+          if (website.wrmApiKey) {
+            try {
+              const wrmClient = new WPRemoteManagerClient({
+                url: website.url,
+                apiKey: website.wrmApiKey
+              });
+              
+              const pluginsData = await wrmClient.getPlugins();
+              if (Array.isArray(pluginsData)) {
+                // Use same logic as frontend: count plugins where p.active === true
+                const activePluginsCount = pluginsData.filter((p: any) => p && p.active).length;
+                maintenanceData.backups.latest.activePlugins = activePluginsCount;
+              }
+            } catch (pluginError) {
+              console.log(`Could not fetch plugins for active count from ${website.url}:`, pluginError instanceof Error ? pluginError.message : 'Unknown error');
+              // Fallback to total count only if can't fetch real data
+              if (enhancedWebsite.pluginsCount) {
+                maintenanceData.backups.latest.activePlugins = enhancedWebsite.pluginsCount;
+              }
+            }
           }
           if (enhancedWebsite.postsCount) {
             maintenanceData.backups.latest.publishedPosts = parseInt(enhancedWebsite.postsCount) || 0;
