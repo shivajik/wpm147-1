@@ -3058,13 +3058,25 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
                 }
               }
               
-              // Get real WordPress plugins data and count active ones (like frontend logic)
-              const pluginsData = await wrmClient.getPlugins();
-              if (Array.isArray(pluginsData)) {
-                // Use same logic as frontend: count plugins where p.active === true
-                const activePluginsCount = pluginsData.filter((p: any) => p && p.active).length;
-                enhancedWebsite.activePluginsCount = activePluginsCount;
+              // Get real WordPress plugins data and count active ones (same logic as frontend/endpoint)
+              const pluginsResponse = await wrmClient.getPlugins();
+              
+              // Process plugins response like the endpoint does
+              let plugins: any[] = [];
+              if (Array.isArray(pluginsResponse)) {
+                plugins = pluginsResponse;
+              } else if (pluginsResponse && typeof pluginsResponse === 'object') {
+                // If the WRM API returns an object with a plugins array, extract it
+                if (Array.isArray((pluginsResponse as any).plugins)) {
+                  plugins = (pluginsResponse as any).plugins;
+                }
               }
+              
+              // Count active plugins using same frontend logic  
+              const activePluginsCount = plugins.filter((p: any) => p && p.active).length;
+              enhancedWebsite.activePluginsCount = activePluginsCount;
+              
+              console.log(`[MAINTENANCE_DATA] Found ${plugins.length} total plugins, ${activePluginsCount} active for website ${websiteData.url}`);
               
             } catch (healthError) {
               console.log(`Could not fetch real WordPress data for ${websiteData.url}:`, healthError instanceof Error ? healthError.message : 'Unknown error');

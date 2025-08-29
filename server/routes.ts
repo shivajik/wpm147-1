@@ -5591,7 +5591,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
           if (enhancedWebsite.activeTheme) {
             maintenanceData.backups.latest.activeTheme = enhancedWebsite.activeTheme;
           }
-          // Fetch real WordPress plugins and count active ones (like frontend logic)
+          // Fetch real WordPress plugins and count active ones (same logic as frontend)
           if (website.wrmApiKey) {
             try {
               const wrmClient = new WPRemoteManagerClient({
@@ -5599,12 +5599,25 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
                 apiKey: website.wrmApiKey
               });
               
-              const pluginsData = await wrmClient.getPlugins();
-              if (Array.isArray(pluginsData)) {
-                // Use same logic as frontend: count plugins where p.active === true
-                const activePluginsCount = pluginsData.filter((p: any) => p && p.active).length;
-                maintenanceData.backups.latest.activePlugins = activePluginsCount;
+              const pluginsResponse = await wrmClient.getPlugins();
+              
+              // Process plugins response like the endpoint does
+              let plugins: any[] = [];
+              if (Array.isArray(pluginsResponse)) {
+                plugins = pluginsResponse;
+              } else if (pluginsResponse && typeof pluginsResponse === 'object') {
+                // If the WRM API returns an object with a plugins array, extract it
+                if (Array.isArray((pluginsResponse as any).plugins)) {
+                  plugins = (pluginsResponse as any).plugins;
+                }
               }
+              
+              // Count active plugins using same frontend logic
+              const activePluginsCount = plugins.filter((p: any) => p && p.active).length;
+              maintenanceData.backups.latest.activePlugins = activePluginsCount;
+              
+              console.log(`[MAINTENANCE_DATA] Found ${plugins.length} total plugins, ${activePluginsCount} active for website ${website.url}`);
+              
             } catch (pluginError) {
               console.log(`Could not fetch plugins for active count from ${website.url}:`, pluginError instanceof Error ? pluginError.message : 'Unknown error');
               // Fallback to total count only if can't fetch real data
