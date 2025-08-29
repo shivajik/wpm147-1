@@ -4821,6 +4821,118 @@ export default async function handler(req: any, res: any) {
       }
     }
 
+    // Plugin activation endpoint
+    if (path.startsWith('/api/websites/') && path.endsWith('/activate-plugin') && req.method === 'POST') {
+      const user = authenticateToken(req);
+      if (!user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const websiteId = parseInt(path.split('/')[3]);
+      if (isNaN(websiteId)) {
+        return res.status(400).json({ message: 'Invalid website ID' });
+      }
+
+      try {
+        const { plugin } = req.body;
+        
+        if (!plugin) {
+          return res.status(400).json({ message: 'Plugin parameter is required' });
+        }
+
+        // Verify website ownership through client relationship
+        const [website] = await db.select()
+          .from(websites)
+          .innerJoin(clients, eq(websites.clientId, clients.id))
+          .where(and(eq(websites.id, websiteId), eq(clients.userId, user.id)));
+        
+        if (!website) {
+          return res.status(404).json({ message: 'Website not found' });
+        }
+
+        const websiteData = website.websites;
+
+        if (!websiteData.wrmApiKey) {
+          return res.status(400).json({ message: 'WP Remote Manager API key is required' });
+        }
+
+        const wrmClient = new WPRemoteManagerClient(websiteData.url, websiteData.wrmApiKey);
+
+        console.log(`[Plugin Activation] Activating plugin: ${plugin} for website ${websiteId}`);
+        
+        // Activate the plugin using WRM API
+        const result = await wrmClient.activatePlugin(plugin);
+        
+        return res.status(200).json({ 
+          success: true, 
+          message: `Plugin ${plugin} activated successfully`,
+          result
+        });
+      } catch (error) {
+        console.error('Error activating plugin:', error);
+        return res.status(500).json({ 
+          message: 'Failed to activate plugin',
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
+    }
+
+    // Plugin deactivation endpoint
+    if (path.startsWith('/api/websites/') && path.endsWith('/deactivate-plugin') && req.method === 'POST') {
+      const user = authenticateToken(req);
+      if (!user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const websiteId = parseInt(path.split('/')[3]);
+      if (isNaN(websiteId)) {
+        return res.status(400).json({ message: 'Invalid website ID' });
+      }
+
+      try {
+        const { plugin } = req.body;
+        
+        if (!plugin) {
+          return res.status(400).json({ message: 'Plugin parameter is required' });
+        }
+
+        // Verify website ownership through client relationship
+        const [website] = await db.select()
+          .from(websites)
+          .innerJoin(clients, eq(websites.clientId, clients.id))
+          .where(and(eq(websites.id, websiteId), eq(clients.userId, user.id)));
+        
+        if (!website) {
+          return res.status(404).json({ message: 'Website not found' });
+        }
+
+        const websiteData = website.websites;
+
+        if (!websiteData.wrmApiKey) {
+          return res.status(400).json({ message: 'WP Remote Manager API key is required' });
+        }
+
+        const wrmClient = new WPRemoteManagerClient(websiteData.url, websiteData.wrmApiKey);
+
+        console.log(`[Plugin Deactivation] Deactivating plugin: ${plugin} for website ${websiteId}`);
+        
+        // Deactivate the plugin using WRM API
+        const result = await wrmClient.deactivatePlugin(plugin);
+        
+        return res.status(200).json({ 
+          success: true, 
+          message: `Plugin ${plugin} deactivated successfully`,
+          result
+        });
+      } catch (error) {
+        console.error('Error deactivating plugin:', error);
+        return res.status(500).json({ 
+          message: 'Failed to deactivate plugin',
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
+    }
+
     // Update Plugin endpoint
     if (path.startsWith('/api/websites/') && path.endsWith('/update-plugin') && req.method === 'POST') {
       const user = authenticateToken(req);

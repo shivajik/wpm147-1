@@ -3531,6 +3531,152 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
     }
   });
 
+  // Plugin activation endpoint
+  app.post("/api/websites/:id/activate-plugin", authenticateToken, async (req, res) => {
+    try {
+      const userId = (req as AuthRequest).user!.id;
+      const websiteId = parseInt(req.params.id);
+      const { plugin } = req.body;
+      
+      if (!plugin) {
+        return res.status(400).json({ message: "Plugin parameter is required" });
+      }
+      
+      const website = await storage.getWebsite(websiteId, userId);
+      if (!website) {
+        return res.status(404).json({ message: "Website not found" });
+      }
+
+      if (!website.wrmApiKey) {
+        return res.status(400).json({ message: "WP Remote Manager API key is required" });
+      }
+
+      const wrmClient = new WPRemoteManagerClient({
+        url: website.url,
+        apiKey: website.wrmApiKey
+      });
+
+      console.log(`[Plugin Activation] Activating plugin: ${plugin} for website ${websiteId}`);
+      
+      // Activate the plugin using WRM API
+      const result = await wrmClient.activatePlugin(plugin);
+      
+      // Get updated plugin information after activation
+      let pluginInfo = null;
+      try {
+        const plugins = await wrmClient.getPlugins();
+        pluginInfo = plugins.find((p: any) => 
+          p.plugin === plugin || 
+          p.name === plugin ||
+          (p.plugin && p.plugin.includes(plugin)) ||
+          (plugin && plugin.includes(p.plugin))
+        );
+      } catch (error) {
+        console.warn("Could not fetch plugin info after activation:", error);
+      }
+      
+      // Create notification for plugin activation
+      try {
+        const pluginDisplayName = pluginInfo?.name || plugin.split('/')[1]?.replace('.php', '') || plugin;
+        await storage.createNotification({
+          userId,
+          websiteId,
+          type: "plugin_activated",
+          title: "Plugin Activated",
+          message: `The plugin "${pluginDisplayName}" has been successfully activated on ${website.name}.`,
+          actionUrl: `/websites/${websiteId}/plugins`
+        });
+      } catch (notificationError) {
+        console.warn("Failed to create plugin activation notification:", notificationError);
+      }
+
+      res.json({ 
+        success: true, 
+        message: `Plugin ${plugin} activated successfully`,
+        result
+      });
+    } catch (error) {
+      console.error("Error activating plugin:", error);
+      res.status(500).json({ 
+        message: "Failed to activate plugin",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Plugin deactivation endpoint
+  app.post("/api/websites/:id/deactivate-plugin", authenticateToken, async (req, res) => {
+    try {
+      const userId = (req as AuthRequest).user!.id;
+      const websiteId = parseInt(req.params.id);
+      const { plugin } = req.body;
+      
+      if (!plugin) {
+        return res.status(400).json({ message: "Plugin parameter is required" });
+      }
+      
+      const website = await storage.getWebsite(websiteId, userId);
+      if (!website) {
+        return res.status(404).json({ message: "Website not found" });
+      }
+
+      if (!website.wrmApiKey) {
+        return res.status(400).json({ message: "WP Remote Manager API key is required" });
+      }
+
+      const wrmClient = new WPRemoteManagerClient({
+        url: website.url,
+        apiKey: website.wrmApiKey
+      });
+
+      console.log(`[Plugin Deactivation] Deactivating plugin: ${plugin} for website ${websiteId}`);
+      
+      // Get plugin information before deactivation
+      let pluginInfo = null;
+      try {
+        const plugins = await wrmClient.getPlugins();
+        pluginInfo = plugins.find((p: any) => 
+          p.plugin === plugin || 
+          p.name === plugin ||
+          (p.plugin && p.plugin.includes(plugin)) ||
+          (plugin && plugin.includes(p.plugin))
+        );
+      } catch (error) {
+        console.warn("Could not fetch plugin info before deactivation:", error);
+      }
+      
+      // Deactivate the plugin using WRM API
+      const result = await wrmClient.deactivatePlugin(plugin);
+      
+      // Create notification for plugin deactivation
+      try {
+        const pluginDisplayName = pluginInfo?.name || plugin.split('/')[1]?.replace('.php', '') || plugin;
+        await storage.createNotification({
+          userId,
+          websiteId,
+          type: "plugin_deactivated",
+          title: "Plugin Deactivated",
+          message: `The plugin "${pluginDisplayName}" has been successfully deactivated on ${website.name}.`,
+          actionUrl: `/websites/${websiteId}/plugins`
+        });
+      } catch (notificationError) {
+        console.warn("Failed to create plugin deactivation notification:", notificationError);
+      }
+
+      res.json({ 
+        success: true, 
+        message: `Plugin ${plugin} deactivated successfully`,
+        result
+      });
+    } catch (error) {
+      console.error("Error deactivating plugin:", error);
+      res.status(500).json({ 
+        message: "Failed to deactivate plugin",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
   app.post("/api/websites/:id/update-wordpress", authenticateToken, async (req, res) => {
     const startTime = Date.now();
     try {
