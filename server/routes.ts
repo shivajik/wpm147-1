@@ -5346,6 +5346,15 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
                 } as any;
               }
             }
+
+            // Get active theme information from themes API
+            const themesData = await wrmClient.getThemes();
+            if (themesData && Array.isArray(themesData)) {
+              const activeTheme = themesData.find((theme: any) => theme.active);
+              if (activeTheme) {
+                enhancedWebsite.activeTheme = activeTheme.name;
+              }
+            }
           } catch (healthError) {
             console.log(`Could not fetch health data for ${website.url}:`, healthError instanceof Error ? healthError.message : 'Unknown error');
           }
@@ -5578,6 +5587,9 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
           // Use enhanced website data for backup metadata
           if (enhancedWebsite.wpVersion) {
             maintenanceData.backups.latest.wordpressVersion = enhancedWebsite.wpVersion;
+          }
+          if (enhancedWebsite.activeTheme) {
+            maintenanceData.backups.latest.activeTheme = enhancedWebsite.activeTheme;
           }
           if (enhancedWebsite.pluginsCount) {
             maintenanceData.backups.latest.activePlugins = enhancedWebsite.pluginsCount;
