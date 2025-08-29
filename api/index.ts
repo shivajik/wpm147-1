@@ -2817,6 +2817,13 @@ function authenticateToken(req: any): { id: number; email: string } | null {
 
 // Helper function to fetch stored maintenance data from logs
 async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number, dateFrom: Date, dateTo: Date) {
+  const debugLogs: string[] = [];
+  const addDebugLog = (message: string) => {
+    debugLogs.push(`[${new Date().toISOString()}] ${message}`);
+    console.log(message);
+  };
+  
+  addDebugLog('[PRODUCTION_DEBUG] Starting maintenance data fetch');
   const maintenanceData = {
     overview: {
       updatesPerformed: 0,
@@ -3053,6 +3060,8 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
         // Fetch real WordPress data for backup and uptime information
         try {
           const websiteData = website[0];
+          addDebugLog(`[WEBSITE] Processing: ${websiteData.name} (${websiteData.url})`);
+          addDebugLog(`[WP_API] Has API key: ${!!websiteData.wrmApiKey}`);
           
           // Enhance website data with live WordPress information (same as localhost)
           let enhancedWebsite = { ...websiteData };
@@ -3116,16 +3125,69 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
               // Always set the fetched data
               maintenanceData.backups.latest.activeTheme = enhancedWebsite.activeTheme || 'Unknown';
               maintenanceData.backups.latest.activePlugins = enhancedWebsite.activePluginsCount || 0;
-              console.log(`[WP_DATA_SUCCESS] WordPress data fetched successfully for ${websiteData.url}:`);
-              console.log(`[WP_DATA_SUCCESS] - Active Theme: "${enhancedWebsite.activeTheme}"`);
-              console.log(`[WP_DATA_SUCCESS] - Active Plugins: ${activePluginsCount} out of ${plugins.length} total`);
+              addDebugLog(`[WP_DATA_SUCCESS] WordPress data fetched successfully for ${websiteData.url}:`);
+              addDebugLog(`[WP_DATA_SUCCESS] - Active Theme: "${enhancedWebsite.activeTheme}"`);
+              addDebugLog(`[WP_DATA_SUCCESS] - Active Plugins: ${activePluginsCount} out of ${plugins.length} total`);
               
             } catch (healthError) {
-              console.error(`[WP_DATA_FETCH] Failed to fetch WordPress data for ${websiteData.url}:`, healthError instanceof Error ? healthError.message : 'Unknown error');
-              console.error(`[WP_DATA_FETCH] Error details:`, healthError);
-              // Set fallback values when API fails
-              maintenanceData.backups.latest.activeTheme = 'Unknown';
-              maintenanceData.backups.latest.activePlugins = 0;
+              addDebugLog(`[WP_API_FAILED] WordPress API failed for ${websiteData.url}: ${healthError instanceof Error ? healthError.message : 'Unknown error'}`);
+              
+              // Try to extract data from stored wpData when API fails
+              if (websiteData.wpData) {
+                try {
+                  addDebugLog(`[WPDATA_FALLBACK] Attempting to parse stored wpData`);
+                  const wpDataStr = typeof websiteData.wpData === 'string' ? websiteData.wpData : JSON.stringify(websiteData.wpData);
+                  const wpDataObj = JSON.parse(wpDataStr);
+                  
+                  addDebugLog(`[WPDATA_FALLBACK] wpData parsed successfully`);
+                  
+                  // Extract active theme from wpData
+                  if (wpDataObj.theme && wpDataObj.theme.name) {
+                    enhancedWebsite.activeTheme = wpDataObj.theme.name;
+                    maintenanceData.backups.latest.activeTheme = wpDataObj.theme.name;
+                    addDebugLog(`[THEME_FOUND] Active theme from wpData: "${wpDataObj.theme.name}"`);
+                  } else if (wpDataObj.themes && Array.isArray(wpDataObj.themes)) {
+                    const activeTheme = wpDataObj.themes.find((t: any) => t.active);
+                    if (activeTheme && activeTheme.name) {
+                      enhancedWebsite.activeTheme = activeTheme.name;
+                      maintenanceData.backups.latest.activeTheme = activeTheme.name;
+                      addDebugLog(`[THEME_FOUND] Active theme from themes array: "${activeTheme.name}"`);
+                    } else {
+                      addDebugLog(`[THEME_MISSING] No active theme found in themes array`);
+                    }
+                  } else {
+                    addDebugLog(`[THEME_MISSING] No theme data found in wpData`);
+                  }
+                  
+                  // Extract active plugins count from wpData
+                  if (wpDataObj.plugins && Array.isArray(wpDataObj.plugins)) {
+                    const activePluginsCount = wpDataObj.plugins.filter((p: any) => p && p.active === true).length;
+                    enhancedWebsite.activePluginsCount = activePluginsCount;
+                    maintenanceData.backups.latest.activePlugins = activePluginsCount;
+                    addDebugLog(`[PLUGINS_FOUND] Active plugins from wpData: ${activePluginsCount} out of ${wpDataObj.plugins.length} total`);
+                  } else if (wpDataObj.systemInfo && wpDataObj.systemInfo.plugins_count) {
+                    // Use system info plugin count as fallback
+                    const pluginsCount = parseInt(wpDataObj.systemInfo.plugins_count) || 0;
+                    enhancedWebsite.activePluginsCount = pluginsCount;
+                    maintenanceData.backups.latest.activePlugins = pluginsCount;
+                    addDebugLog(`[PLUGINS_FALLBACK] Using system info plugin count: ${pluginsCount}`);
+                  } else {
+                    addDebugLog(`[PLUGINS_MISSING] No plugin data found in wpData`);
+                    maintenanceData.backups.latest.activePlugins = 0;
+                  }
+                  
+                } catch (parseError) {
+                  addDebugLog(`[WPDATA_PARSE_ERROR] Failed to parse wpData: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
+                  // Set fallback values when parsing fails
+                  maintenanceData.backups.latest.activeTheme = 'Unknown';
+                  maintenanceData.backups.latest.activePlugins = 0;
+                }
+              } else {
+                addDebugLog(`[NO_WPDATA] No wpData available for fallback`);
+                // Set fallback values when no data available
+                maintenanceData.backups.latest.activeTheme = 'Unknown';
+                maintenanceData.backups.latest.activePlugins = 0;
+              }
             }
           }
           
@@ -3191,16 +3253,15 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
       maintenanceData.backups.totalAvailable = maintenanceData.overview.backupsCreated + 3;
     }
     
-    console.log(`[MAINTENANCE_DATA] Generated maintenance data summary:`, {
-      totalWebsites: websiteIds.length,
-      totalUpdates: maintenanceData.updates.total,
-      totalBackups: maintenanceData.backups.total,
-      totalSecurityScans: maintenanceData.security.totalScans,
-      securityStatus: maintenanceData.overview.securityStatus,
-      uptimePercentage: maintenanceData.overview.uptimePercentage
-    });
-
-    return maintenanceData;
+    addDebugLog(`[FINAL_RESULT] Processing complete. Final backup data:`);
+    addDebugLog(`[FINAL_RESULT] - Active Theme: "${maintenanceData.backups.latest.activeTheme}"`);
+    addDebugLog(`[FINAL_RESULT] - Active Plugins: ${maintenanceData.backups.latest.activePlugins}`);
+    addDebugLog(`[MAINTENANCE_DATA] Generated maintenance data summary: totalWebsites=${websiteIds.length}, totalUpdates=${maintenanceData.updates.total}, totalBackups=${maintenanceData.backups.total}`);
+    
+    return {
+      ...maintenanceData,
+      _debugLogs: debugLogs
+    };
   } catch (error) {
     console.error('[MAINTENANCE_DATA] Error fetching maintenance data:', error);
     throw error;
