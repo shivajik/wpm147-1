@@ -1999,31 +1999,98 @@ class WPRemoteManagerClient {
     return this.makeRequest('/themes/delete', 'POST', { theme });
   }
 
-  async activatePlugin(plugin: string) {
-    console.log(`[WRM-Vercel] ==> Starting plugin activation for: ${plugin}`);
-    console.log(`[WRM-Vercel] ==> Using endpoint: /plugins/activate with parameter plugin=${plugin}`);
-    console.log(`[WRM-Vercel] ==> Toggling plugin ${plugin} with action activate`);
-    
-    const response = await this.makeRequest('/plugins/activate', 'POST', { plugin });
-    
-    console.log(`[WRM-Vercel] ==> Plugin activation response received:`, response);
-    console.log(`[WRM-Vercel] ==> Plugin activation status:`, response?.success ? 'SUCCESS' : 'FAILED');
-    
-    return response;
+async activatePlugin(plugin: string): Promise<{
+  success: boolean;
+  message: string;
+  plugin?: any;
+  requiresManualIntervention?: boolean;
+}> {
+  console.log(`[WRM-Vercel] ==> Starting plugin activation for: ${plugin}`);
+  
+  // SPECIAL HANDLING FOR PROBLEMATIC PLUGINS
+  if (plugin.includes('all-in-one-wp-migration')) {
+    console.log(`[WRM-Vercel] ==> Special handling for All-in-One WP Migration plugin`);
+    return {
+      success: false,
+      message: 'This plugin requires manual activation in WordPress admin due to security restrictions',
+      requiresManualIntervention: true
+    };
   }
 
-  async deactivatePlugin(plugin: string) {
-    console.log(`[WRM-Vercel] ==> Starting plugin deactivation for: ${plugin}`);
-    console.log(`[WRM-Vercel] ==> Using endpoint: /plugins/deactivate with parameter plugin=${plugin}`);
-    console.log(`[WRM-Vercel] ==> Toggling plugin ${plugin} with action deactivate`);
+  try {
+    console.log(`[WRM-Vercel] ==> Calling /plugins/activate endpoint`);
+    const response = await this.makeRequest('/plugins/activate', 'POST', { plugin });
     
+    console.log(`[WRM-Vercel] ==> Activation response:`, response);
+
+    // Check if activation was successful
+    if (response?.success === true) {
+      return {
+        success: true,
+        message: response.message || `Plugin ${plugin} activated successfully`,
+        plugin: response.plugin
+      };
+    }
+
+    // Activation failed according to API
+    return {
+      success: false,
+      message: response?.message || `Failed to activate plugin ${plugin}`,
+      plugin: response?.plugin,
+      requiresManualIntervention: this.isProblematicPlugin(plugin)
+    };
+
+  } catch (error: any) {
+    console.error(`[WRM-Vercel] Failed to activate plugin ${plugin}:`, error.message);
+    
+    return {
+      success: false,
+      message: `Failed to activate plugin: ${error.message}`,
+      requiresManualIntervention: this.isProblematicPlugin(plugin)
+    };
+  }
+}
+
+// Add this helper method to your production client
+private isProblematicPlugin(pluginSlug: string): boolean {
+  const problematicPlugins = [
+    'all-in-one-wp-migration',
+    'wordfence',
+    'ithemes-security',
+    'sucuri',
+    'backupbuddy',
+    'updraftplus'
+  ];
+  return problematicPlugins.some(name => pluginSlug.includes(name));
+}
+
+async deactivatePlugin(plugin: string): Promise<{
+  success: boolean;
+  message: string;
+  plugin?: any;
+}> {
+  console.log(`[WRM-Vercel] ==> Starting plugin deactivation for: ${plugin}`);
+  
+  try {
     const response = await this.makeRequest('/plugins/deactivate', 'POST', { plugin });
     
-    console.log(`[WRM-Vercel] ==> Plugin deactivation response received:`, response);
-    console.log(`[WRM-Vercel] ==> Plugin deactivation status:`, response?.success ? 'SUCCESS' : 'FAILED');
+    console.log(`[WRM-Vercel] ==> Deactivation response:`, response);
+
+    return {
+      success: response?.success === true,
+      message: response?.message || `Plugin ${plugin} deactivation attempted`,
+      plugin: response?.plugin
+    };
+
+  } catch (error: any) {
+    console.error(`[WRM-Vercel] Failed to deactivate plugin ${plugin}:`, error.message);
     
-    return response;
+    return {
+      success: false,
+      message: `Failed to deactivate plugin: ${error.message}`
+    };
   }
+}
 
   async getUsers() {
     return this.makeRequest('/users');
@@ -4878,36 +4945,54 @@ export default async function handler(req: any, res: any) {
         const wrmClient = new WPRemoteManagerClient(websiteData.url, websiteData.wrmApiKey);
 
         console.log(`[Plugin Activation] Activating plugin: ${pluginPath} for website ${websiteId}`);
-        
+
         // Activate the plugin using WRM API
         const result = await wrmClient.activatePlugin(pluginPath);
-        
-    try {
-      const result = await wrmClient.activatePlugin(pluginPath);
-
-      // If WRM explicitly says failure
-      if (!result?.success) {
-        return res.status(400).json({ 
-          success: false,
-          message: `Plugin ${pluginPath} could not be activated`,
-          result
-        });
-      }
-
-      res.json({ success: true, message: `Plugin ${pluginPath} activated successfully`, result });
-    } catch (error) {
-      console.error('Error activating plugin:', error);
-      res.status(500).json({
-        success: false,
-        message: `Failed to activate plugin ${pluginPath}`,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
+      
+        // ENHANCED SUCCESS CHECKING (Same as your local version)
+        if (result.success === true) {
+          // Verify the plugin is actually active
+          if (result.plugin?.active === true) {
+            return res.json({ 
+              success: true, 
+              message: `Plugin ${pluginPath} activated successfully`,
+              verified: true,
+              result
+            });
+          } else {
+            // API said success but plugin is not active
+            return res.status(207).json({ // 207 Multi-Status
+              success: false,
+              message: `Plugin activation reported success but plugin remains inactive. This may be due to plugin-specific restrictions.`,
+              plugin: result.plugin,
+              requiresManualIntervention: pluginPath.includes('all-in-one-wp-migration'),
+              result
+            });
+          }
+        } else {
+          // API reported failure
+          return res.status(400).json({ 
+            success: false,
+            message: result.message || `Failed to activate plugin ${pluginPath}`,
+            error: result.error,
+            requiresManualIntervention: pluginPath.includes('all-in-one-wp-migration'),
+            result
+          });
+        }
       } catch (error) {
         console.error('Error activating plugin:', error);
+
+        // Specific handling for All-in-One WP Migration
+        const isMigrationPlugin = pluginPath.includes('all-in-one-wp-migration');
+        const errorMessage = isMigrationPlugin 
+          ? 'All-in-One WP Migration plugin requires manual activation due to its security restrictions. Please activate it directly in WordPress admin.'
+          : 'Failed to activate plugin';
+      
         return res.status(500).json({ 
-          message: 'Failed to activate plugin',
-          error: error instanceof Error ? error.message : 'Unknown error'
+          success: false,
+          message: errorMessage,
+          error: error instanceof Error ? error.message : 'Unknown error',
+          requiresManualIntervention: isMigrationPlugin
         });
       }
     }
@@ -10574,7 +10659,7 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
         if (website[0].wrmApiKey) {
           // Return realistic simulation data for optimization
           return res.json({
-            removedCount: Math.floor(Math.random() * 50) + 10,
+            removedCount: Math.floor(Math.random() * 50) + 10, 
             sizeFreed: `${(Math.random() * 5 + 1).toFixed(1)} MB`,
             success: true,
             message: "Post revisions optimized successfully"
