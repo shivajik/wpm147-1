@@ -6,14 +6,14 @@ import { storage } from "./storage.js";
 import { WPRemoteManagerClient, type WPRemoteManagerCredentials } from "./wp-remote-manager-client.js";
 import { AuthService, authenticateToken, type AuthRequest } from "./auth.js";
 import type { Request, Response } from "express";
-import { insertClientSchema, insertWebsiteSchema, insertTaskSchema, registerSchema, loginSchema } from "@shared/schema";
+import { insertClientSchema, insertWebsiteSchema, insertTaskSchema, registerSchema, loginSchema, clientReports, clients } from "@shared/schema";
 import { z } from "zod";
 import { LinkScanner, type LinkScanResult } from "./link-scanner.js";
 import { ThumbnailService } from "./thumbnail-service.js";
 import { SecurityScanner, type SecurityScanResult } from "./security/security-scanner-new.js";
 import { db } from "./db.js";
 import { websites } from "../shared/schema.js";
-import { eq } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { PerformanceScanner } from "./performance-scanner";
 import jwt from "jsonwebtoken";
 import { ManageWPStylePDFGenerator } from "./pdf-report-generator.js";
@@ -2566,8 +2566,6 @@ app.get("/api/websites/:id/debug-logs", authenticateToken, async (req, res) => {
     }
     
     res.json({
-      logs: debugLogs,
-      count: debugLogs.length,
       timestamp: new Date().toISOString()
     });
   } catch (error) {
@@ -3534,40 +3532,23 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
   // Plugin activation endpoint (new URL pattern for website-plugins.tsx)
   app.post("/api/websites/:id/plugins/:pluginPath/activate", authenticateToken, async (req, res) => {
     const websiteId = parseInt(req.params.id);
-    const pluginPath = req.params.pluginPath;
-    
+    const pluginPath = decodeURIComponent(req.params.pluginPath); // 👈 decode it
+
     try {
       const userId = (req as AuthRequest).user!.id;
       const website = await storage.getWebsite(websiteId, userId);
-      
-      if (!website) {
-        return res.status(404).json({ message: 'Website not found' });
-      }
 
-      if (!website.wrmApiKey) {
-        return res.status(400).json({ message: 'WP Remote Manager API key is required' });
-      }
+      if (!website) return res.status(404).json({ message: 'Website not found' });
+      if (!website.wrmApiKey) return res.status(400).json({ message: 'WP Remote Manager API key is required' });
 
-      const wrmClient = new WPRemoteManagerClient({
-        url: website.url,
-        apiKey: website.wrmApiKey
-      });
-
+      const wrmClient = new WPRemoteManagerClient({ url: website.url, apiKey: website.wrmApiKey });
       console.log(`[Plugin Activation] Activating plugin: ${pluginPath} for website ${websiteId}`);
-      
+
       const result = await wrmClient.activatePlugin(pluginPath);
-      
-      res.json({ 
-        success: true, 
-        message: `Plugin ${pluginPath} activated successfully`,
-        result
-      });
+      res.json({ success: true, message: `Plugin ${pluginPath} activated successfully`, result });
     } catch (error) {
       console.error('Error activating plugin:', error);
-      res.status(500).json({ 
-        message: 'Failed to activate plugin',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
+      res.status(500).json({ message: 'Failed to activate plugin', error: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 
@@ -4777,11 +4758,77 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 15;
       const offset = (page - 1) * limit;
-      
-      const { reports, total } = await storage.getClientReportsWithPagination(userId, limit, offset);
-      
+
+      // Get total count first
+      const totalResult = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(clientReports)
+        .where(eq(clientReports.userId, userId));
+      const total = totalResult[0]?.count || 0;
+
+      // First get paginated reports with client data
+      const reportsWithClients = await db
+        .select({
+          report: clientReports,
+          clientName: clients.name
+        })
+        .from(clientReports)
+        .leftJoin(clients, and(
+          eq(clientReports.clientId, clients.id),
+          eq(clients.userId, userId)
+        ))
+        .where(eq(clientReports.userId, userId))
+        .orderBy(desc(clientReports.createdAt))
+        .limit(limit)
+        .offset(offset);
+
+      // Get unique client IDs to fetch website data efficiently
+      const clientIds = [...new Set(reportsWithClients
+        .map(r => r.report.clientId)
+        .filter(id => id !== null))];
+
+      // Fetch all relevant websites in one query
+      const websitesData = clientIds.length > 0 ? await db
+        .select({
+          id: websites.id,
+          name: websites.name,
+          clientId: websites.clientId
+        })
+        .from(websites)
+        .where(inArray(websites.clientId, clientIds)) : [];
+
+      // Create a lookup map for websites
+      const websiteMap = new Map();
+      websitesData.forEach(website => {
+        if (!websiteMap.has(website.clientId)) {
+          websiteMap.set(website.clientId, []);
+        }
+        websiteMap.get(website.clientId).push(website);
+      });
+
+      // Transform the results with website names
+      const enrichedReports = reportsWithClients.map(row => {
+        let websiteName = 'N/A';
+
+        // Get website name from the first website ID if available
+        const websiteIds = Array.isArray(row.report.websiteIds) ? row.report.websiteIds : [];
+        if (websiteIds.length > 0 && row.report.clientId) {
+          const clientWebsites = websiteMap.get(row.report.clientId) || [];
+          const website = clientWebsites.find(w => w.id === websiteIds[0]);
+          if (website) {
+            websiteName = website.name || 'Website';
+          }
+        }
+
+        return {
+          ...row.report,
+          clientName: row.clientName || 'N/A',
+          websiteName
+        };
+      });
+
       res.json({
-        reports,
+        reports: enrichedReports,
         pagination: {
           page,
           limit,

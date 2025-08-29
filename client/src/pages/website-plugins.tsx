@@ -159,7 +159,8 @@ export default function WebsitePlugins() {
   // Mutations for plugin actions
   const togglePluginMutation = useMutation({
     mutationFn: async ({ pluginId, action }: { pluginId: string, action: 'activate' | 'deactivate' }) => {
-      const response = await fetch(`/api/websites/${websiteId}/plugins/${pluginId}/${action}`, {
+      const encodedPluginId = encodeURIComponent(pluginId);
+      const response = await fetch(`/api/websites/${websiteId}/plugins/${encodedPluginId}/${action}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
