@@ -2907,15 +2907,53 @@ export class WPRemoteManagerClient {
     debugLog.push(`[AIOWebcare] WordPress URL: ${this.credentials.url}`);
     debugLog.push(`[AIOWebcare] API Key preview: ${this.credentials.apiKey.substring(0, 10)}...`);
     
-    // First try the dedicated optimization endpoint
+    // Use the real AIOWebcare optimization endpoint
     try {
-      debugLog.push('[AIOWebcare] Attempting dedicated WRM optimization endpoint...');
-      const response = await this.api.get('/optimization/info');
-      debugLog.push('[AIOWebcare] SUCCESS: Received data from dedicated endpoint');
-      return { ...response.data, debugLog };
-    } catch (endpointError: any) {
-      debugLog.push(`[AIOWebcare] Dedicated endpoint failed: ${endpointError.message}`);
-      debugLog.push(`[AIOWebcare] Error status: ${endpointError.response?.status || 'No status'}`);
+      debugLog.push('[AIOWebcare] Calling real AIOWebcare optimization endpoint...');
+      
+      const response = await axios.get(`${this.credentials.url}/wp-json/aiowebcare/v1/optimization/overview`, {
+        headers: {
+          'X-AIOWebcare-API-Key': this.credentials.apiKey,
+          'X-WRM-API-Key': this.credentials.apiKey,
+          'Content-Type': 'application/json'
+        },
+        timeout: 15000
+      });
+      
+      debugLog.push('[AIOWebcare] SUCCESS: Received real optimization data');
+      
+      const data = response.data;
+      
+      // Transform the real API response to match frontend expectations
+      const transformedData = {
+        postRevisions: {
+          count: parseInt(data.total_revisions) || 0,
+          size: this.calculateRevisionsSize(parseInt(data.total_revisions) || 0)
+        },
+        databaseSize: {
+          total: data.database_size || "0 MB",
+          tables: parseInt(data.table_count) || 0,
+          overhead: "0 MB" // Not provided by the API
+        },
+        trashedContent: {
+          posts: parseInt(data.trash_items) || 0,
+          comments: 0, // Not separated in the API
+          size: this.calculateTrashSize(parseInt(data.trash_items) || 0)
+        },
+        spam: {
+          comments: parseInt(data.spam_comments) || 0,
+          size: this.calculateSpamSize(parseInt(data.spam_comments) || 0)
+        },
+        lastOptimized: data.last_optimized || null,
+        debugLog
+      };
+      
+      debugLog.push(`[AIOWebcare] Transformed data: ${JSON.stringify(transformedData, null, 2)}`);
+      return transformedData;
+      
+    } catch (error: any) {
+      debugLog.push(`[AIOWebcare] Real API failed: ${error.message}`);
+      debugLog.push(`[AIOWebcare] Error status: ${error.response?.status || 'No status'}`);
     }
 
     // Try direct WordPress database queries via REST API
@@ -3082,6 +3120,36 @@ export class WPRemoteManagerClient {
         debugLog
       };
     }
+  }
+
+  private calculateRevisionsSize(count: number): string {
+    // Estimate size based on revision count (typically 5-50KB per revision)
+    const averageSizeKB = 15;
+    const totalKB = count * averageSizeKB;
+    if (totalKB > 1024) {
+      return `${(totalKB / 1024).toFixed(1)} MB`;
+    }
+    return `${totalKB} KB`;
+  }
+
+  private calculateTrashSize(count: number): string {
+    // Estimate size based on trash items
+    const averageSizeKB = 10;
+    const totalKB = count * averageSizeKB;
+    if (totalKB > 1024) {
+      return `${(totalKB / 1024).toFixed(1)} MB`;
+    }
+    return `${totalKB} KB`;
+  }
+
+  private calculateSpamSize(count: number): string {
+    // Estimate size based on spam comments (typically smaller)
+    const averageSizeKB = 2;
+    const totalKB = count * averageSizeKB;
+    if (totalKB > 1024) {
+      return `${(totalKB / 1024).toFixed(1)} MB`;
+    }
+    return `${totalKB} KB`;
   }
 
   async optimizePostRevisions(): Promise<{

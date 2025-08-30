@@ -882,41 +882,73 @@ class VercelWPRemoteManagerClient {
     debugLog.push(`[VERCEL-WRM] WordPress URL: ${this.baseUrl}`);
     debugLog.push(`[VERCEL-WRM] API Key preview: ${this.apiKey.substring(0, 10)}...`);
     
-    // First try the dedicated optimization endpoint
+    // Use the real AIOWebcare optimization endpoint
     try {
-      debugLog.push('[VERCEL-WRM] Attempting dedicated WRM optimization endpoint...');
-      const response = await axios.post(`${this.baseUrl}/wp-json/wrm/v1/optimization/info`, {}, {
+      debugLog.push('[VERCEL-WRM] Calling real AIOWebcare optimization endpoint...');
+      
+      const response = await axios.get(`${this.baseUrl}/wp-json/aiowebcare/v1/optimization/overview`, {
         headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
+          'X-AIOWebcare-API-Key': this.apiKey,
+          'X-WRM-API-Key': this.apiKey,
           'Content-Type': 'application/json'
         },
-        timeout: 10000
+        timeout: 15000
       });
-      debugLog.push('[VERCEL-WRM] SUCCESS: Received data from dedicated endpoint');
-      return { ...response.data, debugLog };
-    } catch (endpointError: any) {
-      debugLog.push(`[VERCEL-WRM] Dedicated endpoint failed: ${endpointError.message}`);
-      debugLog.push(`[VERCEL-WRM] Error status: ${endpointError.response?.status || 'No status'}`);
-    }
+      
+      debugLog.push('[VERCEL-WRM] SUCCESS: Received real optimization data');
+      
+      const data = response.data;
+      
+      // Transform the real API response to match frontend expectations
+      const transformedData = {
+        postRevisions: {
+          count: parseInt(data.total_revisions) || 0,
+          size: this.calculateRevisionsSize(parseInt(data.total_revisions) || 0)
+        },
+        databaseSize: {
+          total: data.database_size || "0 MB",
+          tables: parseInt(data.table_count) || 0,
+          overhead: "0 MB" // Not provided by the API
+        },
+        trashedContent: {
+          posts: parseInt(data.trash_items) || 0,
+          comments: 0, // Not separated in the API
+          size: this.calculateTrashSize(parseInt(data.trash_items) || 0)
+        },
+        spam: {
+          comments: parseInt(data.spam_comments) || 0,
+          size: this.calculateSpamSize(parseInt(data.spam_comments) || 0)
+        },
+        lastOptimized: data.last_optimized || null,
+        debugLog
+      };
+      
+      debugLog.push(`[VERCEL-WRM] Transformed data: ${JSON.stringify(transformedData, null, 2)}`);
+      return transformedData;
+      
+    } catch (error: any) {
+      debugLog.push(`[VERCEL-WRM] Real API failed: ${error.message}`);
+      debugLog.push(`[VERCEL-WRM] Error status: ${error.response?.status || 'No status'}`);
+      
+      // Fallback to direct WordPress database queries via REST API
+      debugLog.push('[VERCEL-WRM] Falling back to WordPress REST API...');
+      const optimizationData = await this.fetchWordPressOptimizationData();
+      
+      if (optimizationData) {
+        optimizationData.debugLog = debugLog.concat(optimizationData.debugLog || []);
+        return optimizationData;
+      }
 
-    // Fallback to direct WordPress database queries via REST API
-    debugLog.push('[VERCEL-WRM] Falling back to WordPress REST API...');
-    const optimizationData = await this.fetchWordPressOptimizationData();
-    
-    if (optimizationData) {
-      optimizationData.debugLog = debugLog.concat(optimizationData.debugLog || []);
-      return optimizationData;
+      return {
+        postRevisions: { count: 0, size: "0 KB" },
+        databaseSize: { total: "0 MB", tables: 0, overhead: "0 MB" },
+        trashedContent: { posts: 0, comments: 0, size: "0 MB" },
+        spam: { comments: 0, size: "0 MB" },
+        lastOptimized: null,
+        error: "Could not fetch optimization data from WordPress",
+        debugLog
+      };
     }
-
-    return {
-      postRevisions: { count: 0, size: "0 KB" },
-      databaseSize: { total: "0 MB", tables: 0, overhead: "0 MB" },
-      trashedContent: { posts: 0, comments: 0, size: "0 MB" },
-      spam: { comments: 0, size: "0 MB" },
-      lastOptimized: null,
-      error: "Could not fetch optimization data from WordPress",
-      debugLog
-    };
   }
 
   private async fetchWordPressOptimizationData(): Promise<any> {
@@ -1064,6 +1096,36 @@ class VercelWPRemoteManagerClient {
         debugLog
       };
     }
+  }
+
+  private calculateRevisionsSize(count: number): string {
+    // Estimate size based on revision count (typically 5-50KB per revision)
+    const averageSizeKB = 15;
+    const totalKB = count * averageSizeKB;
+    if (totalKB > 1024) {
+      return `${(totalKB / 1024).toFixed(1)} MB`;
+    }
+    return `${totalKB} KB`;
+  }
+
+  private calculateTrashSize(count: number): string {
+    // Estimate size based on trash items
+    const averageSizeKB = 10;
+    const totalKB = count * averageSizeKB;
+    if (totalKB > 1024) {
+      return `${(totalKB / 1024).toFixed(1)} MB`;
+    }
+    return `${totalKB} KB`;
+  }
+
+  private calculateSpamSize(count: number): string {
+    // Estimate size based on spam comments (typically smaller)
+    const averageSizeKB = 2;
+    const totalKB = count * averageSizeKB;
+    if (totalKB > 1024) {
+      return `${(totalKB / 1024).toFixed(1)} MB`;
+    }
+    return `${totalKB} KB`;
   }
 
   async optimizePostRevisions(): Promise<any> {
