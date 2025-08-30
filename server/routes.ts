@@ -417,7 +417,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const websiteId = parseInt(req.params.id);
       const updates = req.body;
       
-      // Get current website to check if WRM API key is being updated
+      // Get current website to check if AIOWebcare API key is being updated
       const currentWebsite = await storage.getWebsite(websiteId, userId);
       if (!currentWebsite) {
         return res.status(404).json({ message: "Website not found" });
@@ -428,9 +428,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update the website
       const updatedWebsite = await storage.updateWebsite(websiteId, updates, userId);
       
-      // If WRM API key was updated, automatically reconnect and refresh data
+      // If AIOWebcare API key was updated, automatically reconnect and refresh data
       if (isWrmApiKeyUpdated && updates.wrmApiKey) {
-        console.log(`[API-KEY-UPDATE] WRM API key updated for website ${websiteId}, initiating automatic reconnection...`);
+        console.log(`[API-KEY-UPDATE] AIOWebcare API key updated for website ${websiteId}, initiating automatic reconnection...`);
         
         try {
           // Test the new API key connection
@@ -571,7 +571,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!website.wrmApiKey) {
         return res.status(400).json({ 
           valid: false, 
-          error: "WP Remote Manager API key is required. Please enter your API key to connect to the WordPress site.",
+          error: "AIOWebcare API key is required. Please enter your API key to connect to the WordPress site.",
           code: "NO_API_KEY"
         });
       }
@@ -601,10 +601,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (error.message) {
         if (error.message.includes("404") || error.message.includes("not found") || error.message.includes("rest_no_route")) {
-          errorMessage = "WP Remote Manager plugin endpoints not found. Please ensure the latest WP Remote Manager plugin is installed and activated on your WordPress site.";
+          errorMessage = "AIOWebcare plugin endpoints not found. Please ensure the latest AIOWebcare plugin is installed and activated on your WordPress site.";
           errorCode = "PLUGIN_NOT_INSTALLED";
         } else if (error.message.includes("403") || error.message.includes("unauthorized") || error.message.includes("invalid_api_key")) {
-          errorMessage = "Invalid API key. Please check the API key in your WordPress admin panel under WP Remote Manager settings.";
+          errorMessage = "Invalid API key. Please check the API key in your WordPress admin panel under AIOWebcare settings.";
           errorCode = "INVALID_API_KEY";
         } else if (error.message.includes("ECONNREFUSED") || error.message.includes("ENOTFOUND")) {
           errorMessage = "Cannot connect to WordPress site. Please check if the website URL is correct and accessible.";
@@ -647,12 +647,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Website not found" });
       }
 
-      // Check if we have WP Remote Manager API key
+      // Check if we have AIOWebcare API key
       if (!website.wrmApiKey) {
-        return res.status(400).json({ message: "WP Remote Manager API key is required" });
+        return res.status(400).json({ message: "AIOWebcare API key is required" });
       }
 
-      console.log('[test-connection] Creating WP Remote Manager client with:', {
+      console.log('[test-connection] Creating AIOWebcare client with:', {
         url: website.url,
         hasWrmApiKey: !!website.wrmApiKey,
         wrmApiKeyPreview: website.wrmApiKey.substring(0, 10) + '...',
@@ -701,7 +701,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         errorMessage = error.message;
         
         // Detect specific error types for better user guidance
-        if (error.message.includes('Invalid or incorrect WP Remote Manager API key')) {
+        if (error.message.includes('Invalid or incorrect AIOWebcare API key')) {
           statusCode = 401;
         } else if (error.message.includes('Access denied') || error.message.includes('API key may be correct but lacks proper permissions')) {
           statusCode = 403;
@@ -804,7 +804,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Website not found" });
       }
 
-      // Check if website has WRM API key, regardless of connection status
+      // Check if website has AIOWebcare API key, regardless of connection status
       if (website.wrmApiKey) {
         const wrmClient = new WPRemoteManagerClient({
           url: website.url,
@@ -869,7 +869,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } else {
         res.status(400).json({ 
-          message: "Website not connected or missing WP Remote Manager API key" 
+          message: "Website not connected or missing AIOWebcare API key" 
         });
       }
     } catch (error) {
@@ -889,9 +889,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Website not found" });
       }
 
-      // Check if website has WRM API key
+      // Check if website has AIOWebcare API key
       if (!website.wrmApiKey) {
-        return res.status(400).json({ message: "Website not connected or missing WP Remote Manager API key" });
+        return res.status(400).json({ message: "Website not connected or missing AIOWebcare API key" });
       }
 
       const wrmClient = new WPRemoteManagerClient({
@@ -977,7 +977,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get all user websites
       const websites = await storage.getWebsites(userId);
       
-      // Filter websites that have WRM API keys (can be synced)
+      // Filter websites that have AIOWebcare API keys (can be synced)
       const syncableWebsites = websites.filter(website => website.wrmApiKey);
       
       if (syncableWebsites.length === 0) {
@@ -1407,7 +1407,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (!website.wrmApiKey) {
-        return res.status(400).json({ message: "WP Remote Manager API key is required" });
+        return res.status(400).json({ message: "AIOWebcare API key is required" });
       }
 
       const wrmClient = new WPRemoteManagerClient({
@@ -1418,9 +1418,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const status = await wrmClient.getStatus();
       res.json(status);
     } catch (error) {
-      console.error("Error fetching WRM status:", error);
+      console.error("Error fetching AIOWebcare status:", error);
       res.status(500).json({ 
-        message: "Failed to fetch WP Remote Manager status",
+        message: "Failed to fetch AIOWebcare status",
         error: error instanceof Error ? error.message : "Unknown error"
       });
     }
@@ -1438,7 +1438,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (!website.wrmApiKey) {
-        return res.status(400).json({ message: "WP Remote Manager API key is required" });
+        return res.status(400).json({ message: "AIOWebcare API key is required" });
       }
 
       const wrmClient = new WPRemoteManagerClient({
@@ -1449,9 +1449,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const health = await wrmClient.getHealth();
       res.json(health);
     } catch (error) {
-      console.error("Error fetching WRM health:", error);
+      console.error("Error fetching AIOWebcare health:", error);
       res.status(500).json({ 
-        message: "Failed to fetch WP Remote Manager health data",
+        message: "Failed to fetch AIOWebcare health data",
         error: error instanceof Error ? error.message : "Unknown error"
       });
     }
@@ -1469,7 +1469,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (!website.wrmApiKey) {
-        return res.status(400).json({ message: "WP Remote Manager API key is required" });
+        return res.status(400).json({ message: "AIOWebcare API key is required" });
       }
 
       const wrmClient = new WPRemoteManagerClient({
@@ -1480,9 +1480,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const status = await wrmClient.getStatus();
       res.json(status);
     } catch (error) {
-      console.error("Error fetching WRM status:", error);
+      console.error("Error fetching AIOWebcare status:", error);
       res.status(500).json({ 
-        message: "Failed to fetch WP Remote Manager status",
+        message: "Failed to fetch AIOWebcare status",
         error: error instanceof Error ? error.message : "Unknown error"
       });
     }
@@ -1500,7 +1500,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (!website.wrmApiKey) {
-        return res.status(400).json({ message: "WP Remote Manager API key is required" });
+        return res.status(400).json({ message: "AIOWebcare API key is required" });
       }
 
       const wrmClient = new WPRemoteManagerClient({
@@ -1511,9 +1511,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const health = await wrmClient.getHealth();
       res.json(health);
     } catch (error) {
-      console.error("Error fetching WRM health:", error);
+      console.error("Error fetching AIOWebcare health:", error);
       res.status(500).json({ 
-        message: "Failed to fetch WP Remote Manager health data",
+        message: "Failed to fetch AIOWebcare health data",
         error: error instanceof Error ? error.message : "Unknown error"
       });
     }
@@ -1531,7 +1531,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (!website.wrmApiKey) {
-        return res.status(400).json({ message: "WP Remote Manager API key is required" });
+        return res.status(400).json({ message: "AIOWebcare API key is required" });
       }
 
       const wrmClient = new WPRemoteManagerClient({
@@ -1542,15 +1542,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updates = await wrmClient.getUpdates();
       res.json(updates);
     } catch (error) {
-      console.error("Error fetching WRM updates:", error);
+      console.error("Error fetching AIOWebcare updates:", error);
       
       // Handle specific error types for better user feedback
-      let message = "Failed to fetch WP Remote Manager updates";
+      let message = "Failed to fetch AIOWebcare updates";
       let statusCode = 500;
       
       if (error instanceof Error) {
         if (error.message.includes('HTML error page')) {
-          message = "WordPress site returned an error page instead of API data. The site may be experiencing issues or the WRM plugin may not be properly installed.";
+          message = "WordPress site returned an error page instead of API data. The site may be experiencing issues or the AIOWebcare plugin may not be properly installed.";
           statusCode = 503;
         } else if (error.message.includes('timeout')) {
           message = "Request timeout: WordPress site is taking too long to respond";
@@ -1580,7 +1580,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (!website.wrmApiKey) {
-        return res.status(400).json({ message: "WP Remote Manager API key is required" });
+        return res.status(400).json({ message: "AIOWebcare API key is required" });
       }
 
       const wrmClient = new WPRemoteManagerClient({
@@ -1620,7 +1620,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       }
 
-      // Test 2: WRM Secure endpoint
+      // Test 2: AIOWebcare Secure endpoint
       try {
         const secureUrl = `${website.url.replace(/\/$/, '')}/wp-json/wrms/v1/status`;
         const secureResponse = await fetch(secureUrl, {
@@ -1632,18 +1632,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const secureData = await secureResponse.text();
         diagnostics.tests.wrmSecure = {
           status: secureResponse.ok ? "success" : "failed",
-          message: secureResponse.ok ? "WRM Secure endpoint accessible" : `HTTP ${secureResponse.status} - ${secureData.substring(0, 200)}`,
+          message: secureResponse.ok ? "AIOWebcare Secure endpoint accessible" : `HTTP ${secureResponse.status} - ${secureData.substring(0, 200)}`,
           endpoint: secureUrl
         };
       } catch (error) {
         diagnostics.tests.wrmSecure = {
           status: "failed",
-          message: `WRM Secure endpoint error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          message: `AIOWebcare Secure endpoint error: ${error instanceof Error ? error.message : 'Unknown error'}`,
           endpoint: `${website.url}/wp-json/wrms/v1/status`
         };
       }
 
-      // Test 3: WRM Legacy endpoint
+      // Test 3: AIOWebcare Legacy endpoint
       try {
         const legacyUrl = `${website.url.replace(/\/$/, '')}/wp-json/wrm/v1/status`;
         const legacyResponse = await fetch(legacyUrl, {
@@ -1655,35 +1655,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const legacyData = await legacyResponse.text();
         diagnostics.tests.wrmLegacy = {
           status: legacyResponse.ok ? "success" : "failed",
-          message: legacyResponse.ok ? "WRM Legacy endpoint accessible" : `HTTP ${legacyResponse.status} - ${legacyData.substring(0, 200)}`,
+          message: legacyResponse.ok ? "AIOWebcare Legacy endpoint accessible" : `HTTP ${legacyResponse.status} - ${legacyData.substring(0, 200)}`,
           endpoint: legacyUrl
         };
       } catch (error) {
         diagnostics.tests.wrmLegacy = {
           status: "failed",
-          message: `WRM Legacy endpoint error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          message: `AIOWebcare Legacy endpoint error: ${error instanceof Error ? error.message : 'Unknown error'}`,
           endpoint: `${website.url}/wp-json/wrm/v1/status`
         };
       }
 
-      // Test 4: Check if any WRM endpoint works
+      // Test 4: Check if any AIOWebcare endpoint works
       if (diagnostics.tests.wrmSecure.status === "success" || diagnostics.tests.wrmLegacy.status === "success") {
         diagnostics.tests.pluginInstalled = {
           status: "success",
-          message: "WP Remote Manager plugin is installed and accessible"
+          message: "AIOWebcare plugin is installed and accessible"
         };
       } else {
         diagnostics.tests.pluginInstalled = {
           status: "failed",
-          message: "WP Remote Manager plugin appears to be missing, inactive, or misconfigured"
+          message: "AIOWebcare plugin appears to be missing, inactive, or misconfigured"
         };
       }
 
       res.json(diagnostics);
     } catch (error) {
-      console.error("Error running WRM diagnostics:", error);
+      console.error("Error running AIOWebcare diagnostics:", error);
       res.status(500).json({ 
-        message: "Failed to run WP Remote Manager diagnostics",
+        message: "Failed to run AIOWebcare diagnostics",
         error: error instanceof Error ? error.message : "Unknown error"
       });
     }
@@ -1701,7 +1701,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (!website.wrmApiKey) {
-        return res.status(400).json({ message: "WP Remote Manager API key is required" });
+        return res.status(400).json({ message: "AIOWebcare API key is required" });
       }
 
       const wrmClient = new WPRemoteManagerClient({
@@ -1712,9 +1712,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updates = await wrmClient.getUpdates();
       res.json(updates);
     } catch (error) {
-      console.error("Error fetching WRM updates:", error);
+      console.error("Error fetching AIOWebcare updates:", error);
       res.status(500).json({ 
-        message: "Failed to fetch WP Remote Manager updates",
+        message: "Failed to fetch AIOWebcare updates",
         error: error instanceof Error ? error.message : "Unknown error"
       });
     }
@@ -1732,7 +1732,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (!website.wrmApiKey) {
-        return res.status(400).json({ message: "WP Remote Manager API key is required" });
+        return res.status(400).json({ message: "AIOWebcare API key is required" });
       }
 
       const wrmClient = new WPRemoteManagerClient({
@@ -1746,7 +1746,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (Array.isArray(plugins)) {
         res.json(plugins);
       } else if (plugins && typeof plugins === 'object') {
-        // If the WRM API returns an object with a plugins array, extract it
+        // If the AIOWebcare API returns an object with a plugins array, extract it
         if (Array.isArray((plugins as any).plugins)) {
           res.json((plugins as any).plugins);
         } else {
@@ -1756,9 +1756,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json([]);
       }
     } catch (error) {
-      console.error("Error fetching WRM plugins:", error);
+      console.error("Error fetching AIOWebcare plugins:", error);
       res.status(500).json({ 
-        message: "Failed to fetch WP Remote Manager plugins",
+        message: "Failed to fetch AIOWebcare plugins",
         error: error instanceof Error ? error.message : "Unknown error"
       });
     }
@@ -1776,7 +1776,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (!website.wrmApiKey) {
-        return res.status(400).json({ message: "WP Remote Manager API key is required" });
+        return res.status(400).json({ message: "AIOWebcare API key is required" });
       }
 
       const wrmClient = new WPRemoteManagerClient({
@@ -1785,7 +1785,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const themes = await wrmClient.getThemes();
-      console.log(`[WRM Themes] Fetched ${Array.isArray(themes) ? themes.length : 0} themes for website ${websiteId}`);
+      console.log(`[AIOWebcare Themes] Fetched ${Array.isArray(themes) ? themes.length : 0} themes for website ${websiteId}`);
       
       // Validate and clean theme data before sending to frontend
       let cleanedThemes: any[] = [];
@@ -1807,7 +1807,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           parent: theme.parent || null
         }));
       } else if (themes && typeof themes === 'object') {
-        // If the WRM API returns an object with a themes array, extract it
+        // If the AIOWebcare API returns an object with a themes array, extract it
         if (Array.isArray((themes as any).themes)) {
           cleanedThemes = (themes as any).themes.map((theme: any) => ({
             stylesheet: theme.stylesheet || 'unknown-stylesheet',
@@ -1827,18 +1827,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      console.log(`[WRM Themes] Processed ${cleanedThemes.length} themes with valid metadata`);
+      console.log(`[AIOWebcare Themes] Processed ${cleanedThemes.length} themes with valid metadata`);
       res.json(cleanedThemes);
     } catch (error) {
-      console.error("Error fetching WRM themes:", error);
+      console.error("Error fetching AIOWebcare themes:", error);
       
       // Handle specific error types for better user feedback
-      let message = "Failed to fetch WP Remote Manager themes";
+      let message = "Failed to fetch AIOWebcare themes";
       let statusCode = 500;
       
       if (error instanceof Error) {
         if (error.message.includes('HTML error page')) {
-          message = "WordPress site returned an error page instead of theme data. The site may be experiencing issues or the WRM plugin may not be properly installed.";
+          message = "WordPress site returned an error page instead of theme data. The site may be experiencing issues or the AIOWebcare plugin may not be properly installed.";
           statusCode = 503;
         } else if (error.message.includes('timeout')) {
           message = "Request timeout: WordPress site is taking too long to respond when fetching themes";
@@ -1847,7 +1847,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message = "Cannot connect to WordPress site to fetch themes. Please check the website URL";
           statusCode = 400;
         } else if (error.message.includes('401') || error.message.includes('unauthorized')) {
-          message = "Unauthorized: Please check your WP Remote Manager API key";
+          message = "Unauthorized: Please check your AIOWebcare API key";
           statusCode = 401;
         }
       }
@@ -1871,7 +1871,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (!website.wrmApiKey) {
-        return res.status(400).json({ message: "WP Remote Manager API key is required" });
+        return res.status(400).json({ message: "AIOWebcare API key is required" });
       }
 
       const wrmClient = new WPRemoteManagerClient({
@@ -1885,7 +1885,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (Array.isArray(users)) {
         res.json(users);
       } else if (users && typeof users === 'object') {
-        // If the WRM API returns an object with a users array, extract it
+        // If the AIOWebcare API returns an object with a users array, extract it
         if (Array.isArray((users as any).users)) {
           res.json((users as any).users);
         } else {
@@ -1895,9 +1895,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json([]);
       }
     } catch (error) {
-      console.error("Error fetching WRM users:", error);
+      console.error("Error fetching AIOWebcare users:", error);
       res.status(500).json({ 
-        message: "Failed to fetch WP Remote Manager users",
+        message: "Failed to fetch AIOWebcare users",
         error: error instanceof Error ? error.message : "Unknown error"
       });
     }
@@ -1915,7 +1915,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (!website.wrmApiKey) {
-        return res.status(400).json({ message: "WP Remote Manager API key is required" });
+        return res.status(400).json({ message: "AIOWebcare API key is required" });
       }
 
       const wrmClient = new WPRemoteManagerClient({
@@ -1926,9 +1926,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const maintenance = await wrmClient.toggleMaintenanceMode(false);
       res.json(maintenance);
     } catch (error) {
-      console.error("Error fetching WRM maintenance mode:", error);
+      console.error("Error fetching AIOWebcare maintenance mode:", error);
       res.status(500).json({ 
-        message: "Failed to fetch WP Remote Manager maintenance mode",
+        message: "Failed to fetch AIOWebcare maintenance mode",
         error: error instanceof Error ? error.message : "Unknown error"
       });
     }
@@ -1946,7 +1946,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (!website.wrmApiKey) {
-        return res.status(400).json({ message: "WP Remote Manager API key is required" });
+        return res.status(400).json({ message: "AIOWebcare API key is required" });
       }
 
       const wrmClient = new WPRemoteManagerClient({
@@ -1959,7 +1959,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const optimizationData = await wrmClient.getOptimizationData();
         
         if (optimizationData) {
-          // Transform WRM data to match frontend expectations
+          // Transform AIOWebcare data to match frontend expectations
           res.json({
             postRevisions: {
               count: optimizationData.postRevisions?.count || 0,
@@ -1987,7 +1987,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           res.json(null);
         }
       } catch (error) {
-        console.error("Error calling WRM optimization endpoint:", error);
+        console.error("Error calling AIOWebcare optimization endpoint:", error);
         // Return null to indicate optimization features are not available
         res.json(null);
       }
@@ -2011,7 +2011,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (!website.wrmApiKey) {
-        return res.status(400).json({ message: "WP Remote Manager API key is required" });
+        return res.status(400).json({ message: "AIOWebcare API key is required" });
       }
 
       const wrmClient = new WPRemoteManagerClient({
@@ -2041,7 +2041,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (!website.wrmApiKey) {
-        return res.status(400).json({ message: "WP Remote Manager API key is required" });
+        return res.status(400).json({ message: "AIOWebcare API key is required" });
       }
 
       const wrmClient = new WPRemoteManagerClient({
@@ -2071,7 +2071,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (!website.wrmApiKey) {
-        return res.status(400).json({ message: "WP Remote Manager API key is required" });
+        return res.status(400).json({ message: "AIOWebcare API key is required" });
       }
 
       const wrmClient = new WPRemoteManagerClient({
@@ -2249,10 +2249,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (!website.wrmApiKey) {
-        return res.status(400).json({ message: "WP Remote Manager API key is required" });
+        return res.status(400).json({ message: "AIOWebcare API key is required" });
       }
 
-      console.log(`[PLUGIN UPDATE] Setting up WRM client for ${website.url}`);
+      console.log(`[PLUGIN UPDATE] Setting up AIOWebcare client for ${website.url}`);
       const wrmClient = new WPRemoteManagerClient({
         url: website.url,
         apiKey: website.wrmApiKey
@@ -2526,10 +2526,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Parse specific error patterns to provide better user feedback
         if (error.message.includes('404') || error.message.includes('not found')) {
-          details = "The WP Remote Manager plugin may not be properly installed or the update endpoint is not available";
+          details = "The AIOWebcare plugin may not be properly installed or the update endpoint is not available";
           statusCode = 400;
         } else if (error.message.includes('401') || error.message.includes('403') || error.message.includes('Authentication failed')) {
-          details = "Please check the WP Remote Manager API key configuration";
+          details = "Please check the AIOWebcare API key configuration";
           statusCode = 401;
         } else if (error.message.includes('ECONNREFUSED') || error.message.includes('ENOTFOUND')) {
           details = "Cannot connect to the WordPress site. Please verify the website URL is correct and accessible";
@@ -2611,10 +2611,10 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
       }
       
       if (!website.wrmApiKey) {
-        return res.status(400).json({ message: "WP Remote Manager API key is required" });
+        return res.status(400).json({ message: "AIOWebcare API key is required" });
       }
 
-      console.log(`[PLUGIN UPDATE] Setting up WRM client for ${website.url}`);
+      console.log(`[PLUGIN UPDATE] Setting up AIOWebcare client for ${website.url}`);
       const wrmClient = new WPRemoteManagerClient({
         url: website.url,
         apiKey: website.wrmApiKey
@@ -2794,7 +2794,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
           }
           
         } catch (updateApiError) {
-          console.error(`[PLUGIN UPDATE] WRM API Error:`, updateApiError);
+          console.error(`[PLUGIN UPDATE] AIOWebcare API Error:`, updateApiError);
           updateMessage = updateApiError instanceof Error ? updateApiError.message : "API call failed";
           updateResult = { 
             error: true, 
@@ -2915,7 +2915,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
     }
   });
 
-  // Test WP Remote Manager connection
+  // Test AIOWebcare connection
   app.get("/api/websites/:id/wrm/test-connection", authenticateToken, async (req, res) => {
     try {
       const userId = (req as AuthRequest).user!.id;
@@ -2928,7 +2928,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
 
       if (!website.wrmApiKey) {
         return res.status(400).json({ 
-          message: "WP Remote Manager API key is required",
+          message: "AIOWebcare API key is required",
           connected: false,
           issues: ["API key not configured"]
         });
@@ -3027,7 +3027,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
 
       res.json(testResults);
     } catch (error) {
-      console.error("Error testing WRM connection:", error);
+      console.error("Error testing AIOWebcare connection:", error);
       res.status(500).json({ 
         connected: false,
         message: "Failed to test connection",
@@ -3050,7 +3050,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
       }
 
       if (!website.wrmApiKey) {
-        return res.status(400).json({ message: "WP Remote Manager API key is required" });
+        return res.status(400).json({ message: "AIOWebcare API key is required" });
       }
 
       const wrmClient = new WPRemoteManagerClient({
@@ -3234,10 +3234,10 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
         
         // Parse specific error patterns to provide better user feedback
         if (error.message.includes('404') || error.message.includes('not found')) {
-          details = "The WP Remote Manager plugin may not be properly installed or the update endpoint is not available";
+          details = "The AIOWebcare plugin may not be properly installed or the update endpoint is not available";
           statusCode = 400;
         } else if (error.message.includes('401') || error.message.includes('403') || error.message.includes('Authentication failed')) {
-          details = "Please check the WP Remote Manager API key configuration";
+          details = "Please check the AIOWebcare API key configuration";
           statusCode = 401;
         } else if (error.message.includes('ECONNREFUSED') || error.message.includes('ENOTFOUND')) {
           details = "Cannot connect to the WordPress site. Please verify the website URL is correct and accessible";
@@ -3276,7 +3276,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
       }
 
       if (!website.wrmApiKey) {
-        return res.status(400).json({ message: "WP Remote Manager API key is required" });
+        return res.status(400).json({ message: "AIOWebcare API key is required" });
       }
 
       const wrmClient = new WPRemoteManagerClient({
@@ -3417,7 +3417,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
       }
 
       if (!website.wrmApiKey) {
-        return res.status(400).json({ message: "WP Remote Manager API key is required" });
+        return res.status(400).json({ message: "AIOWebcare API key is required" });
       }
 
       const wrmClient = new WPRemoteManagerClient({
@@ -3431,7 +3431,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
       
       console.log(`[Theme Activation] Activating theme: ${themeId} for website ${websiteId}`);
       
-      // Activate the theme using WRM API
+      // Activate the theme using AIOWebcare API
       const result = await wrmClient.activateTheme(themeId);
       
       // Create notification for theme activation
@@ -3476,7 +3476,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
       }
 
       if (!website.wrmApiKey) {
-        return res.status(400).json({ message: "WP Remote Manager API key is required" });
+        return res.status(400).json({ message: "AIOWebcare API key is required" });
       }
 
       const wrmClient = new WPRemoteManagerClient({
@@ -3497,7 +3497,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
       
       console.log(`[Theme Deletion] Deleting theme: ${themeId} for website ${websiteId}`);
       
-      // Delete the theme using WRM API
+      // Delete the theme using AIOWebcare API
       const result = await wrmClient.deleteTheme(themeId);
       
       // Create notification for theme deletion
@@ -3538,7 +3538,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
       const website = await storage.getWebsite(websiteId, userId);
 
       if (!website) return res.status(404).json({ message: 'Website not found' });
-      if (!website.wrmApiKey) return res.status(400).json({ message: 'WP Remote Manager API key is required' });
+      if (!website.wrmApiKey) return res.status(400).json({ message: 'AIOWebcare API key is required' });
 
       const wrmClient = new WPRemoteManagerClient({ url: website.url, apiKey: website.wrmApiKey });
       console.log(`[Plugin Activation] Activating plugin: ${pluginPath} for website ${websiteId}`);
@@ -3607,7 +3607,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
       }
 
       if (!website.wrmApiKey) {
-        return res.status(400).json({ message: 'WP Remote Manager API key is required' });
+        return res.status(400).json({ message: 'AIOWebcare API key is required' });
       }
 
       const wrmClient = new WPRemoteManagerClient({
@@ -3659,7 +3659,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
       }
 
       if (!website.wrmApiKey) {
-        return res.status(400).json({ message: "WP Remote Manager API key is required" });
+        return res.status(400).json({ message: "AIOWebcare API key is required" });
       }
 
       const wrmClient = new WPRemoteManagerClient({
@@ -3669,7 +3669,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
 
       console.log(`[Plugin Activation] Activating plugin: ${plugin} for website ${websiteId}`);
       
-      // Activate the plugin using WRM API
+      // Activate the plugin using AIOWebcare API
       const result = await wrmClient.activatePlugin(plugin);
       
       // Get updated plugin information after activation
@@ -3732,7 +3732,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
       }
 
       if (!website.wrmApiKey) {
-        return res.status(400).json({ message: "WP Remote Manager API key is required" });
+        return res.status(400).json({ message: "AIOWebcare API key is required" });
       }
 
       const wrmClient = new WPRemoteManagerClient({
@@ -3756,7 +3756,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
         console.warn("Could not fetch plugin info before deactivation:", error);
       }
       
-      // Deactivate the plugin using WRM API
+      // Deactivate the plugin using AIOWebcare API
       const result = await wrmClient.deactivatePlugin(plugin);
       
       // Create notification for plugin deactivation
@@ -3800,7 +3800,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
       }
 
       if (!website.wrmApiKey) {
-        return res.status(400).json({ message: "WP Remote Manager API key is required" });
+        return res.status(400).json({ message: "AIOWebcare API key is required" });
       }
 
       const wrmClient = new WPRemoteManagerClient({
@@ -3904,10 +3904,10 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
         
         // Parse specific error patterns to provide better user feedback
         if (error.message.includes('404') || error.message.includes('not found')) {
-          details = "The WP Remote Manager plugin may not be properly installed or the update endpoint is not available";
+          details = "The AIOWebcare plugin may not be properly installed or the update endpoint is not available";
           statusCode = 400;
         } else if (error.message.includes('401') || error.message.includes('403') || error.message.includes('Authentication failed')) {
-          details = "Please check the WP Remote Manager API key configuration";
+          details = "Please check the AIOWebcare API key configuration";
           statusCode = 401;
         } else if (error.message.includes('ECONNREFUSED') || error.message.includes('ENOTFOUND')) {
           details = "Cannot connect to the WordPress site. Please verify the website URL is correct and accessible";
@@ -5606,7 +5606,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
               if (Array.isArray(pluginsResponse)) {
                 plugins = pluginsResponse;
               } else if (pluginsResponse && typeof pluginsResponse === 'object') {
-                // If the WRM API returns an object with a plugins array, extract it
+                // If the AIOWebcare API returns an object with a plugins array, extract it
                 if (Array.isArray((pluginsResponse as any).plugins)) {
                   plugins = (pluginsResponse as any).plugins;
                 }
@@ -6256,10 +6256,10 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
         });
       }
 
-      // Check if we have WRM credentials for WordPress site management
+      // Check if we have AIOWebcare credentials for WordPress site management
       if (!website.wrmApiKey) {
         return res.status(400).json({ 
-          message: "WP Remote Manager API key is required for backup operations",
+          message: "AIOWebcare API key is required for backup operations",
           requiresSetup: true
         });
       }
@@ -6276,7 +6276,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
 
       console.log(`[BACKUP] Created backup log with ID: ${backupLog.id}`);
 
-      // Initialize WRM client for backup operations
+      // Initialize AIOWebcare client for backup operations
       const wrmClient = new WPRemoteManagerClient({
         url: website.url,
         apiKey: website.wrmApiKey
@@ -6363,10 +6363,10 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
         errorMessage = error.message;
         
         if (error.message.includes('404') || error.message.includes('not found')) {
-          details = "UpdraftPlus plugin may not be installed or WP Remote Manager is not configured";
+          details = "UpdraftPlus plugin may not be installed or AIOWebcare is not configured";
           statusCode = 400;
         } else if (error.message.includes('401') || error.message.includes('403')) {
-          details = "Check WP Remote Manager API key configuration";
+          details = "Check AIOWebcare API key configuration";
           statusCode = 401;
         } else if (error.message.includes('ECONNREFUSED') || error.message.includes('ENOTFOUND')) {
           details = "Cannot connect to WordPress site. Verify URL and accessibility";
@@ -6414,10 +6414,10 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
 
       console.log(`[BACKUP] Initiating restore from backup ${backupId} for website: ${website.name}`);
 
-      // Check if we have WRM credentials
+      // Check if we have AIOWebcare credentials
       if (!website.wrmApiKey) {
         return res.status(400).json({ 
-          message: "WP Remote Manager API key is required for restore operations",
+          message: "AIOWebcare API key is required for restore operations",
           requiresSetup: true
         });
       }
@@ -6482,7 +6482,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
           details = "UpdraftPlus plugin may not be installed or backup file not found";
           statusCode = 400;
         } else if (error.message.includes('401') || error.message.includes('403')) {
-          details = "Check WP Remote Manager API key configuration";
+          details = "Check AIOWebcare API key configuration";
           statusCode = 401;
         }
       }
@@ -6514,15 +6514,15 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
 
       console.log(`[BACKUP] Setting up UpdraftPlus for website: ${website.name} (${website.url})`);
 
-      // Check if we have WRM credentials
+      // Check if we have AIOWebcare credentials
       if (!website.wrmApiKey) {
         return res.status(400).json({ 
-          message: "WP Remote Manager API key is required for plugin installation",
+          message: "AIOWebcare API key is required for plugin installation",
           requiresSetup: true
         });
       }
 
-      // Initialize WRM client
+      // Initialize AIOWebcare client
       const wrmClient = new WPRemoteManagerClient({
         url: website.url,
         apiKey: website.wrmApiKey
@@ -6659,10 +6659,10 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
         errorMessage = error.message;
         
         if (error.message.includes('404')) {
-          details = "WP Remote Manager plugin not found or not properly configured";
+          details = "AIOWebcare plugin not found or not properly configured";
           statusCode = 400;
         } else if (error.message.includes('401') || error.message.includes('403')) {
-          details = "Insufficient permissions. Check WP Remote Manager API key";
+          details = "Insufficient permissions. Check AIOWebcare API key";
           statusCode = 401;
         } else if (error.message.includes('plugin installation failed')) {
           details = "WordPress plugin installation failed. Check site permissions and disk space";
@@ -6700,15 +6700,15 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
         });
       }
 
-      // Check if website has WRM API key
+      // Check if website has AIOWebcare API key
       if (!website.wrmApiKey) {
         return res.status(400).json({ 
           success: false, 
-          message: "Website not connected or missing WP Remote Manager API key" 
+          message: "Website not connected or missing AIOWebcare API key" 
         });
       }
 
-      // Initialize WRM client
+      // Initialize AIOWebcare client
       const wrmClient = new WPRemoteManagerClient({
         url: website.url,
         apiKey: website.wrmApiKey
@@ -6885,17 +6885,17 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
       } catch (error) {
         console.error(`[BACKUP] Error monitoring backup status:`, error);
         
-        // Check if the error is due to missing WRM backup endpoints
+        // Check if the error is due to missing AIOWebcare backup endpoints
         const errorMessage = error instanceof Error ? error.message : String(error);
         const isMissingEndpoint = errorMessage.includes('rest_no_route') || errorMessage.includes('No route was found');
         
         if (isMissingEndpoint) {
-          // WRM plugin needs backup endpoints upgrade - mark as manual trigger required
+          // AIOWebcare plugin needs backup endpoints upgrade - mark as manual trigger required
           await storage.updateBackupHistory(backupLogId, {
             backupStatus: 'manual_trigger_required',
-            backupNote: 'Backup initiated - complete in WordPress admin. WRM plugin needs backup endpoints upgrade.'
+            backupNote: 'Backup initiated - complete in WordPress admin. AIOWebcare plugin needs backup endpoints upgrade.'
           });
-          console.log(`[BACKUP] Backup ${backupLogId} marked as manual trigger required due to missing WRM endpoints`);
+          console.log(`[BACKUP] Backup ${backupLogId} marked as manual trigger required due to missing AIOWebcare endpoints`);
           return; // Stop monitoring
         }
         
@@ -7940,7 +7940,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
       debugLog.push(`[LOCALHOST-DELETE] Has API key: ${!!website.wrmApiKey}`);
 
       if (!website.wrmApiKey) {
-        debugLog.push(`[LOCALHOST-DELETE] No WRM API key configured`);
+        debugLog.push(`[LOCALHOST-DELETE] No AIOWebcare API key configured`);
         return res.status(400).json({ message: "WordPress Remote Manager API key not configured", debugLog });
       }
 
@@ -7949,7 +7949,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
         return res.status(400).json({ message: "comment_ids array is required", debugLog });
       }
 
-      debugLog.push(`[LOCALHOST-DELETE] Creating WRM client for ${website.url}`);
+      debugLog.push(`[LOCALHOST-DELETE] Creating AIOWebcare client for ${website.url}`);
       const credentials: WPRemoteManagerCredentials = {
         url: website.url,
         apiKey: website.wrmApiKey
@@ -7959,7 +7959,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
       debugLog.push(`[LOCALHOST-DELETE] Calling deleteComments method...`);
       const result = await wrmClient.deleteComments(comment_ids);
       
-      debugLog.push(`[LOCALHOST-DELETE] WRM client result: ${JSON.stringify(result)}`);
+      debugLog.push(`[LOCALHOST-DELETE] AIOWebcare client result: ${JSON.stringify(result)}`);
       debugLog.push(`[LOCALHOST-DELETE] Operation completed successfully`);
       
       res.json({
@@ -8003,11 +8003,11 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
       debugLog.push(`[LOCALHOST-UNAPPROVED] Has API key: ${!!website.wrmApiKey}`);
 
       if (!website.wrmApiKey) {
-        debugLog.push(`[LOCALHOST-UNAPPROVED] No WRM API key configured`);
+        debugLog.push(`[LOCALHOST-UNAPPROVED] No AIOWebcare API key configured`);
         return res.status(400).json({ message: "WordPress Remote Manager API key not configured", debugLog });
       }
 
-      debugLog.push(`[LOCALHOST-UNAPPROVED] Creating WRM client for ${website.url}`);
+      debugLog.push(`[LOCALHOST-UNAPPROVED] Creating AIOWebcare client for ${website.url}`);
       const credentials: WPRemoteManagerCredentials = {
         url: website.url,
         apiKey: website.wrmApiKey
@@ -8017,7 +8017,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
       debugLog.push(`[LOCALHOST-UNAPPROVED] Calling removeAllUnapprovedComments method...`);
       const result = await wrmClient.removeAllUnapprovedComments();
       
-      debugLog.push(`[LOCALHOST-UNAPPROVED] WRM client result: ${JSON.stringify(result)}`);
+      debugLog.push(`[LOCALHOST-UNAPPROVED] AIOWebcare client result: ${JSON.stringify(result)}`);
       debugLog.push(`[LOCALHOST-UNAPPROVED] Operation completed`);
       
       res.json({
@@ -8061,11 +8061,11 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
       debugLog.push(`[LOCALHOST-SPAM-TRASH] Has API key: ${!!website.wrmApiKey}`);
 
       if (!website.wrmApiKey) {
-        debugLog.push(`[LOCALHOST-SPAM-TRASH] No WRM API key configured`);
+        debugLog.push(`[LOCALHOST-SPAM-TRASH] No AIOWebcare API key configured`);
         return res.status(400).json({ message: "WordPress Remote Manager API key not configured", debugLog });
       }
 
-      debugLog.push(`[LOCALHOST-SPAM-TRASH] Creating WRM client for ${website.url}`);
+      debugLog.push(`[LOCALHOST-SPAM-TRASH] Creating AIOWebcare client for ${website.url}`);
       const credentials: WPRemoteManagerCredentials = {
         url: website.url,
         apiKey: website.wrmApiKey
@@ -8075,7 +8075,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
       debugLog.push(`[LOCALHOST-SPAM-TRASH] Calling removeAllSpamAndTrashedComments method...`);
       const result = await wrmClient.removeAllSpamAndTrashedComments();
       
-      debugLog.push(`[LOCALHOST-SPAM-TRASH] WRM client result: ${JSON.stringify(result)}`);
+      debugLog.push(`[LOCALHOST-SPAM-TRASH] AIOWebcare client result: ${JSON.stringify(result)}`);
       debugLog.push(`[LOCALHOST-SPAM-TRASH] Operation completed`);
       
       res.json({
@@ -8118,11 +8118,11 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
       debugLog.push(`[LOCALHOST-SPAM] Has API key: ${!!website.wrmApiKey}`);
 
       if (!website.wrmApiKey) {
-        debugLog.push(`[LOCALHOST-SPAM] No WRM API key configured`);
+        debugLog.push(`[LOCALHOST-SPAM] No AIOWebcare API key configured`);
         return res.status(400).json({ message: "WordPress Remote Manager API key not configured", debugLog });
       }
 
-      debugLog.push(`[LOCALHOST-SPAM] Creating WRM client for ${website.url}`);
+      debugLog.push(`[LOCALHOST-SPAM] Creating AIOWebcare client for ${website.url}`);
       const credentials: WPRemoteManagerCredentials = {
         url: website.url,
         apiKey: website.wrmApiKey
@@ -8132,7 +8132,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
       debugLog.push(`[LOCALHOST-SPAM] Calling cleanSpamComments method...`);
       const result = await wrmClient.cleanSpamComments();
       
-      debugLog.push(`[LOCALHOST-SPAM] WRM client result: ${JSON.stringify(result)}`);
+      debugLog.push(`[LOCALHOST-SPAM] AIOWebcare client result: ${JSON.stringify(result)}`);
       debugLog.push(`[LOCALHOST-SPAM] Operation completed successfully`);
       
       res.json({

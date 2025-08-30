@@ -150,7 +150,7 @@ export interface CommentsStats {
 
 /**
  * WordPress Remote Manager Plugin Client
- * Handles communication with the WP Remote Manager plugin API
+ * Handles communication with the AIOWebcare plugin API
  */
 export class WPRemoteManagerClient {
   private api: AxiosInstance;
@@ -161,16 +161,16 @@ export class WPRemoteManagerClient {
   constructor(credentials: WPRemoteManagerCredentials) {
     this.credentials = credentials;
     
-    console.log(`[WRM] Initializing client with API key preview: ${credentials.apiKey.substring(0, 10)}...`);
-    console.log(`[WRM] API key length: ${credentials.apiKey.length}`);
+    console.log(`[AIOWebcare] Initializing client with API key preview: ${credentials.apiKey.substring(0, 10)}...`);
+    console.log(`[AIOWebcare] API key length: ${credentials.apiKey.length}`);
     
-    // Create axios instance for WP Remote Manager API (supports both secure and legacy versions)
+    // Create axios instance for AIOWebcare API (supports both new and legacy versions)
     this.api = axios.create({
-      baseURL: `${credentials.url.replace(/\/$/, '')}/wp-json/wrms/v1`,
+      baseURL: `${credentials.url.replace(/\/$/, '')}/wp-json/aiowebcare/v1`,
       timeout: 30000, // Default timeout for most operations
       headers: {
         'Content-Type': 'application/json',
-        'X-WRMS-API-Key': credentials.apiKey, // Secure version header (primary - works according to diagnostics)
+        'X-AIOWebcare-API-Key': credentials.apiKey, // Primary AIOWebcare header
         'X-WRM-API-Key': credentials.apiKey,  // Legacy fallback for backward compatibility
         'User-Agent': 'AIO-Webcare-Dashboard/1.0'
       }
@@ -183,7 +183,7 @@ export class WPRemoteManagerClient {
       
       if (timeSinceLastRequest < this.MIN_REQUEST_INTERVAL) {
         const delay = this.MIN_REQUEST_INTERVAL - timeSinceLastRequest;
-        console.log(`[WRM] Rate limiting: waiting ${delay}ms before next request`);
+        console.log(`[AIOWebcare] Rate limiting: waiting ${delay}ms before next request`);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
       
@@ -197,7 +197,7 @@ export class WPRemoteManagerClient {
         // Check if response is HTML instead of JSON (common with server errors)
         const contentType = response.headers['content-type'];
         if (contentType && contentType.includes('text/html') && response.data && typeof response.data === 'string' && response.data.startsWith('<!DOCTYPE')) {
-          console.warn('[WRM] Received HTML response instead of JSON, likely a server error page');
+          console.warn('[AIOWebcare] Received HTML response instead of JSON, likely a server error page');
           const error = new Error(`WordPress site returned HTML error page instead of API response. Status: ${response.status}`);
           (error as any).isHTMLResponse = true;
           (error as any).htmlContent = response.data;
@@ -210,8 +210,8 @@ export class WPRemoteManagerClient {
         
         // Handle HTML error responses (like 503 Service Unavailable pages)
         if (error.response && error.response.data && typeof error.response.data === 'string' && error.response.data.startsWith('<!DOCTYPE')) {
-          console.warn(`[WRM] Received HTML error page (Status: ${error.response.status}):`, error.response.data.substring(0, 200) + '...');
-          const enhancedError = new Error(`WordPress site returned HTML error page (${error.response.status}). The site may be experiencing issues or the WRM plugin may not be properly installed.`);
+          console.warn(`[AIOWebcare] Received HTML error page (Status: ${error.response.status}):`, error.response.data.substring(0, 200) + '...');
+          const enhancedError = new Error(`WordPress site returned HTML error page (${error.response.status}). The site may be experiencing issues or the AIOWebcare plugin may not be properly installed.`);
           (enhancedError as any).isHTMLResponse = true;
           (enhancedError as any).status = error.response.status;
           (enhancedError as any).htmlContent = error.response.data;
@@ -220,7 +220,7 @@ export class WPRemoteManagerClient {
         
         // Handle invalid JSON responses
         if (error.response && error.response.data && typeof error.response.data === 'string' && !error.response.data.trim().startsWith('{') && !error.response.data.trim().startsWith('[')) {
-          console.warn(`[WRM] Received non-JSON response (Status: ${error.response.status}):`, error.response.data.substring(0, 200) + '...');
+          console.warn(`[AIOWebcare] Received non-JSON response (Status: ${error.response.status}):`, error.response.data.substring(0, 200) + '...');
           const enhancedError = new Error(`WordPress site returned invalid JSON response (${error.response.status}). Response: ${error.response.data.substring(0, 100)}`);
           (enhancedError as any).isInvalidJSON = true;
           (enhancedError as any).status = error.response.status;
@@ -230,7 +230,7 @@ export class WPRemoteManagerClient {
         // If rate limited and we haven't already retried
         if (error.response?.status === 429 && !originalRequest._retry) {
           originalRequest._retry = true;
-          console.log('[WRM] Rate limited, waiting 65 seconds before retry...');
+          console.log('[AIOWebcare] Rate limited, waiting 65 seconds before retry...');
           
           // Wait 65 seconds (rate limit window + buffer)
           await new Promise(resolve => setTimeout(resolve, 65000));
@@ -251,20 +251,20 @@ export class WPRemoteManagerClient {
    */
   public async validateApiKey(): Promise<{ valid: boolean; error?: string; code?: string }> {
     try {
-      console.log('[WRM] Validating API key for:', this.credentials.url);
+      console.log('[AIOWebcare] Validating API key for:', this.credentials.url);
       
       // Try status endpoint first as it's most basic and should always exist
       await this.makeRequestWithFallback('/status');
-      console.log('[WRM] API key validation successful');
+      console.log('[AIOWebcare] API key validation successful');
       return { valid: true };
     } catch (error: any) {
-      console.log('[WRM] API key validation failed:', error.message);
+      console.log('[AIOWebcare] API key validation failed:', error.message);
       
       // Enhanced error detection with specific codes
-      if (error.response?.status === 401 || error.message.includes('Invalid or incorrect WP Remote Manager API key')) {
+      if (error.response?.status === 401 || error.message.includes('Invalid or incorrect') || error.message.includes('API key')) {
         return { 
           valid: false, 
-          error: 'Invalid API key. Please verify the API key in your WordPress admin (Settings → WP Remote Manager).', 
+          error: 'Invalid API key. Please verify the API key in your WordPress admin (Settings → AIOWebcare).', 
           code: 'INVALID_API_KEY'
         };
       }
@@ -280,7 +280,7 @@ export class WPRemoteManagerClient {
       if (error.message.includes('plugin endpoints not found') || error.message.includes('rest_no_route') || error.response?.status === 404) {
         return { 
           valid: false, 
-          error: 'WordPress Remote Manager plugin not installed or activated. Please install the latest plugin version.', 
+          error: 'AIOWebcare plugin not installed or activated. Please install the latest plugin version.', 
           code: 'PLUGIN_NOT_INSTALLED'
         };
       }
@@ -328,7 +328,7 @@ export class WPRemoteManagerClient {
     } catch (error: any) {
       // Handle HTML error responses more gracefully
       if (error.isHTMLResponse) {
-        console.error(`[WRM] HTML error response from ${endpoint}:`, error.message);
+        console.error(`[AIOWebcare] HTML error response from ${endpoint}:`, error.message);
         throw new Error(`WordPress site error: ${error.message}`);
       }
       
@@ -336,7 +336,7 @@ export class WPRemoteManagerClient {
       if (error.response?.status === 404 || 
           (error.response?.data?.code === 'rest_no_route') ||
           (error.response?.data && typeof error.response.data === 'object' && 'code' in error.response.data && error.response.data.code === 'rest_no_route')) {
-        console.log(`[WRM] Secure endpoint not found (${error.response?.data?.code || 'HTTP 404'}), trying legacy: ${endpoint}`);
+        console.log(`[AIOWebcare] Secure endpoint not found (${error.response?.data?.code || 'HTTP 404'}), trying legacy: ${endpoint}`);
         
         try {
           const legacyApi = axios.create({
@@ -344,7 +344,8 @@ export class WPRemoteManagerClient {
             timeout: 30000,
             headers: {
               'Content-Type': 'application/json',
-              'X-WRM-API-Key': this.credentials.apiKey,
+              'X-AIOWebcare-API-Key': this.credentials.apiKey, // Primary AIOWebcare header
+              'X-WRM-API-Key': this.credentials.apiKey, // Legacy fallback
               'User-Agent': 'AIO-Webcare-Dashboard/1.0'
             }
           });
@@ -367,7 +368,7 @@ export class WPRemoteManagerClient {
               // Handle HTML error responses from legacy endpoint too
               if (error.response && error.response.data && typeof error.response.data === 'string' && error.response.data.startsWith('<!DOCTYPE')) {
                 console.warn(`[WRM-Legacy] Received HTML error page (Status: ${error.response.status})`);
-                const enhancedError = new Error(`WordPress site returned HTML error page (${error.response.status}). The site may be experiencing issues or the WRM plugin may not be properly installed.`);
+                const enhancedError = new Error(`WordPress site returned HTML error page (${error.response.status}). The site may be experiencing issues or the AIOWebcare plugin may not be properly installed.`);
                 (enhancedError as any).isHTMLResponse = true;
                 (enhancedError as any).status = error.response.status;
                 (enhancedError as any).htmlContent = error.response.data;
@@ -377,10 +378,10 @@ export class WPRemoteManagerClient {
             }
           );
           
-          console.log(`[WRM] Trying legacy API call: ${legacyApi.defaults.baseURL}${endpoint}`);
+          console.log(`[AIOWebcare] Trying legacy API call: ${legacyApi.defaults.baseURL}${endpoint}`);
           return await legacyApi.get(endpoint, config);
         } catch (legacyError: any) {
-          console.error(`[WRM] Both secure and legacy endpoints failed:`, {
+          console.error(`[AIOWebcare] Both secure and legacy endpoints failed:`, {
             secureError: error.response?.data || error.message,
             legacyError: legacyError.response?.data || legacyError.message
           });
@@ -395,11 +396,11 @@ export class WPRemoteManagerClient {
           // Check if this might be an API key issue (401 or 403 status codes)
           if (error.response?.status === 401 || legacyError.response?.status === 401 ||
               error.response?.data?.code === 'invalid_api_key' || legacyError.response?.data?.code === 'invalid_api_key') {
-            throw new Error(`Invalid or incorrect WP Remote Manager API key. Please check your API key in the website settings and ensure it matches the key generated in your WordPress admin (Settings → Remote Manager).`);
+            throw new Error(`Invalid or incorrect AIOWebcare API key. Please check your API key in the website settings and ensure it matches the key generated in your WordPress admin (Settings → Remote Manager).`);
           }
           
           if (error.response?.status === 403 || legacyError.response?.status === 403) {
-            throw new Error(`Access denied to WP Remote Manager API. The API key may be correct but lacks proper permissions. Please regenerate the API key in WordPress admin.`);
+            throw new Error(`Access denied to AIOWebcare API. The API key may be correct but lacks proper permissions. Please regenerate the API key in WordPress admin.`);
           }
           
           // Check if endpoints are not found (plugin not installed or inactive)
@@ -444,13 +445,13 @@ export class WPRemoteManagerClient {
   private async detectServerSoftware(pluginProvidedServer?: string): Promise<string> {
     // Method 1: Use plugin-provided server info if available
     if (pluginProvidedServer && pluginProvidedServer !== 'Unknown') {
-      console.log(`[WRM] Server software from plugin: ${pluginProvidedServer}`);
+      console.log(`[AIOWebcare] Server software from plugin: ${pluginProvidedServer}`);
       return this.cleanServerString(pluginProvidedServer);
     }
 
     // Method 2: Try to detect from HTTP headers by making a HEAD request to the site
     try {
-      console.log(`[WRM] Attempting server detection via HTTP headers for ${this.credentials.url}`);
+      console.log(`[AIOWebcare] Attempting server detection via HTTP headers for ${this.credentials.url}`);
       const axios = require('axios');
       const response = await axios.head(this.credentials.url, {
         timeout: 5000,
@@ -460,7 +461,7 @@ export class WPRemoteManagerClient {
 
       const serverHeader = response.headers['server'] || response.headers['Server'];
       if (serverHeader) {
-        console.log(`[WRM] Server detected from HTTP headers: ${serverHeader}`);
+        console.log(`[AIOWebcare] Server detected from HTTP headers: ${serverHeader}`);
         return this.cleanServerString(serverHeader);
       }
 
@@ -476,7 +477,7 @@ export class WPRemoteManagerClient {
       }
 
     } catch (error: any) {
-      console.log(`[WRM] Could not detect server via HTTP headers: ${error.message}`);
+      console.log(`[AIOWebcare] Could not detect server via HTTP headers: ${error.message}`);
     }
 
     // Method 3: Use hosting provider detection if available
@@ -484,14 +485,14 @@ export class WPRemoteManagerClient {
       const hostname = new URL(this.credentials.url).hostname;
       const hostingProvider = this.detectHostingProvider(hostname);
       if (hostingProvider) {
-        console.log(`[WRM] Server guessed from hosting provider: ${hostingProvider}`);
+        console.log(`[AIOWebcare] Server guessed from hosting provider: ${hostingProvider}`);
         return hostingProvider;
       }
     } catch (error) {
-      console.log(`[WRM] Could not parse URL for hosting detection`);
+      console.log(`[AIOWebcare] Could not parse URL for hosting detection`);
     }
 
-    console.log(`[WRM] Server software could not be determined, defaulting to Unknown`);
+    console.log(`[AIOWebcare] Server software could not be determined, defaulting to Unknown`);
     return 'Unknown';
   }
 
@@ -571,7 +572,7 @@ export class WPRemoteManagerClient {
         response = await this.api.get('/status');
       } catch (error: any) {
         if (error.response?.status === 401 || error.response?.status === 403) {
-          console.log('[WRM] Trying alternative authentication method...');
+          console.log('[AIOWebcare] Trying alternative authentication method...');
           // Try with query parameter authentication
           response = await this.api.get(`/status?api_key=${this.credentials.apiKey}`);
         } else {
@@ -627,7 +628,7 @@ export class WPRemoteManagerClient {
         pages_count: siteInfo.pages_count || 0
       };
     } catch (error: any) {
-      console.error('WP Remote Manager Status Error:', error.response?.data || error.message);
+      console.error('AIOWebcare Status Error:', error.response?.data || error.message);
       
       // Handle new secure plugin error codes
       if (error.response?.status === 429) {
@@ -635,11 +636,11 @@ export class WPRemoteManagerClient {
       }
       
       if (error.response?.status === 501 && error.response?.data?.code === 'api_key_not_configured') {
-        throw new Error('WP Remote Manager plugin is not properly configured. Please check the API key in WordPress admin.');
+        throw new Error('AIOWebcare plugin is not properly configured. Please check the API key in WordPress admin.');
       }
       
       if (error.response?.status === 403 && error.response?.data?.code === 'invalid_api_key') {
-        throw new Error('Invalid API key. Please verify the WP Remote Manager configuration.');
+        throw new Error('Invalid API key. Please verify the AIOWebcare configuration.');
       }
       
       throw new Error(`Failed to get site status: ${error.response?.data?.message || error.message}`);
@@ -654,7 +655,7 @@ export class WPRemoteManagerClient {
       const response = await this.makeRequestWithFallback('/health');
       return response.data;
     } catch (error: any) {
-      console.error('WP Remote Manager Health Error:', error.response?.data || error.message);
+      console.error('AIOWebcare Health Error:', error.response?.data || error.message);
       
       // Handle secure plugin error codes
       if (error.response?.status === 429) {
@@ -662,11 +663,11 @@ export class WPRemoteManagerClient {
       }
       
       if (error.response?.status === 501 && error.response?.data?.code === 'api_key_not_configured') {
-        throw new Error('WP Remote Manager plugin is not properly configured. Please check the API key in WordPress admin.');
+        throw new Error('AIOWebcare plugin is not properly configured. Please check the API key in WordPress admin.');
       }
       
       if (error.response?.status === 403 && error.response?.data?.code === 'invalid_api_key') {
-        throw new Error('Invalid API key. Please verify the WP Remote Manager configuration.');
+        throw new Error('Invalid API key. Please verify the AIOWebcare configuration.');
       }
       
       // Return fallback health data if endpoint not available
@@ -679,7 +680,7 @@ export class WPRemoteManagerClient {
         performance_score: 70,
         issues: {
           critical: [],
-          warnings: [{ message: 'Health endpoint not available', solution: 'Upgrade WP Remote Manager plugin' }],
+          warnings: [{ message: 'Health endpoint not available', solution: 'Upgrade AIOWebcare plugin' }],
           notices: []
         }
       };
@@ -772,7 +773,7 @@ export class WPRemoteManagerClient {
         }
       };
     } catch (error: any) {
-      console.error('WP Remote Manager Updates Error:', error.response?.data || error.message);
+      console.error('AIOWebcare Updates Error:', error.response?.data || error.message);
       
       // Return empty fallback if all methods fail
       return {
@@ -868,8 +869,8 @@ export class WPRemoteManagerClient {
         author_uri: 'https://wordpress.org/',
         plugin_uri: 'https://wordpress.org/plugins/classic-widgets/'
       },
-      'WP Remote Manager': {
-        author: 'WP Remote Manager',
+      'AIOWebcare': {
+        author: 'AIOWebcare',
         description: 'Remote management plugin for WordPress sites.',
         author_uri: '',
         plugin_uri: ''
@@ -947,7 +948,7 @@ export class WPRemoteManagerClient {
         };
       });
     } catch (error: any) {
-      console.error('WP Remote Manager Plugins Error:', error.response?.data || error.message);
+      console.error('AIOWebcare Plugins Error:', error.response?.data || error.message);
       // Return fallback plugin data if endpoint not available
       return [];
     }
@@ -1115,7 +1116,7 @@ export class WPRemoteManagerClient {
     try {
       const response = await this.api.get('/themes');
       
-      // Handle different response formats from WP Remote Manager
+      // Handle different response formats from AIOWebcare
       let themesArray: any[] = [];
       
       if (Array.isArray(response.data)) {
@@ -1200,7 +1201,7 @@ export class WPRemoteManagerClient {
       }
       return [];
     } catch (error: any) {
-      console.error('WP Remote Manager Themes Error:', error.response?.data || error.message);
+      console.error('AIOWebcare Themes Error:', error.response?.data || error.message);
       // Fallback to status endpoint for basic theme info
       try {
         const statusResponse = await this.api.get('/status');
@@ -1232,7 +1233,7 @@ export class WPRemoteManagerClient {
         }
         return [];
       } catch (fallbackError: any) {
-        console.error('WP Remote Manager Status fallback also failed:', fallbackError.response?.data || fallbackError.message);
+        console.error('AIOWebcare Status fallback also failed:', fallbackError.response?.data || fallbackError.message);
         // Return empty array if all attempts fail
         return [];
       }
@@ -1244,28 +1245,28 @@ export class WPRemoteManagerClient {
    */
   async activateTheme(themeId: string): Promise<any> {
     try {
-      console.log(`[WRM] Attempting theme activation: ${themeId}`);
-      console.log(`[WRM] Using endpoint: /themes/activate with parameter theme=${themeId}`);
+      console.log(`[AIOWebcare] Attempting theme activation: ${themeId}`);
+      console.log(`[AIOWebcare] Using endpoint: /themes/activate with parameter theme=${themeId}`);
       
       // Use the correct parameter that the WordPress plugin expects
       const response = await this.api.post('/themes/activate', { 
         theme: themeId  // WordPress plugin expects 'theme' parameter only
       });
       
-      console.log(`[WRM] Theme activation successful:`, response.data);
+      console.log(`[AIOWebcare] Theme activation successful:`, response.data);
       return response.data;
     } catch (error: any) {
-      console.error('WP Remote Manager Theme Activation Error:', error.response?.data || error.message);
-      console.log(`[WRM] Theme activation failed for: ${themeId}`);
+      console.error('AIOWebcare Theme Activation Error:', error.response?.data || error.message);
+      console.log(`[AIOWebcare] Theme activation failed for: ${themeId}`);
       
       // Try legacy endpoint as fallback
       try {
-        console.log(`[WRM] Trying legacy theme activation endpoint...`);
+        console.log(`[AIOWebcare] Trying legacy theme activation endpoint...`);
         const fallbackResponse = await this.api.post('/activate-theme', { theme: themeId });
-        console.log(`[WRM] Legacy theme activation successful:`, fallbackResponse.data);
+        console.log(`[AIOWebcare] Legacy theme activation successful:`, fallbackResponse.data);
         return fallbackResponse.data;
       } catch (fallbackError: any) {
-        console.error('WP Remote Manager Theme Activation Fallback Error:', fallbackError.response?.data || fallbackError.message);
+        console.error('AIOWebcare Theme Activation Fallback Error:', fallbackError.response?.data || fallbackError.message);
         throw new Error(`Theme activation failed: ${error.response?.data?.message || error.message}`);
       }
     }
@@ -1279,14 +1280,14 @@ export class WPRemoteManagerClient {
       const response = await this.api.delete(`/themes/${themeId}`);
       return response.data;
     } catch (error: any) {
-      console.error('WP Remote Manager Theme Deletion Error:', error.response?.data || error.message);
+      console.error('AIOWebcare Theme Deletion Error:', error.response?.data || error.message);
       
       // Try fallback approach using WordPress REST API directly
       try {
         const fallbackResponse = await this.api.post('/themes/delete', { stylesheet: themeId });
         return fallbackResponse.data;
       } catch (fallbackError: any) {
-        console.error('WP Remote Manager Theme Deletion Fallback Error:', fallbackError.response?.data || fallbackError.message);
+        console.error('AIOWebcare Theme Deletion Fallback Error:', fallbackError.response?.data || fallbackError.message);
         throw new Error(`Theme deletion failed: ${error.response?.data?.message || error.message}`);
       }
     }
@@ -1396,7 +1397,7 @@ export class WPRemoteManagerClient {
         recent_comments: []
       };
     } catch (error: any) {
-      console.error('WP Remote Manager Comments Error:', error.response?.data || error.message);
+      console.error('AIOWebcare Comments Error:', error.response?.data || error.message);
       
       // Return fallback comments data with realistic structure
       return {
@@ -1416,29 +1417,29 @@ export class WPRemoteManagerClient {
   async deleteComments(commentIds: string[]): Promise<{ success: boolean; message: string; deleted_count: number; debugLog?: string[] }> {
     const debugLog: string[] = [];
     try {
-      debugLog.push(`[LOCALHOST-WRM] Starting deleteComments for IDs: ${JSON.stringify(commentIds)}`);
-      debugLog.push(`[LOCALHOST-WRM] Base URL: ${this.credentials.url}`);
-      debugLog.push(`[LOCALHOST-WRM] Has API key: ${!!this.credentials.apiKey}`);
-      debugLog.push(`[LOCALHOST-WRM] API key length: ${this.credentials.apiKey?.length || 0}`);
+      debugLog.push(`[LOCALHOST-AIOWebcare] Starting deleteComments for IDs: ${JSON.stringify(commentIds)}`);
+      debugLog.push(`[LOCALHOST-AIOWebcare] Base URL: ${this.credentials.url}`);
+      debugLog.push(`[LOCALHOST-AIOWebcare] Has API key: ${!!this.credentials.apiKey}`);
+      debugLog.push(`[LOCALHOST-AIOWebcare] API key length: ${this.credentials.apiKey?.length || 0}`);
       
       // Try primary delete endpoint first
       try {
         const endpoint = '/comments/delete';
-        debugLog.push(`[LOCALHOST-WRM] Trying primary endpoint: ${endpoint}`);
+        debugLog.push(`[LOCALHOST-AIOWebcare] Trying primary endpoint: ${endpoint}`);
         
         const payload = { comment_ids: commentIds };
-        debugLog.push(`[LOCALHOST-WRM] Request payload: ${JSON.stringify(payload)}`);
+        debugLog.push(`[LOCALHOST-AIOWebcare] Request payload: ${JSON.stringify(payload)}`);
         
         const response = await this.makeRequestWithFallback(endpoint, {
           method: 'POST',
           data: payload
         });
         
-        debugLog.push(`[LOCALHOST-WRM] Primary response status: ${response.status}`);
-        debugLog.push(`[LOCALHOST-WRM] Primary response data: ${JSON.stringify(response.data)}`);
+        debugLog.push(`[LOCALHOST-AIOWebcare] Primary response status: ${response.status}`);
+        debugLog.push(`[LOCALHOST-AIOWebcare] Primary response data: ${JSON.stringify(response.data)}`);
         
         if (response.data?.success && response.data.deleted_count > 0) {
-          debugLog.push(`[LOCALHOST-WRM] Primary endpoint succeeded`);
+          debugLog.push(`[LOCALHOST-AIOWebcare] Primary endpoint succeeded`);
           const result = response.data.data || response.data;
           return {
             ...result,
@@ -1446,21 +1447,21 @@ export class WPRemoteManagerClient {
           };
         }
       } catch (primaryError: any) {
-        debugLog.push(`[LOCALHOST-WRM] Primary endpoint failed: ${primaryError.message}`);
-        debugLog.push(`[LOCALHOST-WRM] Primary error status: ${primaryError.response?.status}`);
+        debugLog.push(`[LOCALHOST-AIOWebcare] Primary endpoint failed: ${primaryError.message}`);
+        debugLog.push(`[LOCALHOST-AIOWebcare] Primary error status: ${primaryError.response?.status}`);
         if (primaryError.response?.status === 500) {
-          debugLog.push(`[LOCALHOST-WRM] WordPress 500 error - trying fallback methods...`);
+          debugLog.push(`[LOCALHOST-AIOWebcare] WordPress 500 error - trying fallback methods...`);
         }
       }
       
       // Fallback 1: Try WordPress REST API direct deletion for each comment
-      debugLog.push(`[LOCALHOST-WRM] Trying WordPress REST API fallback...`);
+      debugLog.push(`[LOCALHOST-AIOWebcare] Trying WordPress REST API fallback...`);
       let deletedCount = 0;
       const failedComments = [];
       
       for (const commentId of commentIds) {
         try {
-          debugLog.push(`[LOCALHOST-WRM] Attempting REST API delete for comment ${commentId}`);
+          debugLog.push(`[LOCALHOST-AIOWebcare] Attempting REST API delete for comment ${commentId}`);
           
           // Try force delete via WP REST API
           const deleteResponse = await this.makeDirectRestRequest(
@@ -1469,42 +1470,42 @@ export class WPRemoteManagerClient {
           );
           
           if (deleteResponse.status === 200 || deleteResponse.status === 410) {
-            debugLog.push(`[LOCALHOST-WRM] Successfully deleted comment ${commentId} via REST API`);
+            debugLog.push(`[LOCALHOST-AIOWebcare] Successfully deleted comment ${commentId} via REST API`);
             deletedCount++;
           } else {
-            debugLog.push(`[LOCALHOST-WRM] REST API delete failed for comment ${commentId}: ${deleteResponse.status}`);
+            debugLog.push(`[LOCALHOST-AIOWebcare] REST API delete failed for comment ${commentId}: ${deleteResponse.status}`);
             failedComments.push(commentId);
           }
         } catch (restError: any) {
-          debugLog.push(`[LOCALHOST-WRM] REST API delete failed for comment ${commentId}: ${restError.message}`);
+          debugLog.push(`[LOCALHOST-AIOWebcare] REST API delete failed for comment ${commentId}: ${restError.message}`);
           failedComments.push(commentId);
         }
       }
       
       // Fallback 2: Try cleaning by comment type if individual deletion failed
       if (deletedCount === 0 && failedComments.length > 0) {
-        debugLog.push(`[LOCALHOST-WRM] Trying bulk cleanup methods for failed comments...`);
+        debugLog.push(`[LOCALHOST-AIOWebcare] Trying bulk cleanup methods for failed comments...`);
         
         // Try cleaning unapproved comments
         try {
           const cleanResult = await this.cleanUnapprovedComments();
           if (cleanResult.success && cleanResult.deleted_count > 0) {
-            debugLog.push(`[LOCALHOST-WRM] Successfully cleaned ${cleanResult.deleted_count} unapproved comments`);
+            debugLog.push(`[LOCALHOST-AIOWebcare] Successfully cleaned ${cleanResult.deleted_count} unapproved comments`);
             deletedCount += cleanResult.deleted_count;
           }
         } catch (cleanError: any) {
-          debugLog.push(`[LOCALHOST-WRM] Clean unapproved failed: ${cleanError.message}`);
+          debugLog.push(`[LOCALHOST-AIOWebcare] Clean unapproved failed: ${cleanError.message}`);
         }
         
         // Try cleaning spam comments
         try {
           const spamResult = await this.cleanSpamComments();
           if (spamResult.success && spamResult.deleted_count > 0) {
-            debugLog.push(`[LOCALHOST-WRM] Successfully cleaned ${spamResult.deleted_count} spam comments`);
+            debugLog.push(`[LOCALHOST-AIOWebcare] Successfully cleaned ${spamResult.deleted_count} spam comments`);
             deletedCount += spamResult.deleted_count;
           }
         } catch (spamError: any) {
-          debugLog.push(`[LOCALHOST-WRM] Clean spam failed: ${spamError.message}`);
+          debugLog.push(`[LOCALHOST-AIOWebcare] Clean spam failed: ${spamError.message}`);
         }
       }
       
@@ -1513,7 +1514,7 @@ export class WPRemoteManagerClient {
         ? `Successfully deleted ${deletedCount} comment(s)${failedComments.length > 0 ? ` (${failedComments.length} failed)` : ''}` 
         : `Failed to delete comments. Comments may be in a protected state or require manual cleanup via WordPress admin.`;
       
-      debugLog.push(`[LOCALHOST-WRM] Final result: ${success ? 'SUCCESS' : 'FAILURE'}, deleted: ${deletedCount}`);
+      debugLog.push(`[LOCALHOST-AIOWebcare] Final result: ${success ? 'SUCCESS' : 'FAILURE'}, deleted: ${deletedCount}`);
       
       return {
         success,
@@ -1524,10 +1525,10 @@ export class WPRemoteManagerClient {
       };
       
     } catch (error: any) {
-      debugLog.push(`[LOCALHOST-WRM] Unexpected error: ${error.message}`);
-      debugLog.push(`[LOCALHOST-WRM] Error stack: ${error.stack}`);
+      debugLog.push(`[LOCALHOST-AIOWebcare] Unexpected error: ${error.message}`);
+      debugLog.push(`[LOCALHOST-AIOWebcare] Error stack: ${error.stack}`);
       
-      console.error('WP Remote Manager Delete Comments Error:', error);
+      console.error('AIOWebcare Delete Comments Error:', error);
       
       return {
         success: false,
@@ -1546,7 +1547,7 @@ export class WPRemoteManagerClient {
     const url = `${this.credentials.url}${path}`;
     
     const headers: Record<string, string> = {
-      'X-WRMS-API-Key': this.credentials.apiKey!,
+      'X-AIOWebcare-API-Key': this.credentials.apiKey!,
       'X-WRM-API-Key': this.credentials.apiKey!,
       'Content-Type': 'application/json',
       'User-Agent': 'WPRemoteManager/1.0'
@@ -1777,7 +1778,7 @@ export class WPRemoteManagerClient {
       throw new Error('No users data available from any endpoint');
       
     } catch (error: any) {
-      console.error('WP Remote Manager Users Error:', error.response?.data || error.message);
+      console.error('AIOWebcare Users Error:', error.response?.data || error.message);
       
       // Only return fallback data if WRM API key is missing
       if (!this.credentials.apiKey) {
@@ -1847,7 +1848,7 @@ export class WPRemoteManagerClient {
     } catch (error: any) {
       // Don't log 404 errors for maintenance endpoint as it's often not available
       if (error.response?.status !== 404) {
-        console.error('WP Remote Manager Maintenance Error:', error.response?.data || error.message);
+        console.error('AIOWebcare Maintenance Error:', error.response?.data || error.message);
       }
       
       // Return fallback maintenance mode data if endpoint not available
@@ -1930,8 +1931,8 @@ export class WPRemoteManagerClient {
     const versionBefore = currentPlugin?.version;
     
     try {
-      // First try the WP Remote Manager plugin-specific endpoint
-      console.log(`[WRM] Attempting plugin update via /updates/plugin endpoint for: ${plugin}`);
+      // First try the AIOWebcare plugin-specific endpoint
+      console.log(`[AIOWebcare] Attempting plugin update via /updates/plugin endpoint for: ${plugin}`);
       const response = await this.api.post('/updates/plugin', { 
         plugin: plugin,
         version: 'latest'
@@ -1939,22 +1940,22 @@ export class WPRemoteManagerClient {
         timeout: 240000 // 4 minutes for plugin updates
       });
       
-      console.log(`[WRM] Plugin update response:`, JSON.stringify(response.data, null, 2));
+      console.log(`[AIOWebcare] Plugin update response:`, JSON.stringify(response.data, null, 2));
       return response.data;
     } catch (primaryError: any) {
       // If /updates/plugin endpoint doesn't exist, try the bulk updates endpoint with proper format
       if (primaryError.response?.status === 404) {
-        console.log(`[WRM] Individual plugin endpoint not found, trying bulk updates endpoint...`);
+        console.log(`[AIOWebcare] Individual plugin endpoint not found, trying bulk updates endpoint...`);
         try {
           const bulkResponse = await this.api.post('/updates/perform', { 
             plugins: [plugin]  // Try the correct plugins array format
           }, {
             timeout: 240000
           });
-          console.log(`[WRM] Bulk update response:`, JSON.stringify(bulkResponse.data, null, 2));
+          console.log(`[AIOWebcare] Bulk update response:`, JSON.stringify(bulkResponse.data, null, 2));
           return bulkResponse.data;
         } catch (bulkError: any) {
-          console.log(`[WRM] Bulk endpoint also failed, trying alternative format...`);
+          console.log(`[AIOWebcare] Bulk endpoint also failed, trying alternative format...`);
           try {
             // Try another common format
             const altResponse = await this.api.post('/updates/perform', { 
@@ -1963,10 +1964,10 @@ export class WPRemoteManagerClient {
             }, {
               timeout: 240000
             });
-            console.log(`[WRM] Alternative format response:`, JSON.stringify(altResponse.data, null, 2));
+            console.log(`[AIOWebcare] Alternative format response:`, JSON.stringify(altResponse.data, null, 2));
             return altResponse.data;
           } catch (altError: any) {
-            console.log(`[WRM] All WRM endpoints failed, falling back to WordPress core API...`);
+            console.log(`[AIOWebcare] All WRM endpoints failed, falling back to WordPress core API...`);
             return await this.updatePluginViaWordPressAPI(plugin, versionBefore);
           }
         }
@@ -1974,7 +1975,7 @@ export class WPRemoteManagerClient {
       
       // If plugin endpoint fails due to permissions, try WordPress core REST API directly
       if (primaryError.response?.status === 403 || primaryError.response?.status === 401) {
-        console.log(`[WRM] Plugin endpoint failed with permission error, trying WordPress core API...`);
+        console.log(`[AIOWebcare] Plugin endpoint failed with permission error, trying WordPress core API...`);
         return await this.updatePluginViaWordPressAPI(plugin, versionBefore);
       }
       
@@ -2033,10 +2034,10 @@ export class WPRemoteManagerClient {
         
         if (statusCode === 404) {
           errorMessage = 'Plugin Update Endpoint Not Available';
-          details = 'The WP Remote Manager plugin may need to be re-configured on your WordPress site. Please ensure you have the latest version with update functionality installed.';
+          details = 'The AIOWebcare plugin may need to be re-configured on your WordPress site. Please ensure you have the latest version with update functionality installed.';
         } else if (statusCode === 401 || statusCode === 403) {
           errorMessage = 'Authentication failed';
-          details = 'Please check the WP Remote Manager API key configuration';
+          details = 'Please check the AIOWebcare API key configuration';
         } else if (statusCode === 500) {
           errorMessage = 'WordPress server error';
           details = responseData?.message || 'Internal server error occurred during plugin update';
@@ -2066,7 +2067,7 @@ export class WPRemoteManagerClient {
     const versionBefore = currentTheme?.version;
     
     try {
-      // First try the WP Remote Manager plugin endpoint
+      // First try the AIOWebcare plugin endpoint
       const response = await this.api.post('/update-theme', { theme }, {
         timeout: 240000 // 4 minutes for theme updates
       });
@@ -2074,7 +2075,7 @@ export class WPRemoteManagerClient {
     } catch (primaryError: any) {
       // If plugin endpoint fails due to permissions, try WordPress core API directly
       if (primaryError.response?.status === 403 || primaryError.response?.status === 401) {
-        console.log(`[WRM] Theme endpoint failed with permission error, trying WordPress core API...`);
+        console.log(`[AIOWebcare] Theme endpoint failed with permission error, trying WordPress core API...`);
         return await this.updateThemeViaWordPressAPI(theme, versionBefore);
       }
       
@@ -2132,7 +2133,7 @@ export class WPRemoteManagerClient {
    */
   async updateWordPressCore(): Promise<{ success: boolean; message: string }> {
     try {
-      // First try the WP Remote Manager plugin endpoint
+      // First try the AIOWebcare plugin endpoint
       const response = await this.api.post('/update-wordpress', {}, {
         timeout: 180000 // 3 minutes for WordPress core updates
       });
@@ -2140,7 +2141,7 @@ export class WPRemoteManagerClient {
     } catch (primaryError: any) {
       // If plugin endpoint fails due to permissions, try WordPress core API directly
       if (primaryError.response?.status === 403 || primaryError.response?.status === 401) {
-        console.log(`[WRM] WordPress core endpoint failed with permission error, trying WordPress core API...`);
+        console.log(`[AIOWebcare] WordPress core endpoint failed with permission error, trying WordPress core API...`);
         return await this.updateWordPressCoreViaAPI();
       }
       
@@ -2203,7 +2204,7 @@ export class WPRemoteManagerClient {
         timeout: 180000,
         headers: {
           'Content-Type': 'application/json',
-          'X-WRMS-API-Key': this.credentials.apiKey,
+          'X-AIOWebcare-API-Key': this.credentials.apiKey,
           'X-WRM-API-Key': this.credentials.apiKey,
           'User-Agent': 'AIO-Webcare-Dashboard/1.0'
         }
@@ -2222,7 +2223,7 @@ export class WPRemoteManagerClient {
       } else {
         return {
           success: false,
-          message: 'All WordPress core update methods failed. Please check WordPress permissions and WP Remote Manager plugin configuration.'
+          message: 'All WordPress core update methods failed. Please check WordPress permissions and AIOWebcare plugin configuration.'
         };
       }
     } catch (cliError: any) {
@@ -2230,27 +2231,27 @@ export class WPRemoteManagerClient {
       
       return {
         success: false,
-        message: 'All WordPress core update methods failed. The WordPress site may need manual configuration or the WP Remote Manager plugin may need to be updated with administrator permissions.'
+        message: 'All WordPress core update methods failed. The WordPress site may need manual configuration or the AIOWebcare plugin may need to be updated with administrator permissions.'
       };
     }
   }
 
   /**
-   * Test connection to the WP Remote Manager plugin
+   * Test connection to the AIOWebcare plugin
    */
   async testConnection(): Promise<boolean> {
     try {
       const response = await this.api.get('/status');
       return response.status === 200 && response.data;
     } catch (error: any) {
-      console.error('WP Remote Manager Connection Test Failed:', error.response?.data || error.message);
+      console.error('AIOWebcare Connection Test Failed:', error.response?.data || error.message);
       return false;
     }
   }
 
   /**
    * Update plugin using WordPress core REST API directly
-   * This bypasses the WP Remote Manager plugin permission restrictions
+   * This bypasses the AIOWebcare plugin permission restrictions
    */
   async updatePluginViaWordPressAPI(plugin: string, versionBefore?: string): Promise<{ success: boolean; message: string; isTimeout?: boolean }> {
     try {
@@ -2312,7 +2313,7 @@ export class WPRemoteManagerClient {
         timeout: 240000,
         headers: {
           'Content-Type': 'application/json',
-          'X-WRMS-API-Key': this.credentials.apiKey,
+          'X-AIOWebcare-API-Key': this.credentials.apiKey,
           'X-WRM-API-Key': this.credentials.apiKey,
           'User-Agent': 'AIO-Webcare-Dashboard/1.0'
         }
@@ -2337,7 +2338,7 @@ export class WPRemoteManagerClient {
       } else {
         return {
           success: false,
-          message: 'All update methods failed. Please check WordPress permissions and WP Remote Manager plugin configuration.',
+          message: 'All update methods failed. Please check WordPress permissions and AIOWebcare plugin configuration.',
           isTimeout: false
         };
       }
@@ -2346,7 +2347,7 @@ export class WPRemoteManagerClient {
       
       return {
         success: false,
-        message: 'All update methods failed. The WordPress site may need manual configuration or the WP Remote Manager plugin may need to be updated with administrator permissions.',
+        message: 'All update methods failed. The WordPress site may need manual configuration or the AIOWebcare plugin may need to be updated with administrator permissions.',
         isTimeout: false
       };
     }
@@ -2354,7 +2355,7 @@ export class WPRemoteManagerClient {
 
   /**
    * Update theme using WordPress core REST API directly
-   * This bypasses the WP Remote Manager plugin permission restrictions
+   * This bypasses the AIOWebcare plugin permission restrictions
    */
   async updateThemeViaWordPressAPI(theme: string, versionBefore?: string): Promise<{ success: boolean; message: string; isTimeout?: boolean }> {
     try {
@@ -2416,7 +2417,7 @@ export class WPRemoteManagerClient {
         timeout: 240000,
         headers: {
           'Content-Type': 'application/json',
-          'X-WRMS-API-Key': this.credentials.apiKey,
+          'X-AIOWebcare-API-Key': this.credentials.apiKey,
           'X-WRM-API-Key': this.credentials.apiKey,
           'User-Agent': 'AIO-Webcare-Dashboard/1.0'
         }
@@ -2441,7 +2442,7 @@ export class WPRemoteManagerClient {
       } else {
         return {
           success: false,
-          message: 'All theme update methods failed. Please check WordPress permissions and WP Remote Manager plugin configuration.',
+          message: 'All theme update methods failed. Please check WordPress permissions and AIOWebcare plugin configuration.',
           isTimeout: false
         };
       }
@@ -2450,7 +2451,7 @@ export class WPRemoteManagerClient {
       
       return {
         success: false,
-        message: 'All theme update methods failed. The WordPress site may need manual configuration or the WP Remote Manager plugin may need to be updated with administrator permissions.',
+        message: 'All theme update methods failed. The WordPress site may need manual configuration or the AIOWebcare plugin may need to be updated with administrator permissions.',
         isTimeout: false
       };
     }
@@ -2525,58 +2526,58 @@ export class WPRemoteManagerClient {
    */
   async activatePlugin(pluginSlug: string): Promise<any> {
     try {
-      console.log(`[WRM] ==> Starting plugin activation for: ${pluginSlug}`);
-      console.log(`[WRM] ==> Using endpoint: /plugins/activate with parameter plugin=${pluginSlug}`);
-      console.log(`[WRM] ==> Toggling plugin ${pluginSlug} with action activate`);
+      console.log(`[AIOWebcare] ==> Starting plugin activation for: ${pluginSlug}`);
+      console.log(`[AIOWebcare] ==> Using endpoint: /plugins/activate with parameter plugin=${pluginSlug}`);
+      console.log(`[AIOWebcare] ==> Toggling plugin ${pluginSlug} with action activate`);
       
       const response = await this.api.post('/plugins/activate', {
         plugin: pluginSlug
       });
 
-      console.log(`[WRM] ==> Plugin activation response received:`, response.data);
-      console.log(`[WRM] ==> Plugin activation status:`, response.data?.success ? 'SUCCESS' : 'FAILED');
+      console.log(`[AIOWebcare] ==> Plugin activation response received:`, response.data);
+      console.log(`[AIOWebcare] ==> Plugin activation status:`, response.data?.success ? 'SUCCESS' : 'FAILED');
       
       // Verify activation was successful by checking plugin status
       // Some plugins like all-in-one-wp-migration may report success but not actually activate
       if (response.data && response.data.success !== false) {
-        console.log(`[WRM] ==> Verifying plugin activation status in 2 seconds...`);
+        console.log(`[AIOWebcare] ==> Verifying plugin activation status in 2 seconds...`);
         try {
           // Wait a moment for the plugin to activate
           await new Promise(resolve => setTimeout(resolve, 2000));
           
           // Check if plugin is actually active now
-          console.log(`[WRM] ==> Fetching updated plugin list to verify activation...`);
+          console.log(`[AIOWebcare] ==> Fetching updated plugin list to verify activation...`);
           const plugins = await this.getPlugins();
           const activatedPlugin = plugins.find((p: any) => p.plugin === pluginSlug);
           
           if (activatedPlugin) {
-            console.log(`[WRM] ==> Plugin found in list. Active status: ${activatedPlugin.active}`);
+            console.log(`[AIOWebcare] ==> Plugin found in list. Active status: ${activatedPlugin.active}`);
             if (!activatedPlugin.active) {
-              console.warn(`[WRM] ==> WARNING: Plugin ${pluginSlug} reported success but is not actually active`);
-              console.log(`[WRM] ==> Attempting direct toggle activation...`);
+              console.warn(`[AIOWebcare] ==> WARNING: Plugin ${pluginSlug} reported success but is not actually active`);
+              console.log(`[AIOWebcare] ==> Attempting direct toggle activation...`);
               // Try a direct WordPress activation call as fallback
               const directResponse = await this.api.post('/plugins/toggle', {
                 plugin: pluginSlug,
                 action: 'activate'
               });
-              console.log(`[WRM] ==> Direct activation attempt result:`, directResponse.data);
+              console.log(`[AIOWebcare] ==> Direct activation attempt result:`, directResponse.data);
             } else {
-              console.log(`[WRM] ==> SUCCESS: Plugin ${pluginSlug} is now active!`);
+              console.log(`[AIOWebcare] ==> SUCCESS: Plugin ${pluginSlug} is now active!`);
             }
           } else {
-            console.warn(`[WRM] ==> WARNING: Plugin ${pluginSlug} not found in plugin list after activation`);
+            console.warn(`[AIOWebcare] ==> WARNING: Plugin ${pluginSlug} not found in plugin list after activation`);
           }
         } catch (verificationError) {
-          console.warn(`[WRM] ==> Could not verify plugin activation status:`, verificationError);
-          console.log(`[WRM] ==> Continuing with original response since activation may have worked`);
+          console.warn(`[AIOWebcare] ==> Could not verify plugin activation status:`, verificationError);
+          console.log(`[AIOWebcare] ==> Continuing with original response since activation may have worked`);
         }
       } else {
-        console.error(`[WRM] ==> Plugin activation explicitly failed:`, response.data);
+        console.error(`[AIOWebcare] ==> Plugin activation explicitly failed:`, response.data);
       }
 
       return response.data;
     } catch (error: any) {
-      console.error(`[WRM] Failed to activate plugin ${pluginSlug}:`, error.response?.data || error.message);
+      console.error(`[AIOWebcare] Failed to activate plugin ${pluginSlug}:`, error.response?.data || error.message);
       
       // For fallback compatibility, assume activation was successful if plugin exists
       const plugins = await this.getPlugins();
@@ -2602,16 +2603,16 @@ export class WPRemoteManagerClient {
    */
   async deactivatePlugin(pluginSlug: string): Promise<any> {
     try {
-      console.log(`[WRM] Deactivating plugin: ${pluginSlug}`);
+      console.log(`[AIOWebcare] Deactivating plugin: ${pluginSlug}`);
       
       const response = await this.api.post('/plugins/deactivate', {
         plugin: pluginSlug
       });
 
-      console.log(`[WRM] Plugin deactivation response:`, response.data);
+      console.log(`[AIOWebcare] Plugin deactivation response:`, response.data);
       return response.data;
     } catch (error: any) {
-      console.error(`[WRM] Failed to deactivate plugin ${pluginSlug}:`, error.response?.data || error.message);
+      console.error(`[AIOWebcare] Failed to deactivate plugin ${pluginSlug}:`, error.response?.data || error.message);
       throw new Error(`Failed to deactivate plugin: ${error.response?.data?.message || error.message}`);
     }
   }
@@ -2621,17 +2622,17 @@ export class WPRemoteManagerClient {
    */
   async installPlugin(pluginSlug: string): Promise<any> {
     try {
-      console.log(`[WRM] Installing plugin: ${pluginSlug}`);
+      console.log(`[AIOWebcare] Installing plugin: ${pluginSlug}`);
       
       const response = await this.api.post('/plugins/install', {
         plugin: pluginSlug,
         activate: true // Activate after installation
       });
 
-      console.log(`[WRM] Plugin installation response:`, response.data);
+      console.log(`[AIOWebcare] Plugin installation response:`, response.data);
       return response.data;
     } catch (error: any) {
-      console.error(`[WRM] Failed to install plugin ${pluginSlug}:`, error.response?.data || error.message);
+      console.error(`[AIOWebcare] Failed to install plugin ${pluginSlug}:`, error.response?.data || error.message);
       throw new Error(`Failed to install plugin: ${error.response?.data?.message || error.message}`);
     }
   }
@@ -2645,7 +2646,7 @@ export class WPRemoteManagerClient {
    */
   async triggerBackup(backupType: 'full' | 'files' | 'database' = 'full'): Promise<any> {
     try {
-      console.log(`[WRM] Triggering ${backupType} backup via UpdraftPlus`);
+      console.log(`[AIOWebcare] Triggering ${backupType} backup via UpdraftPlus`);
       
       // UpdraftPlus requires WordPress admin authentication for direct AJAX calls
       // Since external API calls can't access admin-ajax.php with proper authentication,
@@ -2666,7 +2667,7 @@ export class WPRemoteManagerClient {
         autoRefresh: true
       };
     } catch (error: any) {
-      console.error(`[WRM] Failed to trigger ${backupType} backup:`, error.response?.data || error.message);
+      console.error(`[AIOWebcare] Failed to trigger ${backupType} backup:`, error.response?.data || error.message);
       throw new Error(`Failed to trigger backup: ${error.response?.data?.message || error.message}`);
     }
   }
@@ -2679,7 +2680,7 @@ export class WPRemoteManagerClient {
       const response = await this.api.get('/wp-json/wrm/v1/backup/status');
       return response.data;
     } catch (error: any) {
-      console.error('[WRM] Failed to get backup status:', error.response?.data || error.message);
+      console.error('[AIOWebcare] Failed to get backup status:', error.response?.data || error.message);
       throw new Error(`Failed to get backup status: ${error.response?.data?.message || error.message}`);
     }
   }
@@ -2692,7 +2693,7 @@ export class WPRemoteManagerClient {
       const response = await this.api.get('/wp-json/wrm/v1/backup/list');
       return response.data;
     } catch (error: any) {
-      console.error('[WRM] Failed to list backups:', error.response?.data || error.message);
+      console.error('[AIOWebcare] Failed to list backups:', error.response?.data || error.message);
       throw new Error(`Failed to list backups: ${error.response?.data?.message || error.message}`);
     }
   }
@@ -2702,7 +2703,7 @@ export class WPRemoteManagerClient {
    */
   async restoreBackup(backupPath: string): Promise<any> {
     try {
-      console.log(`[WRM] Initiating restore from backup: ${backupPath}`);
+      console.log(`[AIOWebcare] Initiating restore from backup: ${backupPath}`);
       
       const response = await this.api.post('/backup/restore', {
         backup_path: backupPath,
@@ -2715,10 +2716,10 @@ export class WPRemoteManagerClient {
         }
       });
 
-      console.log(`[WRM] Restore response:`, response.data);
+      console.log(`[AIOWebcare] Restore response:`, response.data);
       return response.data;
     } catch (error: any) {
-      console.error(`[WRM] Failed to restore backup:`, error.response?.data || error.message);
+      console.error(`[AIOWebcare] Failed to restore backup:`, error.response?.data || error.message);
       throw new Error(`Failed to restore backup: ${error.response?.data?.message || error.message}`);
     }
   }
@@ -2733,14 +2734,14 @@ export class WPRemoteManagerClient {
     email_notifications?: boolean;
   }): Promise<any> {
     try {
-      console.log(`[WRM] Configuring backup settings:`, settings);
+      console.log(`[AIOWebcare] Configuring backup settings:`, settings);
       
       const response = await this.api.post('/backup/configure', settings);
       
-      console.log(`[WRM] Configuration response:`, response.data);
+      console.log(`[AIOWebcare] Configuration response:`, response.data);
       return response.data;
     } catch (error: any) {
-      console.error(`[WRM] Failed to configure backup settings:`, error.response?.data || error.message);
+      console.error(`[AIOWebcare] Failed to configure backup settings:`, error.response?.data || error.message);
       throw new Error(`Failed to configure backup settings: ${error.response?.data?.message || error.message}`);
     }
   }
@@ -2750,7 +2751,7 @@ export class WPRemoteManagerClient {
    */
   async installUpdraftPlus(): Promise<any> {
     try {
-      console.log(`[WRM] Installing UpdraftPlus plugin`);
+      console.log(`[AIOWebcare] Installing UpdraftPlus plugin`);
       
       // Check if already installed
       const plugins = await this.getPlugins();
@@ -2760,7 +2761,7 @@ export class WPRemoteManagerClient {
       );
 
       if (updraftPlugin) {
-        console.log(`[WRM] UpdraftPlus already installed: ${updraftPlugin.name} v${updraftPlugin.version}`);
+        console.log(`[AIOWebcare] UpdraftPlus already installed: ${updraftPlugin.name} v${updraftPlugin.version}`);
         
         // Ensure it's activated
         if (!updraftPlugin.active) {
@@ -2792,7 +2793,7 @@ export class WPRemoteManagerClient {
         message: 'UpdraftPlus plugin installed and activated successfully'
       };
     } catch (error: any) {
-      console.error(`[WRM] Failed to install UpdraftPlus:`, error.response?.data || error.message);
+      console.error(`[AIOWebcare] Failed to install UpdraftPlus:`, error.response?.data || error.message);
       throw new Error(`Failed to install UpdraftPlus: ${error.response?.data?.message || error.message}`);
     }
   }
@@ -2805,7 +2806,7 @@ export class WPRemoteManagerClient {
       const response = await this.api.get('/backup/updraft/status');
       return response.data;
     } catch (error: any) {
-      console.error('[WRM] Failed to get UpdraftPlus status:', error.response?.data || error.message);
+      console.error('[AIOWebcare] Failed to get UpdraftPlus status:', error.response?.data || error.message);
       
       // If UpdraftPlus is not configured, return default status
       return {
@@ -2824,24 +2825,24 @@ export class WPRemoteManagerClient {
    */
   async testBackupSystem(): Promise<any> {
     try {
-      console.log(`[WRM] Testing backup system`);
+      console.log(`[AIOWebcare] Testing backup system`);
       
       const response = await this.api.post('/backup/test', {
         test_type: 'connection',
         verify_storage: true
       });
 
-      console.log(`[WRM] Backup system test result:`, response.data);
+      console.log(`[AIOWebcare] Backup system test result:`, response.data);
       return response.data;
     } catch (error: any) {
-      console.error(`[WRM] Backup system test failed:`, error.response?.data || error.message);
+      console.error(`[AIOWebcare] Backup system test failed:`, error.response?.data || error.message);
       return {
         success: false,
         error: error.response?.data?.message || error.message,
         recommendations: [
           'Ensure UpdraftPlus plugin is installed and activated',
           'Configure remote storage (Google Drive recommended)',
-          'Verify WP Remote Manager API has proper permissions'
+          'Verify AIOWebcare API has proper permissions'
         ]
       };
     }
@@ -2860,7 +2861,7 @@ export class WPRemoteManagerClient {
     lastSync: string;
   }> {
     try {
-      console.log('[WRM] Fetching comprehensive WordPress data...');
+      console.log('[AIOWebcare] Fetching comprehensive WordPress data...');
       
       // Fetch all data concurrently with error handling
       const [status, health, updates, plugins, themes, users] = await Promise.allSettled([
@@ -2883,10 +2884,10 @@ export class WPRemoteManagerClient {
         lastSync: new Date().toISOString()
       };
 
-      console.log('[WRM] Successfully fetched comprehensive WordPress data');
+      console.log('[AIOWebcare] Successfully fetched comprehensive WordPress data');
       return result;
     } catch (error) {
-      console.error('[WRM] Error fetching comprehensive WordPress data:', error);
+      console.error('[AIOWebcare] Error fetching comprehensive WordPress data:', error);
       throw error;
     }
   }
@@ -2902,23 +2903,23 @@ export class WPRemoteManagerClient {
     debugLog?: string[];
   } | null> {
     const debugLog: string[] = [];
-    debugLog.push('[WRM] Starting optimization data fetch');
-    debugLog.push(`[WRM] WordPress URL: ${this.credentials.url}`);
-    debugLog.push(`[WRM] API Key preview: ${this.credentials.apiKey.substring(0, 10)}...`);
+    debugLog.push('[AIOWebcare] Starting optimization data fetch');
+    debugLog.push(`[AIOWebcare] WordPress URL: ${this.credentials.url}`);
+    debugLog.push(`[AIOWebcare] API Key preview: ${this.credentials.apiKey.substring(0, 10)}...`);
     
     // First try the dedicated optimization endpoint
     try {
-      debugLog.push('[WRM] Attempting dedicated WRM optimization endpoint...');
+      debugLog.push('[AIOWebcare] Attempting dedicated WRM optimization endpoint...');
       const response = await this.api.get('/optimization/info');
-      debugLog.push('[WRM] SUCCESS: Received data from dedicated endpoint');
+      debugLog.push('[AIOWebcare] SUCCESS: Received data from dedicated endpoint');
       return { ...response.data, debugLog };
     } catch (endpointError: any) {
-      debugLog.push(`[WRM] Dedicated endpoint failed: ${endpointError.message}`);
-      debugLog.push(`[WRM] Error status: ${endpointError.response?.status || 'No status'}`);
+      debugLog.push(`[AIOWebcare] Dedicated endpoint failed: ${endpointError.message}`);
+      debugLog.push(`[AIOWebcare] Error status: ${endpointError.response?.status || 'No status'}`);
     }
 
     // Try direct WordPress database queries via REST API
-    debugLog.push('[WRM] Falling back to WordPress REST API...');
+    debugLog.push('[AIOWebcare] Falling back to WordPress REST API...');
     const result = await this.fetchWordPressOptimizationData();
     
     if (result) {
@@ -2939,7 +2940,7 @@ export class WPRemoteManagerClient {
   } | null> {
     const baseUrl = this.credentials.url.replace(/\/+$/, '');
     const debugLog: string[] = [];
-    debugLog.push(`[WRM] Using WordPress REST API at: ${baseUrl}`);
+    debugLog.push(`[AIOWebcare] Using WordPress REST API at: ${baseUrl}`);
     
     let totalRevisions = 0;
     let totalPosts = 0;
@@ -2949,7 +2950,7 @@ export class WPRemoteManagerClient {
     
     // Try to fetch basic post count first (this should always work)
     try {
-      debugLog.push(`[WRM] Fetching total posts from: ${baseUrl}/wp-json/wp/v2/posts`);
+      debugLog.push(`[AIOWebcare] Fetching total posts from: ${baseUrl}/wp-json/wp/v2/posts`);
       const allPostsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/posts`, {
         params: { per_page: 1 },
         timeout: 10000,
@@ -2959,11 +2960,11 @@ export class WPRemoteManagerClient {
       });
 
       totalPosts = parseInt(allPostsResponse.headers['x-wp-total'] || '0');
-      debugLog.push(`[WRM] SUCCESS: Found ${totalPosts} total posts`);
+      debugLog.push(`[AIOWebcare] SUCCESS: Found ${totalPosts} total posts`);
       
       // Try to get revisions (this might not be available)
       try {
-        debugLog.push(`[WRM] Trying to fetch revisions from: ${baseUrl}/wp-json/wp/v2/revisions`);
+        debugLog.push(`[AIOWebcare] Trying to fetch revisions from: ${baseUrl}/wp-json/wp/v2/revisions`);
         const revisionsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/revisions`, {
           params: { per_page: 100 },
           timeout: 15000,
@@ -2973,18 +2974,18 @@ export class WPRemoteManagerClient {
         });
 
         totalRevisions = parseInt(revisionsResponse.headers['x-wp-total'] || revisionsResponse.data?.length || '0');
-        debugLog.push(`[WRM] SUCCESS: Found ${totalRevisions} revisions`);
+        debugLog.push(`[AIOWebcare] SUCCESS: Found ${totalRevisions} revisions`);
       } catch (revisionsError: any) {
-        debugLog.push(`[WRM] Revisions endpoint failed: ${revisionsError.message} (Status: ${revisionsError.response?.status})`);
-        debugLog.push(`[WRM] This is normal - many WordPress sites don't expose revisions via REST API`);
+        debugLog.push(`[AIOWebcare] Revisions endpoint failed: ${revisionsError.message} (Status: ${revisionsError.response?.status})`);
+        debugLog.push(`[AIOWebcare] This is normal - many WordPress sites don't expose revisions via REST API`);
         // Use estimated revisions based on posts (typically 2-5 revisions per post)
         totalRevisions = Math.floor(totalPosts * 2.5);
-        debugLog.push(`[WRM] Estimated ${totalRevisions} revisions based on ${totalPosts} posts`);
+        debugLog.push(`[AIOWebcare] Estimated ${totalRevisions} revisions based on ${totalPosts} posts`);
       }
 
       // Try to get trashed posts
       try {
-        debugLog.push(`[WRM] Fetching trashed posts...`);
+        debugLog.push(`[AIOWebcare] Fetching trashed posts...`);
         const postsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/posts`, {
           params: { per_page: 1, status: 'trash' },
           timeout: 10000,
@@ -2994,15 +2995,15 @@ export class WPRemoteManagerClient {
         });
 
         trashedPosts = parseInt(postsResponse.headers['x-wp-total'] || '0');
-        debugLog.push(`[WRM] SUCCESS: Found ${trashedPosts} trashed posts`);
+        debugLog.push(`[AIOWebcare] SUCCESS: Found ${trashedPosts} trashed posts`);
       } catch (trashError: any) {
-        debugLog.push(`[WRM] Trashed posts query failed: ${trashError.message} (Status: ${trashError.response?.status})`);
-        debugLog.push(`[WRM] This might be due to permission restrictions`);
+        debugLog.push(`[AIOWebcare] Trashed posts query failed: ${trashError.message} (Status: ${trashError.response?.status})`);
+        debugLog.push(`[AIOWebcare] This might be due to permission restrictions`);
       }
 
       // Try to get spam comments
       try {
-        debugLog.push(`[WRM] Fetching spam comments...`);
+        debugLog.push(`[AIOWebcare] Fetching spam comments...`);
         const commentsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/comments`, {
           params: { per_page: 1, status: 'spam' },
           timeout: 10000,
@@ -3012,17 +3013,17 @@ export class WPRemoteManagerClient {
         });
 
         spamComments = parseInt(commentsResponse.headers['x-wp-total'] || '0');
-        debugLog.push(`[WRM] SUCCESS: Found ${spamComments} spam comments`);
+        debugLog.push(`[AIOWebcare] SUCCESS: Found ${spamComments} spam comments`);
       } catch (spamError: any) {
-        debugLog.push(`[WRM] Spam comments query failed: ${spamError.message} (Status: ${spamError.response?.status})`);
+        debugLog.push(`[AIOWebcare] Spam comments query failed: ${spamError.message} (Status: ${spamError.response?.status})`);
         if (spamError.response?.status === 401) {
-          debugLog.push(`[WRM] 401 error suggests authentication required or parameter not permitted`);
+          debugLog.push(`[AIOWebcare] 401 error suggests authentication required or parameter not permitted`);
         }
       }
 
       // Try to get trashed comments
       try {
-        debugLog.push(`[WRM] Fetching trashed comments...`);
+        debugLog.push(`[AIOWebcare] Fetching trashed comments...`);
         const allCommentsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/comments`, {
           params: { per_page: 1, status: 'trash' },
           timeout: 10000,
@@ -3032,9 +3033,9 @@ export class WPRemoteManagerClient {
         });
 
         trashedComments = parseInt(allCommentsResponse.headers['x-wp-total'] || '0');
-        debugLog.push(`[WRM] SUCCESS: Found ${trashedComments} trashed comments`);
+        debugLog.push(`[AIOWebcare] SUCCESS: Found ${trashedComments} trashed comments`);
       } catch (trashCommentsError: any) {
-        debugLog.push(`[WRM] Trashed comments query failed: ${trashCommentsError.message} (Status: ${trashCommentsError.response?.status})`);
+        debugLog.push(`[AIOWebcare] Trashed comments query failed: ${trashCommentsError.message} (Status: ${trashCommentsError.response?.status})`);
       }
 
       // Calculate estimates
@@ -3064,12 +3065,12 @@ export class WPRemoteManagerClient {
         debugLog
       };
 
-      debugLog.push('[WRM] Successfully generated optimization data from available WordPress endpoints');
+      debugLog.push('[AIOWebcare] Successfully generated optimization data from available WordPress endpoints');
       return optimizationData;
       
     } catch (error: any) {
       const errorMessage = `Failed to fetch basic WordPress data: ${error.message}. URL: ${baseUrl}. Status: ${error.response?.status}. Response: ${JSON.stringify(error.response?.data)}`;
-      debugLog.push(`[WRM] CRITICAL ERROR: ${errorMessage}`);
+      debugLog.push(`[AIOWebcare] CRITICAL ERROR: ${errorMessage}`);
       
       return {
         postRevisions: { count: 0, size: "0 KB" },
@@ -3091,25 +3092,25 @@ export class WPRemoteManagerClient {
     debugLog?: string[];
   }> {
     const debugLog: string[] = [];
-    debugLog.push('[WRM] Starting post revisions optimization');
+    debugLog.push('[AIOWebcare] Starting post revisions optimization');
     
     // First try the dedicated optimization endpoint
     try {
-      debugLog.push('[WRM] Attempting WRM plugin optimization endpoint...');
+      debugLog.push('[AIOWebcare] Attempting WRM plugin optimization endpoint...');
       const response = await this.api.post('/optimization/revisions');
-      debugLog.push('[WRM] SUCCESS: Used WRM plugin optimization');
+      debugLog.push('[AIOWebcare] SUCCESS: Used WRM plugin optimization');
       return { ...response.data, debugLog };
     } catch (endpointError: any) {
-      debugLog.push(`[WRM] WRM plugin endpoint failed: ${endpointError.message} (Status: ${endpointError.response?.status})`);
+      debugLog.push(`[AIOWebcare] WRM plugin endpoint failed: ${endpointError.message} (Status: ${endpointError.response?.status})`);
     }
 
     // Use WordPress REST API revision cleanup
     const baseUrl = this.credentials.url.replace(/\/+$/, '');
-    debugLog.push(`[WRM] Attempting WordPress REST API cleanup at: ${baseUrl}`);
+    debugLog.push(`[AIOWebcare] Attempting WordPress REST API cleanup at: ${baseUrl}`);
     
     try {
       // Get all revisions that can be deleted (keeping only latest few)
-      debugLog.push(`[WRM] Fetching revisions from: ${baseUrl}/wp-json/wp/v2/revisions`);
+      debugLog.push(`[AIOWebcare] Fetching revisions from: ${baseUrl}/wp-json/wp/v2/revisions`);
       const revisionsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/revisions`, {
         params: { per_page: 100 },
         timeout: 15000,
@@ -3118,13 +3119,13 @@ export class WPRemoteManagerClient {
         }
       });
 
-      debugLog.push(`[WRM] Revisions response: ${revisionsResponse.status} - Found ${revisionsResponse.data?.length || 0} revisions`);
+      debugLog.push(`[AIOWebcare] Revisions response: ${revisionsResponse.status} - Found ${revisionsResponse.data?.length || 0} revisions`);
 
       let deletedCount = 0;
       const revisions = revisionsResponse.data || [];
       
       if (revisions.length === 0) {
-        debugLog.push('[WRM] No revisions found to clean up');
+        debugLog.push('[AIOWebcare] No revisions found to clean up');
         return {
           removedCount: 0,
           sizeFreed: "0 KB",
@@ -3143,7 +3144,7 @@ export class WPRemoteManagerClient {
         revisionsByPost[postId].push(revision);
       });
 
-      debugLog.push(`[WRM] Grouped revisions into ${Object.keys(revisionsByPost).length} posts`);
+      debugLog.push(`[AIOWebcare] Grouped revisions into ${Object.keys(revisionsByPost).length} posts`);
 
       // Delete older revisions (keep only 2 most recent per post)
       for (const postId in revisionsByPost) {
@@ -3152,7 +3153,7 @@ export class WPRemoteManagerClient {
         
         // Delete all but the 2 most recent revisions
         const toDelete = postRevisions.slice(2);
-        debugLog.push(`[WRM] Post ${postId}: ${postRevisions.length} revisions, deleting ${toDelete.length} old ones`);
+        debugLog.push(`[AIOWebcare] Post ${postId}: ${postRevisions.length} revisions, deleting ${toDelete.length} old ones`);
         
         for (const revision of toDelete) {
           try {
@@ -3163,15 +3164,15 @@ export class WPRemoteManagerClient {
               }
             });
             deletedCount++;
-            debugLog.push(`[WRM] Deleted revision ${revision.id}`);
+            debugLog.push(`[AIOWebcare] Deleted revision ${revision.id}`);
           } catch (deleteError: any) {
-            debugLog.push(`[WRM] Failed to delete revision ${revision.id}: ${deleteError.message} (Status: ${deleteError.response?.status})`);
+            debugLog.push(`[AIOWebcare] Failed to delete revision ${revision.id}: ${deleteError.message} (Status: ${deleteError.response?.status})`);
           }
         }
       }
 
       const estimatedSizeFreed = deletedCount * 2.5 / 1024; // Estimate size freed
-      debugLog.push(`[WRM] Optimization complete: ${deletedCount} revisions deleted, ${estimatedSizeFreed.toFixed(3)} MB freed`);
+      debugLog.push(`[AIOWebcare] Optimization complete: ${deletedCount} revisions deleted, ${estimatedSizeFreed.toFixed(3)} MB freed`);
       
       return {
         removedCount: deletedCount,
@@ -3181,7 +3182,7 @@ export class WPRemoteManagerClient {
       };
     } catch (error: any) {
       const errorMessage = `Failed to optimize post revisions: ${error.message}. URL: ${baseUrl}. Status: ${error.response?.status}. Response: ${JSON.stringify(error.response?.data)}`;
-      debugLog.push(`[WRM] CRITICAL ERROR: ${errorMessage}`);
+      debugLog.push(`[AIOWebcare] CRITICAL ERROR: ${errorMessage}`);
       
       return {
         removedCount: 0,
@@ -3201,21 +3202,21 @@ export class WPRemoteManagerClient {
     debugLog?: string[];
   }> {
     const debugLog: string[] = [];
-    debugLog.push('[WRM] Starting database optimization');
+    debugLog.push('[AIOWebcare] Starting database optimization');
     
     // First try the dedicated optimization endpoint
     try {
-      debugLog.push('[WRM] Attempting WRM plugin database optimization...');
+      debugLog.push('[AIOWebcare] Attempting WRM plugin database optimization...');
       const response = await this.api.post('/optimization/database');
-      debugLog.push('[WRM] SUCCESS: Used WRM plugin database optimization');
+      debugLog.push('[AIOWebcare] SUCCESS: Used WRM plugin database optimization');
       return { ...response.data, debugLog };
     } catch (endpointError: any) {
-      debugLog.push(`[WRM] WRM plugin endpoint failed: ${endpointError.message} (Status: ${endpointError.response?.status})`);
+      debugLog.push(`[AIOWebcare] WRM plugin endpoint failed: ${endpointError.message} (Status: ${endpointError.response?.status})`);
     }
 
     // Fallback to WordPress REST API cleanup of spam and trash
     const baseUrl = this.credentials.url.replace(/\/+$/, '');
-    debugLog.push(`[WRM] Attempting spam/trash cleanup via WordPress REST API: ${baseUrl}`);
+    debugLog.push(`[AIOWebcare] Attempting spam/trash cleanup via WordPress REST API: ${baseUrl}`);
     
     let itemsDeleted = 0;
     let estimatedSizeFreed = 0;
@@ -3223,7 +3224,7 @@ export class WPRemoteManagerClient {
     try {
       // Clean up spam comments
       try {
-        debugLog.push('[WRM] Fetching spam comments...');
+        debugLog.push('[AIOWebcare] Fetching spam comments...');
         const spamCommentsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/comments`, {
           params: { per_page: 100, status: 'spam' },
           timeout: 15000,
@@ -3233,7 +3234,7 @@ export class WPRemoteManagerClient {
         });
 
         const spamComments = spamCommentsResponse.data || [];
-        debugLog.push(`[WRM] Found ${spamComments.length} spam comments to delete`);
+        debugLog.push(`[AIOWebcare] Found ${spamComments.length} spam comments to delete`);
         
         for (const comment of spamComments) {
           try {
@@ -3245,21 +3246,21 @@ export class WPRemoteManagerClient {
             });
             itemsDeleted++;
             estimatedSizeFreed += 0.01; // Estimate 10KB per spam comment
-            debugLog.push(`[WRM] Deleted spam comment ${comment.id}`);
+            debugLog.push(`[AIOWebcare] Deleted spam comment ${comment.id}`);
           } catch (deleteError: any) {
-            debugLog.push(`[WRM] Failed to delete spam comment ${comment.id}: ${deleteError.message}`);
+            debugLog.push(`[AIOWebcare] Failed to delete spam comment ${comment.id}: ${deleteError.message}`);
           }
         }
       } catch (spamError: any) {
-        debugLog.push(`[WRM] Spam comments fetch failed: ${spamError.message} (Status: ${spamError.response?.status})`);
+        debugLog.push(`[AIOWebcare] Spam comments fetch failed: ${spamError.message} (Status: ${spamError.response?.status})`);
         if (spamError.response?.status === 401) {
-          debugLog.push(`[WRM] 401 error suggests authentication required or status parameter not permitted`);
+          debugLog.push(`[AIOWebcare] 401 error suggests authentication required or status parameter not permitted`);
         }
       }
 
       // Clean up trashed posts
       try {
-        debugLog.push('[WRM] Fetching trashed posts...');
+        debugLog.push('[AIOWebcare] Fetching trashed posts...');
         const trashedPostsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/posts`, {
           params: { per_page: 50, status: 'trash' },
           timeout: 15000,
@@ -3269,7 +3270,7 @@ export class WPRemoteManagerClient {
         });
 
         const trashedPosts = trashedPostsResponse.data || [];
-        debugLog.push(`[WRM] Found ${trashedPosts.length} trashed posts to delete`);
+        debugLog.push(`[AIOWebcare] Found ${trashedPosts.length} trashed posts to delete`);
         
         for (const post of trashedPosts) {
           try {
@@ -3281,18 +3282,18 @@ export class WPRemoteManagerClient {
             });
             itemsDeleted++;
             estimatedSizeFreed += 0.5; // Estimate 500KB per trashed post
-            debugLog.push(`[WRM] Deleted trashed post ${post.id}`);
+            debugLog.push(`[AIOWebcare] Deleted trashed post ${post.id}`);
           } catch (deleteError: any) {
-            debugLog.push(`[WRM] Failed to delete trashed post ${post.id}: ${deleteError.message}`);
+            debugLog.push(`[AIOWebcare] Failed to delete trashed post ${post.id}: ${deleteError.message}`);
           }
         }
       } catch (trashError: any) {
-        debugLog.push(`[WRM] Trashed posts fetch failed: ${trashError.message} (Status: ${trashError.response?.status})`);
+        debugLog.push(`[AIOWebcare] Trashed posts fetch failed: ${trashError.message} (Status: ${trashError.response?.status})`);
       }
 
       // Clean up trashed comments
       try {
-        debugLog.push('[WRM] Fetching trashed comments...');
+        debugLog.push('[AIOWebcare] Fetching trashed comments...');
         const trashedCommentsResponse = await axios.get(`${baseUrl}/wp-json/wp/v2/comments`, {
           params: { per_page: 100, status: 'trash' },
           timeout: 15000,
@@ -3302,7 +3303,7 @@ export class WPRemoteManagerClient {
         });
 
         const trashedComments = trashedCommentsResponse.data || [];
-        debugLog.push(`[WRM] Found ${trashedComments.length} trashed comments to delete`);
+        debugLog.push(`[AIOWebcare] Found ${trashedComments.length} trashed comments to delete`);
         
         for (const comment of trashedComments) {
           try {
@@ -3314,16 +3315,16 @@ export class WPRemoteManagerClient {
             });
             itemsDeleted++;
             estimatedSizeFreed += 0.01; // Estimate 10KB per trashed comment
-            debugLog.push(`[WRM] Deleted trashed comment ${comment.id}`);
+            debugLog.push(`[AIOWebcare] Deleted trashed comment ${comment.id}`);
           } catch (deleteError: any) {
-            debugLog.push(`[WRM] Failed to delete trashed comment ${comment.id}: ${deleteError.message}`);
+            debugLog.push(`[AIOWebcare] Failed to delete trashed comment ${comment.id}: ${deleteError.message}`);
           }
         }
       } catch (trashCommentsError: any) {
-        debugLog.push(`[WRM] Trashed comments fetch failed: ${trashCommentsError.message} (Status: ${trashCommentsError.response?.status})`);
+        debugLog.push(`[AIOWebcare] Trashed comments fetch failed: ${trashCommentsError.message} (Status: ${trashCommentsError.response?.status})`);
       }
 
-      debugLog.push(`[WRM] Database optimization completed: ${itemsDeleted} items deleted, ${estimatedSizeFreed.toFixed(3)} MB freed`);
+      debugLog.push(`[AIOWebcare] Database optimization completed: ${itemsDeleted} items deleted, ${estimatedSizeFreed.toFixed(3)} MB freed`);
       
       return {
         tablesOptimized: Math.max(1, Math.floor(itemsDeleted / 10)), // Estimate tables affected
@@ -3333,7 +3334,7 @@ export class WPRemoteManagerClient {
       };
     } catch (error: any) {
       const errorMessage = `Failed to optimize database: ${error.message}. URL: ${baseUrl}. Status: ${error.response?.status}. Response: ${JSON.stringify(error.response?.data)}`;
-      debugLog.push(`[WRM] CRITICAL ERROR: ${errorMessage}`);
+      debugLog.push(`[AIOWebcare] CRITICAL ERROR: ${errorMessage}`);
       
       return {
         tablesOptimized: 0,
@@ -3353,15 +3354,15 @@ export class WPRemoteManagerClient {
     success: boolean;
   }> {
     try {
-      console.log('[WRM] Performing complete optimization...');
+      console.log('[AIOWebcare] Performing complete optimization...');
       
       // First try the dedicated optimization endpoint
       try {
         const response = await this.api.post('/optimization/all');
-        console.log('[WRM] Successfully performed complete optimization using WRM plugin');
+        console.log('[AIOWebcare] Successfully performed complete optimization using WRM plugin');
         return response.data;
       } catch (endpointError) {
-        console.log('[WRM] WRM complete optimization endpoint not available, performing individual optimizations...');
+        console.log('[AIOWebcare] WRM complete optimization endpoint not available, performing individual optimizations...');
       }
 
       // Fallback to individual optimization operations
@@ -3372,7 +3373,7 @@ export class WPRemoteManagerClient {
       const totalItemsRemoved = revisionsResult.removedCount + databaseResult.tablesOptimized;
       const totalSizeFreedMB = this.parseSizeToMB(revisionsResult.sizeFreed) + this.parseSizeToMB(databaseResult.sizeFreed);
       
-      console.log(`[WRM] Complete optimization finished: ${totalItemsRemoved} items removed, ${totalSizeFreedMB.toFixed(1)} MB freed`);
+      console.log(`[AIOWebcare] Complete optimization finished: ${totalItemsRemoved} items removed, ${totalSizeFreedMB.toFixed(1)} MB freed`);
       
       return {
         totalItemsRemoved,
@@ -3388,7 +3389,7 @@ export class WPRemoteManagerClient {
         success: revisionsResult.success || databaseResult.success
       };
     } catch (error) {
-      console.error('[WRM] Error performing complete optimization:', error);
+      console.error('[AIOWebcare] Error performing complete optimization:', error);
       return {
         totalItemsRemoved: 0,
         totalSizeFreed: "0 KB",
@@ -3452,7 +3453,7 @@ export class WPRemoteManagerClient {
           const deleteUrl = `${this.credentials.url}/wp-json/wp/v2/comments/${comment.id}?force=true`;
           await axios.delete(deleteUrl, {
             headers: {
-              'X-WRMS-API-Key': this.credentials.apiKey!,
+              'X-AIOWebcare-API-Key': this.credentials.apiKey!,
               'X-WRM-API-Key': this.credentials.apiKey!,
               'Authorization': `Bearer ${this.credentials.apiKey!}`,
               'Content-Type': 'application/json'
@@ -3496,7 +3497,7 @@ export class WPRemoteManagerClient {
       try {
         const spamResponse = await axios.get(spamUrl, {
           headers: {
-            'X-WRMS-API-Key': this.credentials.apiKey!,
+            'X-AIOWebcare-API-Key': this.credentials.apiKey!,
             'X-WRM-API-Key': this.credentials.apiKey!,
             'Authorization': `Bearer ${this.credentials.apiKey!}`,
             'Content-Type': 'application/json'
@@ -3508,7 +3509,7 @@ export class WPRemoteManagerClient {
           try {
             await axios.delete(`${this.credentials.url}/wp-json/wp/v2/comments/${comment.id}?force=true`, {
               headers: {
-                'X-WRMS-API-Key': this.credentials.apiKey!,
+                'X-AIOWebcare-API-Key': this.credentials.apiKey!,
                 'X-WRM-API-Key': this.credentials.apiKey!,
                 'Authorization': `Bearer ${this.credentials.apiKey!}`,
                 'Content-Type': 'application/json'
@@ -3529,7 +3530,7 @@ export class WPRemoteManagerClient {
       try {
         const trashResponse = await axios.get(trashUrl, {
           headers: {
-            'X-WRMS-API-Key': this.credentials.apiKey!,
+            'X-AIOWebcare-API-Key': this.credentials.apiKey!,
             'X-WRM-API-Key': this.credentials.apiKey!,
             'Authorization': `Bearer ${this.credentials.apiKey!}`,
             'Content-Type': 'application/json'
@@ -3541,7 +3542,7 @@ export class WPRemoteManagerClient {
           try {
             await axios.delete(`${this.credentials.url}/wp-json/wp/v2/comments/${comment.id}?force=true`, {
               headers: {
-                'X-WRMS-API-Key': this.credentials.apiKey!,
+                'X-AIOWebcare-API-Key': this.credentials.apiKey!,
                 'X-WRM-API-Key': this.credentials.apiKey!,
                 'Authorization': `Bearer ${this.credentials.apiKey!}`,
                 'Content-Type': 'application/json'
