@@ -3029,7 +3029,7 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
 
         // Fetch performance scan history
         addDebugLog(`[PERFORMANCE_SCANS] Querying performance scans for website ${websiteId}`);
-        const performanceScans = await db
+        const performanceScanResults = await db
           .select()
           .from(performanceScans)
           .where(and(
@@ -3039,24 +3039,14 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
           ))
           .orderBy(desc(performanceScans.scanTimestamp))
           .limit(10);
+        addDebugLog(`[MAINTENANCE_DATA] Found ${performanceScanResults.length} performance scans for website ${websiteId}`);    
+        // Process performance scan data - USE THE NEW VARIABLE NAME
+        if (performanceScanResults.length > 0) {
+          const latestPerformanceScan = performanceScanResults[0];  // ← Use new variable
+          maintenanceData.performance.totalChecks = performanceScanResults.length;  // ← Use new variable
 
-        addDebugLog(`[MAINTENANCE_DATA] Found ${performanceScans.length} performance scans for website ${websiteId}`);
-
-        // Process performance scan data
-        if (performanceScans.length > 0) {
-          const latestPerformanceScan = performanceScans[0];
-          maintenanceData.performance.totalChecks = performanceScans.length;
-          maintenanceData.performance.lastScan = {
-            date: latestPerformanceScan.scanTimestamp.toISOString(),
-            pageSpeedScore: latestPerformanceScan.pagespeedScore || 85,
-            pageSpeedGrade: (latestPerformanceScan.pagespeedScore || 85) >= 90 ? 'A' : (latestPerformanceScan.pagespeedScore || 85) >= 80 ? 'B' : 'C',
-            ysloScore: latestPerformanceScan.yslowScore || 76,
-            ysloGrade: (latestPerformanceScan.yslowScore || 76) >= 90 ? 'A' : (latestPerformanceScan.yslowScore || 76) >= 80 ? 'B' : 'C',
-            loadTime: (latestPerformanceScan as any).loadTime || 2.5
-          };
-
-          // Generate performance history from scans (using correct field names)
-          maintenanceData.performance.history = performanceScans.map(scan => ({
+          // Generate performance history from scans - USE NEW VARIABLE
+          maintenanceData.performance.history = performanceScanResults.map(scan => ({  // ← Use new variable
             date: scan.scanTimestamp.toISOString(),
             pageSpeedScore: scan.pagespeedScore || 85,
             pageSpeedGrade: (scan.pagespeedScore || 85) >= 90 ? 'A' : (scan.pagespeedScore || 85) >= 80 ? 'B' : 'C',
@@ -3070,7 +3060,7 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
         if (websiteSeoReports.length > 0) {
           const latestSeoReport = websiteSeoReports[0];
           maintenanceData.overview.seoScore = latestSeoReport.overallScore || 92;
-          maintenanceData.overview.performanceScore = latestSeoReport.userExperienceScore || latestPerformanceScan?.performanceScore || 85;
+          maintenanceData.overview.performanceScore = latestSeoReport.userExperienceScore || performanceScanResults[0]?.performanceScore || 85;
           addDebugLog(`[SEO_DATA] SEO Score: ${maintenanceData.overview.seoScore}, Performance Score: ${maintenanceData.overview.performanceScore}`);
         }
 
