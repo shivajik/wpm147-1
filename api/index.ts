@@ -2824,7 +2824,6 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
     console.log(message);
   };
   
-  addDebugLog('[PRODUCTION_DEBUG] Starting maintenance data fetch');
   const maintenanceData = {
     overview: {
       updatesPerformed: 0,
@@ -2883,11 +2882,9 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
   };
 
   try {
-    addDebugLog(`[MAINTENANCE_DATA] Fetching stored maintenance data for ${websiteIds.length} websites from ${dateFrom.toISOString()} to ${dateTo.toISOString()}`);
     
     // Process each website and its stored data
     for (const websiteId of websiteIds) {
-      addDebugLog(`[WEBSITE_LOOP] Processing website ID: ${websiteId}`);
       
       const website = await db
         .select()
@@ -2895,7 +2892,6 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
         .where(eq(websites.id, websiteId))
         .limit(1);
 
-      addDebugLog(`[DB_QUERY] Found ${website.length} websites with ID ${websiteId}`);
       
       if (website.length === 0) {
         addDebugLog(`[SKIP] No website found with ID ${websiteId}, skipping`);
@@ -2903,11 +2899,9 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
       }
 
       maintenanceData.websites.push(website[0]);
-      addDebugLog(`[WEBSITE_ADDED] Added website: ${website[0].name} (ID: ${websiteId})`);
 
       try {
         // Fetch stored update logs from database (with date filtering)
-        addDebugLog(`[UPDATE_LOGS] Querying update logs for website ${websiteId}`);
         const websiteUpdateLogs = await db
           .select()
           .from(updateLogs)
@@ -2919,7 +2913,6 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
           ))
           .orderBy(desc(updateLogs.createdAt));
 
-        addDebugLog(`[MAINTENANCE_DATA] Found ${websiteUpdateLogs.length} update logs for website ${websiteId} between ${dateFrom.toISOString()} and ${dateTo.toISOString()}`);
 
         // Process plugin updates from stored logs  
         const pluginLogs = websiteUpdateLogs.filter(log => log.updateType === 'plugin');
@@ -2966,10 +2959,8 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
 
         maintenanceData.updates.total = websiteUpdateLogs.length;
         maintenanceData.overview.updatesPerformed = websiteUpdateLogs.length;
-        addDebugLog(`[UPDATES_SUMMARY] Total updates: ${maintenanceData.updates.total}`);
 
         // Fetch security scan history with date filtering
-        addDebugLog(`[SECURITY_SCANS] Querying security scans for website ${websiteId}`);
         const securityScans = await db
           .select()
           .from(securityScanHistory)
@@ -2982,7 +2973,6 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
           .orderBy(desc(securityScanHistory.scanStartedAt))
           .limit(10);
 
-        addDebugLog(`[MAINTENANCE_DATA] Found ${securityScans.length} security scans for website ${websiteId} in date range`);
 
         if (securityScans.length > 0) {
           const latestScan = securityScans[0];
@@ -3007,15 +2997,12 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
           // Set overall security status based on latest scan
           if (latestScan.threatsDetected && latestScan.threatsDetected > 0) {
             maintenanceData.overview.securityStatus = 'critical';
-            addDebugLog(`[SECURITY_STATUS] Set to critical due to threats detected`);
           } else if ((latestScan.coreVulnerabilities || 0) + (latestScan.pluginVulnerabilities || 0) + (latestScan.themeVulnerabilities || 0) > 0) {
             maintenanceData.overview.securityStatus = 'warning';
-            addDebugLog(`[SECURITY_STATUS] Set to warning due to vulnerabilities`);
           }
         }
 
         // Fetch SEO reports and performance scans for comprehensive data
-        addDebugLog(`[SEO_REPORTS] Querying SEO reports for website ${websiteId}`);
         const websiteSeoReports = await db
           .select()
           .from(seoReports)
@@ -3028,7 +3015,6 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
           .limit(5);
 
         // Fetch performance scan history
-        addDebugLog(`[PERFORMANCE_SCANS] Querying performance scans for website ${websiteId}`);
         const performanceScanResults = await db
           .select()
           .from(performanceScans)
@@ -3039,7 +3025,6 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
           ))
           .orderBy(desc(performanceScans.scanTimestamp))
           .limit(10);
-        addDebugLog(`[MAINTENANCE_DATA] Found ${performanceScanResults.length} performance scans for website ${websiteId}`);    
         // Process performance scan data - USE THE NEW VARIABLE NAME
         if (performanceScanResults.length > 0) {
           const latestPerformanceScan = performanceScanResults[0];  // ← Use new variable
@@ -3061,23 +3046,16 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
           const latestSeoReport = websiteSeoReports[0];
           maintenanceData.overview.seoScore = latestSeoReport.overallScore || 92;
           maintenanceData.overview.performanceScore = latestSeoReport.userExperienceScore || performanceScanResults[0]?.performanceScore || 85;
-          addDebugLog(`[SEO_DATA] SEO Score: ${maintenanceData.overview.seoScore}, Performance Score: ${maintenanceData.overview.performanceScore}`);
         }
 
         // Fetch real WordPress data for backup and uptime information
-        addDebugLog(`[WP_DATA_SECTION] Entering WordPress data processing section`);
         try {
-          addDebugLog(`[WP_DATA_SECTION] we are enter in try-catch block website[0]`);
-          addDebugLog(`[WP_DATA_SECTION] website[0]: ${JSON.stringify(website[0])}`)
           const websiteData = website[0];
-          addDebugLog(`[WEBSITE] Processing: ${websiteData.name} (${websiteData.url})`);
-          addDebugLog(`[WP_API] Has API key: ${!!websiteData.wrmApiKey}`);
           
           // Enhance website data with live WordPress information
           let enhancedWebsite = { ...websiteData };
           
           if (websiteData.wrmApiKey) {
-            addDebugLog(`[WP_API_CALL] Making WordPress API calls`);
             try {
               // const wrmClient = new WPRemoteManagerClient({
               //   url: websiteData.url,
@@ -3088,7 +3066,6 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
         const wrmClient = new WPRemoteManagerClient(websiteData.url, websiteData.wrmApiKey);
 
               // Get WordPress health data for real plugin/theme counts
-              addDebugLog(`[WP_HEALTH] Fetching health data`);
               const healthData = await wrmClient.getHealth();
               if (healthData && (healthData as any).success && (healthData as any).data) {
                 const systemInfo = (healthData as any).data.systemInfo;
@@ -3102,14 +3079,11 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
                     postsCount: systemInfo.posts_count,
                     pagesCount: systemInfo.pages_count
                   } as any;
-                  addDebugLog(`[WP_HEALTH_SUCCESS] System info updated`);
                 }
               }
 
               // Get active theme information from themes API
-              addDebugLog(`[WP_THEMES] Fetching themes data`);
               const themesData = await wrmClient.getThemes();
-              addDebugLog(`[WP_THEMES] Fetched ${Array.isArray(themesData) ? themesData.length : 0} themes for ${websiteData.url}`);
               if (themesData && Array.isArray(themesData)) {
                 const activeTheme = themesData.find((theme: any) => theme.active);
                 if (activeTheme) {
@@ -3118,12 +3092,9 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
                 } else {
                   addDebugLog(`[WP_THEMES] No active theme found in response`);
                 }
-              } else {
-                addDebugLog(`[WP_THEMES] Invalid themes response: ${JSON.stringify(themesData)}`);
               }
               
               // Get real WordPress plugins data and count active ones
-              addDebugLog(`[WP_PLUGINS] Fetching plugins data`);
               const pluginsResponse = await wrmClient.getPlugins();
               
               // Process plugins response like the endpoint does
@@ -3144,38 +3115,26 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
               maintenanceData.backups.latest.activeTheme = enhancedWebsite.activeTheme || 'Unknown';
               maintenanceData.backups.latest.activePlugins = enhancedWebsite.activePluginsCount || 0;
               
-              addDebugLog(`[WP_DATA_SUCCESS] WordPress data fetched successfully for ${websiteData.url}:`);
-              addDebugLog(`[WP_DATA_SUCCESS] - Active Theme: "${enhancedWebsite.activeTheme}"`);
-              addDebugLog(`[WP_DATA_SUCCESS] - Active Plugins: ${activePluginsCount} out of ${plugins.length} total`);
               
             } catch (healthError) {
-              addDebugLog(`[WP_API_FAILED] WordPress API failed for ${websiteData.url}: ${healthError instanceof Error ? healthError.message : 'Unknown error'}`);
               
               // Try to extract data from stored wpData when API fails
               if (websiteData.wpData) {
                 try {
-                  addDebugLog(`[WPDATA_FALLBACK] Attempting to parse stored wpData`);
                   const wpDataStr = typeof websiteData.wpData === 'string' ? websiteData.wpData : JSON.stringify(websiteData.wpData);
                   const wpDataObj = JSON.parse(wpDataStr);
                   
-                  addDebugLog(`[WPDATA_FALLBACK] wpData parsed successfully`);
                   
                   // Extract active theme from wpData
                   if (wpDataObj.theme && wpDataObj.theme.name) {
                     enhancedWebsite.activeTheme = wpDataObj.theme.name;
                     maintenanceData.backups.latest.activeTheme = wpDataObj.theme.name;
-                    addDebugLog(`[THEME_FOUND] Active theme from wpData: "${wpDataObj.theme.name}"`);
                   } else if (wpDataObj.themes && Array.isArray(wpDataObj.themes)) {
                     const activeTheme = wpDataObj.themes.find((t: any) => t.active);
                     if (activeTheme && activeTheme.name) {
                       enhancedWebsite.activeTheme = activeTheme.name;
                       maintenanceData.backups.latest.activeTheme = activeTheme.name;
-                      addDebugLog(`[THEME_FOUND] Active theme from themes array: "${activeTheme.name}"`);
-                    } else {
-                      addDebugLog(`[THEME_MISSING] No active theme found in themes array`);
                     }
-                  } else {
-                    addDebugLog(`[THEME_MISSING] No theme data found in wpData`);
                   }
                   
                   // Extract active plugins count from wpData
@@ -3183,7 +3142,6 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
                     const activePluginsCount = wpDataObj.plugins.filter((p: any) => p && p.active === true).length;
                     enhancedWebsite.activePluginsCount = activePluginsCount;
                     maintenanceData.backups.latest.activePlugins = activePluginsCount;
-                    addDebugLog(`[PLUGINS_FOUND] Active plugins from wpData: ${activePluginsCount} out of ${wpDataObj.plugins.length} total`);
                   } else if (wpDataObj.systemInfo && wpDataObj.systemInfo.plugins_count) {
                     // Use system info plugin count as fallback
                     const pluginsCount = parseInt(wpDataObj.systemInfo.plugins_count) || 0;
@@ -3275,13 +3233,7 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
       maintenanceData.overview.backupsCreated = Math.max(1, Math.floor(daysDiff / 7));
       maintenanceData.backups.total = maintenanceData.overview.backupsCreated;
       maintenanceData.backups.totalAvailable = maintenanceData.overview.backupsCreated + 3;
-    }
-    
-    addDebugLog(`[FINAL_RESULT] Processing complete. Final backup data:`);
-    addDebugLog(`[FINAL_RESULT] - Active Theme: "${maintenanceData.backups.latest.activeTheme}"`);
-    addDebugLog(`[FINAL_RESULT] - Active Plugins: ${maintenanceData.backups.latest.activePlugins}`);
-    addDebugLog(`[MAINTENANCE_DATA] Generated maintenance data summary: totalWebsites=${websiteIds.length}, totalUpdates=${maintenanceData.updates.total}, totalBackups=${maintenanceData.backups.total}`);
-    
+    }    
     return {
       ...maintenanceData,
       _debugLogs: debugLogs
