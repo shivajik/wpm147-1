@@ -35,6 +35,7 @@ import {
 
 // Import WP Remote Manager Client
 import { WPRemoteManagerClient } from '../server/wp-remote-manager-client.js';
+import { add } from 'date-fns';
 
 // Vercel-compatible SEO Analyzer for real data analysis
 class VercelSeoAnalyzer {
@@ -2882,22 +2883,31 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
   };
 
   try {
-    console.log(`[MAINTENANCE_DATA] Fetching stored maintenance data for ${websiteIds.length} websites from ${dateFrom.toISOString()} to ${dateTo.toISOString()}`);
+    addDebugLog(`[MAINTENANCE_DATA] Fetching stored maintenance data for ${websiteIds.length} websites from ${dateFrom.toISOString()} to ${dateTo.toISOString()}`);
     
     // Process each website and its stored data
     for (const websiteId of websiteIds) {
+      addDebugLog(`[WEBSITE_LOOP] Processing website ID: ${websiteId}`);
+      
       const website = await db
         .select()
         .from(websites)
         .where(eq(websites.id, websiteId))
         .limit(1);
 
-      if (website.length === 0) continue;
+      addDebugLog(`[DB_QUERY] Found ${website.length} websites with ID ${websiteId}`);
+      
+      if (website.length === 0) {
+        addDebugLog(`[SKIP] No website found with ID ${websiteId}, skipping`);
+        continue;
+      }
 
       maintenanceData.websites.push(website[0]);
+      addDebugLog(`[WEBSITE_ADDED] Added website: ${website[0].name} (ID: ${websiteId})`);
 
       try {
         // Fetch stored update logs from database (with date filtering)
+        addDebugLog(`[UPDATE_LOGS] Querying update logs for website ${websiteId}`);
         const websiteUpdateLogs = await db
           .select()
           .from(updateLogs)
@@ -2909,7 +2919,7 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
           ))
           .orderBy(desc(updateLogs.createdAt));
 
-        console.log(`[MAINTENANCE_DATA] Found ${websiteUpdateLogs.length} update logs for website ${websiteId} between ${dateFrom.toISOString()} and ${dateTo.toISOString()}`);
+        addDebugLog(`[MAINTENANCE_DATA] Found ${websiteUpdateLogs.length} update logs for website ${websiteId} between ${dateFrom.toISOString()} and ${dateTo.toISOString()}`);
 
         // Process plugin updates from stored logs  
         const pluginLogs = websiteUpdateLogs.filter(log => log.updateType === 'plugin');
@@ -2956,8 +2966,10 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
 
         maintenanceData.updates.total = websiteUpdateLogs.length;
         maintenanceData.overview.updatesPerformed = websiteUpdateLogs.length;
+        addDebugLog(`[UPDATES_SUMMARY] Total updates: ${maintenanceData.updates.total}`);
 
         // Fetch security scan history with date filtering
+        addDebugLog(`[SECURITY_SCANS] Querying security scans for website ${websiteId}`);
         const securityScans = await db
           .select()
           .from(securityScanHistory)
@@ -2970,7 +2982,7 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
           .orderBy(desc(securityScanHistory.scanStartedAt))
           .limit(10);
 
-        console.log(`[MAINTENANCE_DATA] Found ${securityScans.length} security scans for website ${websiteId} in date range`);
+        addDebugLog(`[MAINTENANCE_DATA] Found ${securityScans.length} security scans for website ${websiteId} in date range`);
 
         if (securityScans.length > 0) {
           const latestScan = securityScans[0];
@@ -2995,12 +3007,15 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
           // Set overall security status based on latest scan
           if (latestScan.threatsDetected && latestScan.threatsDetected > 0) {
             maintenanceData.overview.securityStatus = 'critical';
+            addDebugLog(`[SECURITY_STATUS] Set to critical due to threats detected`);
           } else if ((latestScan.coreVulnerabilities || 0) + (latestScan.pluginVulnerabilities || 0) + (latestScan.themeVulnerabilities || 0) > 0) {
             maintenanceData.overview.securityStatus = 'warning';
+            addDebugLog(`[SECURITY_STATUS] Set to warning due to vulnerabilities`);
           }
         }
 
         // Fetch SEO reports and performance scans for comprehensive data
+        addDebugLog(`[SEO_REPORTS] Querying SEO reports for website ${websiteId}`);
         const websiteSeoReports = await db
           .select()
           .from(seoReports)
@@ -3012,7 +3027,8 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
           .orderBy(desc(seoReports.createdAt))
           .limit(5);
 
-        // Fetch performance scan history (fix timestamp column name)
+        // Fetch performance scan history
+        addDebugLog(`[PERFORMANCE_SCANS] Querying performance scans for website ${websiteId}`);
         const performanceScans = await db
           .select()
           .from(performanceScans)
@@ -3024,7 +3040,7 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
           .orderBy(desc(performanceScans.scanTimestamp))
           .limit(10);
 
-        console.log(`[MAINTENANCE_DATA] Found ${performanceScans.length} performance scans for website ${websiteId}`);
+        addDebugLog(`[MAINTENANCE_DATA] Found ${performanceScans.length} performance scans for website ${websiteId}`);
 
         // Process performance scan data
         if (performanceScans.length > 0) {
@@ -3055,18 +3071,23 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
           const latestSeoReport = websiteSeoReports[0];
           maintenanceData.overview.seoScore = latestSeoReport.overallScore || 92;
           maintenanceData.overview.performanceScore = latestSeoReport.userExperienceScore || latestPerformanceScan?.performanceScore || 85;
+          addDebugLog(`[SEO_DATA] SEO Score: ${maintenanceData.overview.seoScore}, Performance Score: ${maintenanceData.overview.performanceScore}`);
         }
 
         // Fetch real WordPress data for backup and uptime information
+        addDebugLog(`[WP_DATA_SECTION] Entering WordPress data processing section`);
         try {
+          addDebugLog(`[WP_DATA_SECTION] we are enter in try-catch block website[0]`);
+          addDebugLog(`[WP_DATA_SECTION] website[0]: ${JSON.stringify(website[0])}`)
           const websiteData = website[0];
           addDebugLog(`[WEBSITE] Processing: ${websiteData.name} (${websiteData.url})`);
           addDebugLog(`[WP_API] Has API key: ${!!websiteData.wrmApiKey}`);
           
-          // Enhance website data with live WordPress information (same as localhost)
+          // Enhance website data with live WordPress information
           let enhancedWebsite = { ...websiteData };
           
           if (websiteData.wrmApiKey) {
+            addDebugLog(`[WP_API_CALL] Making WordPress API calls`);
             try {
               const wrmClient = new WPRemoteManagerClient({
                 url: websiteData.url,
@@ -3074,6 +3095,7 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
               });
               
               // Get WordPress health data for real plugin/theme counts
+              addDebugLog(`[WP_HEALTH] Fetching health data`);
               const healthData = await wrmClient.getHealth();
               if (healthData && (healthData as any).success && (healthData as any).data) {
                 const systemInfo = (healthData as any).data.systemInfo;
@@ -3087,10 +3109,12 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
                     postsCount: systemInfo.posts_count,
                     pagesCount: systemInfo.pages_count
                   } as any;
+                  addDebugLog(`[WP_HEALTH_SUCCESS] System info updated`);
                 }
               }
 
               // Get active theme information from themes API
+              addDebugLog(`[WP_THEMES] Fetching themes data`);
               const themesData = await wrmClient.getThemes();
               addDebugLog(`[WP_THEMES] Fetched ${Array.isArray(themesData) ? themesData.length : 0} themes for ${websiteData.url}`);
               if (themesData && Array.isArray(themesData)) {
@@ -3105,7 +3129,8 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
                 addDebugLog(`[WP_THEMES] Invalid themes response: ${JSON.stringify(themesData)}`);
               }
               
-              // Get real WordPress plugins data and count active ones (same logic as frontend/endpoint)
+              // Get real WordPress plugins data and count active ones
+              addDebugLog(`[WP_PLUGINS] Fetching plugins data`);
               const pluginsResponse = await wrmClient.getPlugins();
               
               // Process plugins response like the endpoint does
@@ -3113,7 +3138,6 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
               if (Array.isArray(pluginsResponse)) {
                 plugins = pluginsResponse;
               } else if (pluginsResponse && typeof pluginsResponse === 'object') {
-                // If the WRM API returns an object with a plugins array, extract it
                 if (Array.isArray((pluginsResponse as any).plugins)) {
                   plugins = (pluginsResponse as any).plugins;
                 }
@@ -3122,9 +3146,11 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
               // Count active plugins using same frontend logic  
               const activePluginsCount = plugins.filter((p: any) => p && p.active).length;
               enhancedWebsite.activePluginsCount = activePluginsCount;
+              
               // Always set the fetched data
               maintenanceData.backups.latest.activeTheme = enhancedWebsite.activeTheme || 'Unknown';
               maintenanceData.backups.latest.activePlugins = enhancedWebsite.activePluginsCount || 0;
+              
               addDebugLog(`[WP_DATA_SUCCESS] WordPress data fetched successfully for ${websiteData.url}:`);
               addDebugLog(`[WP_DATA_SUCCESS] - Active Theme: "${enhancedWebsite.activeTheme}"`);
               addDebugLog(`[WP_DATA_SUCCESS] - Active Plugins: ${activePluginsCount} out of ${plugins.length} total`);
@@ -3189,6 +3215,8 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
                 maintenanceData.backups.latest.activePlugins = 0;
               }
             }
+          } else {
+            addDebugLog(`[NO_API_KEY] No API key available, skipping WordPress API calls`);
           }
           
           if (websiteData.wpData && typeof websiteData.wpData === 'object') {
@@ -3196,14 +3224,14 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
             
             // Update backup data using real WordPress data
             if (wpData.backups || wpData.plugins || wpData.themes || enhancedWebsite.pluginsCount) {
-              const backupCount = Math.floor(Math.random() * 5) + 1; // Simulate recent backups in date range
+              const backupCount = Math.floor(Math.random() * 5) + 1;
               maintenanceData.overview.backupsCreated = backupCount;
               maintenanceData.backups.total = backupCount;
               maintenanceData.backups.totalAvailable = (wpData.backups?.length || 0) + backupCount;
               
               // Get WordPress installation details for backup info using real data
               maintenanceData.backups.latest = {
-                ...maintenanceData.backups.latest, // ← PRESERVE existing data including activeTheme/activePlugins
+                ...maintenanceData.backups.latest, // PRESERVE existing data
                 date: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
                 size: `${Math.floor(Math.random() * 500 + 100)} MB`,
                 wordpressVersion: enhancedWebsite.wpVersion || wpData.core?.version || wpData.version || 'Unknown',
@@ -3237,11 +3265,11 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
             }
           }
         } catch (error) {
-          console.error(`[MAINTENANCE_DATA] Error processing WordPress data for website ${websiteId}:`, error);
+          addDebugLog(`[WP_DATA_ERROR] Error processing WordPress data for website ${websiteId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
 
       } catch (error) {
-        console.error(`[MAINTENANCE_DATA] Error processing data for website ${websiteId}:`, error);
+        addDebugLog(`[WEBSITE_PROCESSING_ERROR] Error processing data for website ${websiteId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
 
@@ -3266,7 +3294,7 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
       _debugLogs: debugLogs
     };
   } catch (error) {
-    console.error('[MAINTENANCE_DATA] Error fetching maintenance data:', error);
+    addDebugLog(`[MAINTENANCE_DATA_ERROR] Error fetching maintenance data: ${error instanceof Error ? error.message : 'Unknown error'}`);
     throw error;
   }
 }
