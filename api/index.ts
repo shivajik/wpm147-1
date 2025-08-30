@@ -3079,11 +3079,14 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
           if (websiteData.wrmApiKey) {
             addDebugLog(`[WP_API_CALL] Making WordPress API calls`);
             try {
-              const wrmClient = new WPRemoteManagerClient({
-                url: websiteData.url,
-                apiKey: websiteData.wrmApiKey
-              });
+              // const wrmClient = new WPRemoteManagerClient({
+              //   url: websiteData.url,
+              //   apiKey: websiteData.wrmApiKey
+              // });
               
+              // This is CORRECT - pass as separate arguments
+        const wrmClient = new WPRemoteManagerClient(websiteData.url, websiteData.wrmApiKey);
+
               // Get WordPress health data for real plugin/theme counts
               addDebugLog(`[WP_HEALTH] Fetching health data`);
               const healthData = await wrmClient.getHealth();
