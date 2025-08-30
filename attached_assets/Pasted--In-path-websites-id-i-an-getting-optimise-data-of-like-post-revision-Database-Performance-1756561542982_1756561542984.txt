@@ -1,0 +1,58 @@
+
+
+
+
+In path /websites/:id i an getting optimise data of like post revision, Database Performance
+And any localhost api in server/routes.ts
+And all production api in api/index.ts 
+
+
+Currenly fro data  i am using  this api but it is giving mock data
+
+
+
+Request URL
+https://54d6ba3a-8d42-4a59-aa35-a6da71a58455-00-3ltxxrvff61a1.spock.replit.dev/api/websites/1/optimization-data
+Request Method
+GET
+Status Code
+304 Not Modified
+{
+    "postRevisions": {
+        "count": 32,
+        "size": "80 KB",
+        "lastCleanup": null
+    },
+    "databasePerformance": {
+        "size": "21.6 MB",
+        "optimizationNeeded": true,
+        "lastOptimization": null,
+        "tables": 15
+    },
+    "trashedContent": {
+        "posts": 0,
+        "comments": 0,
+        "size": "0 MB"
+    },
+    "spam": {
+        "comments": 0,
+        "size": "0 MB"
+    }
+}
+
+
+
+
+
+But if we use the below api then we will get the real data so make necessary changes in code so that i can fetch real data and show real data i do not want any estimate, mock data i want real data 
+
+
+curl --location --request GET 'https://ksoftsolution.com/wp-json/aiowebcare/v1/optimization/overview' \
+--header 'X-AIOWebcare-API-Key: I2On0tBqWKtYdDmD2Jd0a2RBayNZw1yL' \
+--header 'X-WRM-API-Key: I2On0tBqWKtYdDmD2Jd0a2RBayNZw1yL' \
+--header 'Content-Type: application/json' \
+--header 'Cookie: PHPSESSID=24nap8psars00qt8f8hncnom97; wordpress_logged_in_9420fdf75ebe0649d45cb5a09854a324=ksoftsolution%7C1756732852%7CRGZGlCqJ8jXYnWP5F7ScQGzjDqlzTHdjG2qx3hCcmGC%7Cf3c758206bebbe19a7205f2a7aac8aee8c982b24a1e4385c50162cc806fd4dad; PHPSESSID=24nap8psars00qt8f8hncnom97; wordpress_logged_in_9420fdf75ebe0649d45cb5a09854a324=ksoftsolution%7C1756732852%7CRGZGlCqJ8jXYnWP5F7ScQGzjDqlzTHdjG2qx3hCcmGC%7Cf3c758206bebbe19a7205f2a7aac8aee8c982b24a1e4385c50162cc806fd4dad' \
+--data '{"action":"optimize_database"}'
+
+
+{"database_size":"37.50 MB","table_count":"166","total_posts":"13","total_revisions":"182","spam_comments":"0","trash_items":"17","expired_transients":"467","orphaned_meta":"0","last_optimized":"2025-08-30 13:21:04","optimization_score":55,"recommendations":["Consider cleaning old revisions - you have 182 revisions","Empty trash - 17 items in trash","Clean 467 expired transients"]}
