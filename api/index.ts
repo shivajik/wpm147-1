@@ -3092,17 +3092,17 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
 
               // Get active theme information from themes API
               const themesData = await wrmClient.getThemes();
-              console.log(`[WP_THEMES] Fetched ${Array.isArray(themesData) ? themesData.length : 0} themes for ${websiteData.url}`);
+              addDebugLog(`[WP_THEMES] Fetched ${Array.isArray(themesData) ? themesData.length : 0} themes for ${websiteData.url}`);
               if (themesData && Array.isArray(themesData)) {
                 const activeTheme = themesData.find((theme: any) => theme.active);
                 if (activeTheme) {
                   enhancedWebsite.activeTheme = activeTheme.name;
-                  console.log(`[WP_THEMES] Found active theme: "${activeTheme.name}"`);
+                  addDebugLog(`[WP_THEMES] Found active theme: "${activeTheme.name}"`);
                 } else {
-                  console.log(`[WP_THEMES] No active theme found in response`);
+                  addDebugLog(`[WP_THEMES] No active theme found in response`);
                 }
               } else {
-                console.log(`[WP_THEMES] Invalid themes response:`, themesData);
+                addDebugLog(`[WP_THEMES] Invalid themes response: ${JSON.stringify(themesData)}`);
               }
               
               // Get real WordPress plugins data and count active ones (same logic as frontend/endpoint)
@@ -3203,14 +3203,17 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
               
               // Get WordPress installation details for backup info using real data
               maintenanceData.backups.latest = {
+                ...maintenanceData.backups.latest, // ← PRESERVE existing data including activeTheme/activePlugins
                 date: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
                 size: `${Math.floor(Math.random() * 500 + 100)} MB`,
                 wordpressVersion: enhancedWebsite.wpVersion || wpData.core?.version || wpData.version || 'Unknown',
-                activeTheme: enhancedWebsite.activeTheme || wpData.theme?.name || wpData.themes?.find((t: any) => t.active)?.name || maintenanceData.backups.latest.activeTheme || 'Unknown',
-                activePlugins: enhancedWebsite.activePluginsCount || wpData.plugins?.filter((p: any) => p && p.active).length || maintenanceData.backups.latest.activePlugins || 0,
                 publishedPosts: parseInt(enhancedWebsite.postsCount) || wpData.posts?.published || Math.floor(Math.random() * 100) + 10,
                 approvedComments: wpData.comments?.approved || Math.floor(Math.random() * 50)
               };
+
+              // Add debug logs to confirm the values are preserved
+              addDebugLog(`[BACKUP_UPDATE] After update - Active Theme: "${maintenanceData.backups.latest.activeTheme}"`);
+              addDebugLog(`[BACKUP_UPDATE] After update - Active Plugins: ${maintenanceData.backups.latest.activePlugins}`);
             }
             
             // Calculate uptime based on site health and performance
