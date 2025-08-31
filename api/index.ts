@@ -969,7 +969,7 @@ class VercelWPRemoteManagerClient {
         params: { per_page: 1 },
         timeout: 10000,
         headers: {
-          'User-Agent': 'WPRemoteManager/1.0'
+          'User-Agent': 'AIOWebcare-Dashboard/1.0'
         }
       });
 
@@ -983,7 +983,7 @@ class VercelWPRemoteManagerClient {
           params: { per_page: 100 },
           timeout: 12000, // Shorter timeout for Vercel
           headers: {
-            'User-Agent': 'WPRemoteManager/1.0'
+            'User-Agent': 'AIOWebcare-Dashboard/1.0'
           }
         });
 
@@ -1004,7 +1004,7 @@ class VercelWPRemoteManagerClient {
           params: { per_page: 1, status: 'trash' },
           timeout: 10000,
           headers: {
-            'User-Agent': 'WPRemoteManager/1.0'
+            'User-Agent': 'AIOWebcare-Dashboard/1.0'
           }
         });
 
@@ -1022,7 +1022,7 @@ class VercelWPRemoteManagerClient {
           params: { per_page: 1, status: 'spam' },
           timeout: 10000,
           headers: {
-            'User-Agent': 'WPRemoteManager/1.0'
+            'User-Agent': 'AIOWebcare-Dashboard/1.0'
           }
         });
 
@@ -1042,7 +1042,7 @@ class VercelWPRemoteManagerClient {
           params: { per_page: 1, status: 'trash' },
           timeout: 10000,
           headers: {
-            'User-Agent': 'WPRemoteManager/1.0'
+            'User-Agent': 'AIOWebcare-Dashboard/1.0'
           }
         });
 
@@ -1135,7 +1135,7 @@ class VercelWPRemoteManagerClient {
     // First try the dedicated optimization endpoint
     try {
       debugLog.push('[VERCEL-WRM] Attempting WRM plugin optimization endpoint...');
-      const response = await axios.post(`${this.baseUrl}/wp-json/wrm/v1/optimization/revisions`, {}, {
+      const response = await axios.post(`${this.baseUrl}/wp-json/aiowebcare/v1/optimization/revisions`, {}, {
         headers: {
           'Authorization': `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json'
@@ -1159,7 +1159,7 @@ class VercelWPRemoteManagerClient {
         params: { per_page: 100 },
         timeout: 12000, // Shorter timeout for Vercel
         headers: {
-          'User-Agent': 'WPRemoteManager/1.0'
+          'User-Agent': 'AIOWebcare-Dashboard/1.0'
         }
       });
 
@@ -1204,7 +1204,7 @@ class VercelWPRemoteManagerClient {
             await axios.delete(`${baseUrl}/wp-json/wp/v2/revisions/${revision.id}`, {
               timeout: 8000, // Shorter timeout for Vercel
               headers: {
-                'User-Agent': 'WPRemoteManager/1.0'
+                'User-Agent': 'AIOWebcare-Dashboard/1.0'
               }
             });
             deletedCount++;
@@ -1245,7 +1245,7 @@ class VercelWPRemoteManagerClient {
     // First try the dedicated optimization endpoint
     try {
       debugLog.push('[VERCEL-WRM] Attempting WRM plugin database optimization...');
-      const response = await axios.post(`${this.baseUrl}/wp-json/wrm/v1/optimization/database`, {}, {
+      const response = await axios.post(`${this.baseUrl}/wp-json/aiowebcare/v1/optimization/database`, {}, {
         headers: {
           'Authorization': `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json'
@@ -1273,7 +1273,7 @@ class VercelWPRemoteManagerClient {
           params: { per_page: 100, status: 'spam' },
           timeout: 12000,
           headers: {
-            'User-Agent': 'WPRemoteManager/1.0'
+            'User-Agent': 'AIOWebcare-Dashboard/1.0'
           }
         });
 
@@ -1285,7 +1285,7 @@ class VercelWPRemoteManagerClient {
             await axios.delete(`${baseUrl}/wp-json/wp/v2/comments/${comment.id}?force=true`, {
               timeout: 8000, // Shorter timeout for Vercel
               headers: {
-                'User-Agent': 'WPRemoteManager/1.0'
+                'User-Agent': 'AIOWebcare-Dashboard/1.0'
               }
             });
             itemsDeleted++;
@@ -1309,7 +1309,7 @@ class VercelWPRemoteManagerClient {
           params: { per_page: 25, status: 'trash' },
           timeout: 12000,
           headers: {
-            'User-Agent': 'WPRemoteManager/1.0'
+            'User-Agent': 'AIOWebcare-Dashboard/1.0'
           }
         });
 
@@ -1321,7 +1321,7 @@ class VercelWPRemoteManagerClient {
             await axios.delete(`${baseUrl}/wp-json/wp/v2/posts/${post.id}?force=true`, {
               timeout: 8000,
               headers: {
-                'User-Agent': 'WPRemoteManager/1.0'
+                'User-Agent': 'AIOWebcare-Dashboard/1.0'
               }
             });
             itemsDeleted++;
@@ -1342,7 +1342,7 @@ class VercelWPRemoteManagerClient {
           params: { per_page: 50, status: 'trash' },
           timeout: 12000,
           headers: {
-            'User-Agent': 'WPRemoteManager/1.0'
+            'User-Agent': 'AIOWebcare-Dashboard/1.0'
           }
         });
 
@@ -1354,7 +1354,7 @@ class VercelWPRemoteManagerClient {
             await axios.delete(`${baseUrl}/wp-json/wp/v2/comments/${comment.id}?force=true`, {
               timeout: 8000,
               headers: {
-                'User-Agent': 'WPRemoteManager/1.0'
+                'User-Agent': 'AIOWebcare-Dashboard/1.0'
               }
             });
             itemsDeleted++;
@@ -1410,13 +1410,14 @@ class VercelWPRemoteManagerClient {
       if (params.page) queryString.set('page', params.page.toString());
     
       const endpoint = `/comments${queryString.toString() ? `?${queryString}` : ''}`;
-      const pluginUrl = `${this.baseUrl}/wp-json/wrms/v1${endpoint}`;
+      const pluginUrl = `${this.baseUrl}/wp-json/aiowebcare/v1${endpoint}`;
       debugLog.push(`[VERCEL-WRM] Trying plugin endpoint: ${pluginUrl}`);
       
       try {
         debugLog.push(`[VERCEL-WRM] Making request to plugin endpoint...`);
         const response = await axios.get(pluginUrl, {
           headers: {
+            'X-AIOWebcare-API-Key': this.apiKey,
             'X-WRMS-API-Key': this.apiKey,
             'X-WRM-API-Key': this.apiKey,
             'Content-Type': 'application/json'
@@ -1563,7 +1564,7 @@ class VercelWPRemoteManagerClient {
       
       // Try primary delete endpoint first
       try {
-        const endpoint = `${this.baseUrl}/wp-json/wrms/v1/comments/delete`;
+        const endpoint = `${this.baseUrl}/wp-json/aiowebcare/v1/comments/delete`;
         debugLog.push(`[VERCEL-WRM] Trying primary endpoint: ${endpoint}`);
         
         const payload = { comment_ids: commentIds };
@@ -1606,10 +1607,11 @@ class VercelWPRemoteManagerClient {
       const failedComments = [];
       
       const headers = {
+        'X-AIOWebcare-API-Key': this.apiKey,
         'X-WRMS-API-Key': this.apiKey,
         'X-WRM-API-Key': this.apiKey,
         'Content-Type': 'application/json',
-        'User-Agent': 'WPRemoteManager/1.0'
+        'User-Agent': 'AIOWebcare-Dashboard/1.0'
       };
       
       for (const commentId of commentIds) {
@@ -1700,14 +1702,15 @@ class VercelWPRemoteManagerClient {
       debugLog.push(`[VERCEL-WRM] Target URL: ${this.baseUrl}`);
       debugLog.push(`[VERCEL-WRM] API Key preview: ${this.apiKey.substring(0, 10)}...`);
       
-      const endpoint = `${this.baseUrl}/wp-json/wrms/v1/comments/remove-spam-trash`;
+      const endpoint = `${this.baseUrl}/wp-json/aiowebcare/v1/comments/remove-spam-trash`;
       debugLog.push(`[VERCEL-WRM] Full endpoint: ${endpoint}`);
       
       const headers = {
+        'X-AIOWebcare-API-Key': this.apiKey,
         'X-WRMS-API-Key': this.apiKey,
         'X-WRM-API-Key': this.apiKey,
         'Content-Type': 'application/json',
-        'User-Agent': 'WPRemoteManager/1.0'
+        'User-Agent': 'AIOWebcare-Dashboard/1.0'
       };
       
       debugLog.push(`[VERCEL-WRM] Making POST request with headers: ${JSON.stringify(Object.keys(headers))}`);
@@ -1760,14 +1763,15 @@ class VercelWPRemoteManagerClient {
       debugLog.push(`[VERCEL-WRM] Target URL: ${this.baseUrl}`);
       debugLog.push(`[VERCEL-WRM] API Key preview: ${this.apiKey.substring(0, 10)}...`);
       
-      const endpoint = `${this.baseUrl}/wp-json/wrms/v1/comments/remove-unapproved`;
+      const endpoint = `${this.baseUrl}/wp-json/aiowebcare/v1/comments/remove-unapproved`;
       debugLog.push(`[VERCEL-WRM] Full endpoint: ${endpoint}`);
       
       const headers = {
+        'X-AIOWebcare-API-Key': this.apiKey,
         'X-WRMS-API-Key': this.apiKey,
         'X-WRM-API-Key': this.apiKey,
         'Content-Type': 'application/json',
-        'User-Agent': 'WPRemoteManager/1.0'
+        'User-Agent': 'AIOWebcare-Dashboard/1.0'
       };
       
       debugLog.push(`[VERCEL-WRM] Making POST request with headers: ${JSON.stringify(Object.keys(headers))}`);
@@ -1907,6 +1911,7 @@ class WPRemoteManagerClient {
       timeout: 10000, // Reduced to 10 seconds for Vercel serverless compatibility
       headers: {
         'Content-Type': 'application/json',
+        'X-AIOWebcare-API-Key': this.apiKey, // Primary AIOWebcare header
         'X-WRMS-API-Key': this.apiKey, // Secure version header
         'X-WRM-API-Key': this.apiKey,  // Legacy fallback for backward compatibility
         'User-Agent': 'AIO-Webcare-Dashboard/1.0'
@@ -1920,16 +1925,16 @@ class WPRemoteManagerClient {
     const timeSinceLastRequest = now - this.lastRequestTime;
     if (timeSinceLastRequest < this.rateLimitMs) {
       const waitTime = this.rateLimitMs - timeSinceLastRequest;
-      console.log(`[WRM] Rate limiting: waiting ${waitTime}ms before request`);
+      console.log(`[AIOWebcare] Rate limiting: waiting ${waitTime}ms before request`);
       await new Promise(resolve => setTimeout(resolve, waitTime));
     }
     
     this.lastRequestTime = Date.now();
 
     try {
-      // Try secure endpoint first (/wp-json/wrms/v1)
-      const secureUrl = `${this.url}/wp-json/wrms/v1${endpoint}`;
-      console.log(`[WRM-Vercel] Making ${method} request to secure endpoint: ${secureUrl}`);
+      // Try secure endpoint first (/wp-json/aiowebcare/v1)
+      const secureUrl = `${this.url}/wp-json/aiowebcare/v1${endpoint}`;
+      console.log(`[AIOWebcare-Vercel] Making ${method} request to secure endpoint: ${secureUrl}`);
       
       const secureResponse = await this.client.request({
         method,
@@ -1940,24 +1945,24 @@ class WPRemoteManagerClient {
       
       // Handle rest_no_route response from secure endpoint
       if (secureResponse.data && typeof secureResponse.data === 'object' && secureResponse.data.code === 'rest_no_route') {
-        console.log('[WRM-Vercel] Secure endpoint returned rest_no_route, trying legacy...');
+        console.log('[AIOWebcare-Vercel] Secure endpoint returned rest_no_route, trying legacy...');
         throw new Error('Secure endpoint not found');
       }
       
       // Enhanced error handling for HTML error responses
       if (typeof secureResponse.data === 'string' && (secureResponse.data.includes('<!DOCTYPE') || secureResponse.data.includes('<html'))) {
-        console.error(`[WRM-Vercel] Received HTML error response instead of JSON for endpoint: ${endpoint}`);
+        console.error(`[AIOWebcare-Vercel] Received HTML error response instead of JSON for endpoint: ${endpoint}`);
         throw new Error(`WordPress returned an HTML error page instead of API response. This usually indicates a 404, 503, or server error.`);
       }
       
       console.log(`[WRM-Vercel] Secure endpoint response status: ${secureResponse.status}, Data size: ${JSON.stringify(secureResponse.data).length} chars`);
       return secureResponse.data;
     } catch (error: any) {
-      console.log(`[WRM-Vercel] Secure endpoint failed, trying legacy: /wp-json/wrm/v1${endpoint}`);
+      console.log(`[AIOWebcare-Vercel] Secure endpoint failed, trying legacy: /wp-json/aiowebcare/v1${endpoint}`);
       
       try {
-        // Try legacy endpoint (/wp-json/wrm/v1) 
-        const legacyUrl = `${this.url}/wp-json/wrm/v1${endpoint}`;
+        // Try legacy endpoint (/wp-json/aiowebcare/v1) 
+        const legacyUrl = `${this.url}/wp-json/aiowebcare/v1${endpoint}`;
         const legacyResponse = await this.client.request({
           method,
           url: legacyUrl,
@@ -1972,7 +1977,7 @@ class WPRemoteManagerClient {
         
         // Enhanced error handling for HTML error responses
         if (typeof legacyResponse.data === 'string' && (legacyResponse.data.includes('<!DOCTYPE') || legacyResponse.data.includes('<html'))) {
-          console.error(`[WRM-Vercel] Received HTML error response instead of JSON for endpoint: ${endpoint}`);
+          console.error(`[AIOWebcare-Vercel] Received HTML error response instead of JSON for endpoint: ${endpoint}`);
           throw new Error(`WordPress returned an HTML error page instead of API response. This usually indicates a 404, 503, or server error.`);
         }
         
@@ -1982,7 +1987,7 @@ class WPRemoteManagerClient {
         console.error(`[WRM-Vercel] Both secure and legacy endpoints failed for ${endpoint}:`, {
           secureError: error.message,
           legacyError: legacyError.message,
-          url: `${this.url}/wp-json/wrms/v1${endpoint} and ${this.url}/wp-json/wrm/v1${endpoint}`
+          url: `${this.url}/wp-json/aiowebcare/v1${endpoint} (both secure and legacy fallback)`
         });
         
         // Provide helpful error message
