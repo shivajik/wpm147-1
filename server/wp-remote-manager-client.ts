@@ -340,7 +340,7 @@ export class WPRemoteManagerClient {
         
         try {
           const legacyApi = axios.create({
-            baseURL: `${this.credentials.url.replace(/\/$/, '')}/wp-json/wrm/v1`,
+            baseURL: `${this.credentials.url.replace(/\/$/, '')}/wp-json/aiowebcare/v1`,
             timeout: 30000,
             headers: {
               'Content-Type': 'application/json',
@@ -356,7 +356,7 @@ export class WPRemoteManagerClient {
               // Check if response is HTML instead of JSON
               const contentType = response.headers['content-type'];
               if (contentType && contentType.includes('text/html') && response.data && typeof response.data === 'string' && response.data.startsWith('<!DOCTYPE')) {
-                console.warn('[WRM-Legacy] Received HTML response instead of JSON');
+                console.warn('[AIOWebcare-Legacy] Received HTML response instead of JSON');
                 const error = new Error(`WordPress site returned HTML error page instead of API response. Status: ${response.status}`);
                 (error as any).isHTMLResponse = true;
                 (error as any).htmlContent = response.data;
@@ -367,7 +367,7 @@ export class WPRemoteManagerClient {
             async (error) => {
               // Handle HTML error responses from legacy endpoint too
               if (error.response && error.response.data && typeof error.response.data === 'string' && error.response.data.startsWith('<!DOCTYPE')) {
-                console.warn(`[WRM-Legacy] Received HTML error page (Status: ${error.response.status})`);
+                console.warn(`[AIOWebcare-Legacy] Received HTML error page (Status: ${error.response.status})`);
                 const enhancedError = new Error(`WordPress site returned HTML error page (${error.response.status}). The site may be experiencing issues or the AIOWebcare plugin may not be properly installed.`);
                 (enhancedError as any).isHTMLResponse = true;
                 (enhancedError as any).status = error.response.status;
@@ -406,7 +406,7 @@ export class WPRemoteManagerClient {
           // Check if endpoints are not found (plugin not installed or inactive)
           if ((error.response?.data?.code === 'rest_no_route' && legacyError.response?.data?.code === 'rest_no_route') ||
               (error.response?.status === 404 && legacyError.response?.status === 404)) {
-            throw new Error(`WordPress Remote Manager plugin endpoints not found. Please ensure the WRM plugin is properly installed and activated on your WordPress site. If recently installed, try clearing any caching.`);
+            throw new Error(`AIOWebcare plugin endpoints not found. Please ensure the AIOWebcare plugin is properly installed and activated on your WordPress site. If recently installed, try clearing any caching.`);
           }
           
           throw legacyError;
@@ -414,6 +414,34 @@ export class WPRemoteManagerClient {
       }
       
       throw error;
+    }
+  }
+
+  /**
+   * Clean unapproved comments method
+   */
+  private async cleanUnapprovedCommentsMethod(): Promise<{ success: boolean; deleted_count: number; message: string }> {
+    try {
+      const response = await this.makeRequestWithFallback('/comments/clean-unapproved', {
+        method: 'POST'
+      });
+      return response.data;
+    } catch (error) {
+      return { success: false, deleted_count: 0, message: 'Failed to clean unapproved comments' };
+    }
+  }
+
+  /**
+   * Clean spam comments method
+   */
+  private async cleanSpamCommentsMethod(): Promise<{ success: boolean; deleted_count: number; message: string }> {
+    try {
+      const response = await this.makeRequestWithFallback('/comments/clean-spam', {
+        method: 'POST'
+      });
+      return response.data;
+    } catch (error) {
+      return { success: false, deleted_count: 0, message: 'Failed to clean spam comments' };
     }
   }
 
@@ -1370,23 +1398,32 @@ export class WPRemoteManagerClient {
             spam_comments: spam,
             trash_comments: trash,
             recent_comments: comments.slice(0, 10).map(comment => ({
-              id: comment.id,
-              author: comment.author_name || 'Anonymous',
-              content: comment.content?.rendered || comment.content || '',
-              date: comment.date,
-              status: comment.status,
-              post_id: comment.post
+              comment_ID: comment.id?.toString() || '',
+              comment_post_ID: comment.post?.toString() || '',
+              comment_author: comment.author_name || 'Anonymous',
+              comment_author_email: comment.author_email || '',
+              comment_author_url: comment.author_url || '',
+              comment_author_IP: comment.author_ip || '',
+              comment_date: comment.date || '',
+              comment_date_gmt: comment.date_gmt || comment.date || '',
+              comment_content: comment.content?.rendered || comment.content || '',
+              comment_karma: '0',
+              comment_approved: comment.status === 'approved' ? '1' : '0',
+              comment_agent: '',
+              comment_type: comment.type || '',
+              comment_parent: comment.parent?.toString() || '0',
+              user_id: comment.author?.toString() || '0'
             }))
           };
           
-          console.log('[WRM Comments] Processed WordPress API data:', JSON.stringify(result, null, 2));
+          console.log('[AIOWebcare Comments] Processed WordPress API data:', JSON.stringify(result, null, 2));
           return result;
         }
       } catch (wpApiError) {
-        console.error('[WRM Comments] WordPress REST API failed:', wpApiError);
+        console.error('[AIOWebcare Comments] WordPress REST API failed:', wpApiError);
       }
       
-      console.warn('[WRM Comments] All endpoints failed, returning fallback');
+      console.warn('[AIOWebcare Comments] All endpoints failed, returning fallback');
       // Final fallback data structure
       return {
         total_comments: 0,
@@ -1488,7 +1525,7 @@ export class WPRemoteManagerClient {
         
         // Try cleaning unapproved comments
         try {
-          const cleanResult = await this.cleanUnapprovedComments();
+          const cleanResult = await this.cleanUnapprovedCommentsMethod();
           if (cleanResult.success && cleanResult.deleted_count > 0) {
             debugLog.push(`[LOCALHOST-AIOWebcare] Successfully cleaned ${cleanResult.deleted_count} unapproved comments`);
             deletedCount += cleanResult.deleted_count;
@@ -1499,7 +1536,7 @@ export class WPRemoteManagerClient {
         
         // Try cleaning spam comments
         try {
-          const spamResult = await this.cleanSpamComments();
+          const spamResult = await this.cleanSpamCommentsMethod();
           if (spamResult.success && spamResult.deleted_count > 0) {
             debugLog.push(`[LOCALHOST-AIOWebcare] Successfully cleaned ${spamResult.deleted_count} spam comments`);
             deletedCount += spamResult.deleted_count;
@@ -1520,7 +1557,6 @@ export class WPRemoteManagerClient {
         success,
         message,
         deleted_count: deletedCount,
-        failed_comments: failedComments,
         debugLog
       };
       
@@ -2993,7 +3029,7 @@ export class WPRemoteManagerClient {
         params: { per_page: 1 },
         timeout: 10000,
         headers: {
-          'User-Agent': 'WPRemoteManager/1.0'
+          'User-Agent': 'AIOWebcare-Dashboard/1.0'
         }
       });
 
@@ -3007,7 +3043,7 @@ export class WPRemoteManagerClient {
           params: { per_page: 100 },
           timeout: 15000,
           headers: {
-            'User-Agent': 'WPRemoteManager/1.0'
+            'User-Agent': 'AIOWebcare-Dashboard/1.0'
           }
         });
 
@@ -3028,7 +3064,7 @@ export class WPRemoteManagerClient {
           params: { per_page: 1, status: 'trash' },
           timeout: 10000,
           headers: {
-            'User-Agent': 'WPRemoteManager/1.0'
+            'User-Agent': 'AIOWebcare-Dashboard/1.0'
           }
         });
 
@@ -3046,7 +3082,7 @@ export class WPRemoteManagerClient {
           params: { per_page: 1, status: 'spam' },
           timeout: 10000,
           headers: {
-            'User-Agent': 'WPRemoteManager/1.0'
+            'User-Agent': 'AIOWebcare-Dashboard/1.0'
           }
         });
 
@@ -3066,7 +3102,7 @@ export class WPRemoteManagerClient {
           params: { per_page: 1, status: 'trash' },
           timeout: 10000,
           headers: {
-            'User-Agent': 'WPRemoteManager/1.0'
+            'User-Agent': 'AIOWebcare-Dashboard/1.0'
           }
         });
 
@@ -3183,7 +3219,7 @@ export class WPRemoteManagerClient {
         params: { per_page: 100 },
         timeout: 15000,
         headers: {
-          'User-Agent': 'WPRemoteManager/1.0'
+          'User-Agent': 'AIOWebcare-Dashboard/1.0'
         }
       });
 
@@ -3228,7 +3264,7 @@ export class WPRemoteManagerClient {
             await axios.delete(`${baseUrl}/wp-json/wp/v2/revisions/${revision.id}`, {
               timeout: 10000,
               headers: {
-                'User-Agent': 'WPRemoteManager/1.0'
+                'User-Agent': 'AIOWebcare-Dashboard/1.0'
               }
             });
             deletedCount++;
@@ -3297,7 +3333,7 @@ export class WPRemoteManagerClient {
           params: { per_page: 100, status: 'spam' },
           timeout: 15000,
           headers: {
-            'User-Agent': 'WPRemoteManager/1.0'
+            'User-Agent': 'AIOWebcare-Dashboard/1.0'
           }
         });
 
@@ -3309,7 +3345,7 @@ export class WPRemoteManagerClient {
             await axios.delete(`${baseUrl}/wp-json/wp/v2/comments/${comment.id}?force=true`, {
               timeout: 10000,
               headers: {
-                'User-Agent': 'WPRemoteManager/1.0'
+                'User-Agent': 'AIOWebcare-Dashboard/1.0'
               }
             });
             itemsDeleted++;
@@ -3333,7 +3369,7 @@ export class WPRemoteManagerClient {
           params: { per_page: 50, status: 'trash' },
           timeout: 15000,
           headers: {
-            'User-Agent': 'WPRemoteManager/1.0'
+            'User-Agent': 'AIOWebcare-Dashboard/1.0'
           }
         });
 
@@ -3345,7 +3381,7 @@ export class WPRemoteManagerClient {
             await axios.delete(`${baseUrl}/wp-json/wp/v2/posts/${post.id}?force=true`, {
               timeout: 10000,
               headers: {
-                'User-Agent': 'WPRemoteManager/1.0'
+                'User-Agent': 'AIOWebcare-Dashboard/1.0'
               }
             });
             itemsDeleted++;
@@ -3366,7 +3402,7 @@ export class WPRemoteManagerClient {
           params: { per_page: 100, status: 'trash' },
           timeout: 15000,
           headers: {
-            'User-Agent': 'WPRemoteManager/1.0'
+            'User-Agent': 'AIOWebcare-Dashboard/1.0'
           }
         });
 
@@ -3378,7 +3414,7 @@ export class WPRemoteManagerClient {
             await axios.delete(`${baseUrl}/wp-json/wp/v2/comments/${comment.id}?force=true`, {
               timeout: 10000,
               headers: {
-                'User-Agent': 'WPRemoteManager/1.0'
+                'User-Agent': 'AIOWebcare-Dashboard/1.0'
               }
             });
             itemsDeleted++;
@@ -3541,7 +3577,7 @@ export class WPRemoteManagerClient {
         debugLog
       };
     } catch (error: any) {
-      debugLog.push(`[WRM-CLIENT] Direct API error: ${error.message}`);
+      debugLog.push(`[AIOWebcare-CLIENT] Direct API error: ${error.message}`);
       return {
         success: false,
         message: 'Failed to remove unapproved comments via WordPress Core API',
@@ -3590,7 +3626,7 @@ export class WPRemoteManagerClient {
           }
         }
       } catch (spamFetchError) {
-        debugLog.push(`[WRM-CLIENT] Could not fetch spam comments`);
+        debugLog.push(`[AIOWebcare-CLIENT] Could not fetch spam comments`);
       }
       
       // Get trash comments
@@ -3623,7 +3659,7 @@ export class WPRemoteManagerClient {
           }
         }
       } catch (trashFetchError) {
-        debugLog.push(`[WRM-CLIENT] Could not fetch trash comments`);
+        debugLog.push(`[AIOWebcare-CLIENT] Could not fetch trash comments`);
       }
       
       return {
@@ -3633,7 +3669,7 @@ export class WPRemoteManagerClient {
         debugLog
       };
     } catch (error: any) {
-      debugLog.push(`[WRM-CLIENT] Direct API error: ${error.message}`);
+      debugLog.push(`[AIOWebcare-CLIENT] Direct API error: ${error.message}`);
       return {
         success: false,
         message: 'Failed to remove spam and trashed comments via WordPress Core API',
