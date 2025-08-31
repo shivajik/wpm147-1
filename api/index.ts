@@ -1904,7 +1904,7 @@ class WPRemoteManagerClient {
     this.url = url.replace(/\/$/, ''); // Remove trailing slash
     this.apiKey = apiKey;
     this.client = axios.create({
-      timeout: 30000, // Increased to 30 seconds to match local implementation
+      timeout: 10000, // Reduced to 10 seconds for Vercel serverless compatibility
       headers: {
         'Content-Type': 'application/json',
         'X-WRMS-API-Key': this.apiKey, // Secure version header
@@ -2287,14 +2287,24 @@ async deactivatePlugin(plugin: string): Promise<{
     try {
       console.log('[WRM-Vercel] Fetching comprehensive WordPress data with fallback support...');
       
+      // Add timeout protection for Vercel serverless
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('WordPress data fetch timeout - please try again')), 25000);
+      });
+      
       // Use makeRequest which now includes fallback logic
-      const [statusResult, updatesResult, pluginsResult, themesResult, usersResult] = await Promise.allSettled([
+      const dataPromise = Promise.allSettled([
         this.makeRequest('/status'),
         this.makeRequest('/updates'), 
         this.makeRequest('/plugins'),
         this.makeRequest('/themes'),
         this.makeRequest('/users')
       ]);
+      
+      const [statusResult, updatesResult, pluginsResult, themesResult, usersResult] = await Promise.race([
+        dataPromise,
+        timeoutPromise
+      ]) as any;
 
       // Enhanced theme data processing for metadata compatibility
       let processedThemeData: any = null;
@@ -8909,10 +8919,11 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
         // Try to fetch real WordPress data if API key exists
         if (website.wrmApiKey && website.url) {
           try {
+            console.log('[WordPress Data] Starting data fetch for website:', websiteId, 'URL:', website.url);
             const wpClient = new WPRemoteManagerClient(website.url, website.wrmApiKey);
             const wpData = await wpClient.getWordPressData();
             
-            console.log('[WordPress Data] Successfully fetched comprehensive data for website:', websiteId);
+            console.log('[WordPress Data] Successfully fetched comprehensive data for website:', websiteId, 'Data keys:', Object.keys(wpData));
             
             // Transform the data to match frontend expectations
             const transformedData = {
@@ -8935,7 +8946,13 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
             
             return res.status(200).json(transformedData);
           } catch (wpError) {
-            console.error('[WordPress Data] WordPress API error:', wpError);
+            console.error('[WordPress Data] WordPress API error for website', websiteId, ':', wpError);
+            console.error('[WordPress Data] Error details:', {
+              message: wpError instanceof Error ? wpError.message : 'Unknown error',
+              stack: wpError instanceof Error ? wpError.stack : undefined,
+              url: website.url,
+              hasApiKey: !!website.wrmApiKey
+            });
             
             // Return structured error data instead of throwing 500 error
             return res.status(200).json({
