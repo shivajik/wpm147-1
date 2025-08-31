@@ -5429,8 +5429,8 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
             
             maintenanceData.updates.plugins.push({
               name: pluginName,
-              versionFrom: fromVersion,
-              versionTo: toVersion,
+              fromVersion: fromVersion,
+              toVersion: toVersion,
               date: log.createdAt
             });
           }
@@ -5471,8 +5471,8 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
             
             maintenanceData.updates.themes.push({
               name: themeName,
-              versionFrom: fromVersion,
-              versionTo: toVersion,
+              fromVersion: fromVersion,
+              toVersion: toVersion,
               date: log.createdAt
             });
           }
@@ -5481,8 +5481,8 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
           const coreLogs = updateLogs.filter(log => log.updateType === 'core');
           coreLogs.forEach(log => {
             maintenanceData.updates.core.push({
-              versionFrom: log.fromVersion || 'Unknown',
-              versionTo: log.toVersion || 'Latest',
+              fromVersion: log.fromVersion || 'Unknown',
+              toVersion: log.toVersion || 'Latest',
               date: log.createdAt
             });
           });

@@ -2603,8 +2603,8 @@ function generateDetailedReportHTML(reportData: any): string {
   const themeUpdates = (reportData.updates?.themes || []).slice(0, 3).map(theme => `
     <tr>
       <td>${theme.name}</td>
-      <td>${theme.versionFrom}</td>
-      <td>${theme.versionTo}</td>
+      <td>${theme.fromVersion}</td>
+      <td>${theme.toVersion}</td>
       <td>${formatDate(theme.date)}</td>
       <td><span class="status-good">${theme.status || 'completed'}</span></td>
     </tr>
@@ -5853,19 +5853,19 @@ if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') 
         total: reportData.updates?.total || 0,
         plugins: limitArray(reportData.updates?.plugins || [], 30).map((plugin: any) => ({
           name: plugin.name || plugin.itemName || 'Unknown Plugin',
-          versionFrom: plugin.fromVersion || 'N/A',
-          versionTo: plugin.toVersion || plugin.newVersion || 'Latest',
+          fromVersion: plugin.fromVersion || 'N/A',
+          toVersion: plugin.toVersion || plugin.newVersion || 'Latest',
           date: plugin.date || new Date().toISOString()
         })),
         themes: limitArray(reportData.updates?.themes || [], 15).map((theme: any) => ({
           name: theme.name || theme.itemName || 'Unknown Theme',
-          versionFrom: theme.fromVersion || 'N/A',
-          versionTo: theme.toVersion || theme.newVersion || 'Latest',
+          fromVersion: theme.fromVersion || 'N/A',
+          toVersion: theme.toVersion || theme.newVersion || 'Latest',
           date: theme.date || new Date().toISOString()
         })),
         core: reportData.updates?.core ? [{
-          versionFrom: reportData.updates.core.fromVersion || 'N/A',
-          versionTo: reportData.updates.core.toVersion || 'Latest',
+          fromVersion: reportData.updates.core.fromVersion || 'N/A',
+          toVersion: reportData.updates.core.toVersion || 'Latest',
           date: reportData.updates.core.date || new Date().toISOString()
         }] : []
       },
@@ -10138,21 +10138,21 @@ if (maintenanceData._debugLogs && maintenanceData._debugLogs.length > 0) {
                 total: websiteUpdateLogs.length,
                 plugins: websiteUpdateLogs.filter(log => log.updateType === 'plugin').map(log => ({
                   name: log.itemName || 'Unknown Plugin',
-                  versionFrom: log.fromVersion || 'Unknown',
-                  versionTo: log.toVersion || 'Unknown', 
+                  fromVersion: log.fromVersion || 'Unknown',
+                  toVersion: log.toVersion || 'Unknown', 
                   date: (log.createdAt || new Date()).toISOString(),
                   status: log.updateStatus || 'completed'
                 })),
                 themes: websiteUpdateLogs.filter(log => log.updateType === 'theme').map(log => ({
                   name: log.itemName || 'Unknown Theme',
-                  versionFrom: log.fromVersion || 'Unknown',
-                  versionTo: log.toVersion || 'Unknown',
+                  fromVersion: log.fromVersion || 'Unknown',
+                  toVersion: log.toVersion || 'Unknown',
                   date: (log.createdAt || new Date()).toISOString(),
                   status: log.updateStatus || 'completed'
                 })),
                 core: websiteUpdateLogs.filter(log => log.updateType === 'core').map(log => ({
-                  versionFrom: log.fromVersion || 'Unknown',
-                  versionTo: log.toVersion || 'Unknown',
+                  fromVersion: log.fromVersion || 'Unknown',
+                  toVersion: log.toVersion || 'Unknown',
                   date: (log.createdAt || new Date()).toISOString(),
                   status: log.updateStatus || 'completed'
                 }))
