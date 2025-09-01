@@ -2949,29 +2949,7 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
         approvedComments: 0
       }
     },
-    security: {
-      totalScans: 0,
-      lastScan: {
-        date: new Date().toISOString(),
-        status: 'clean' as 'clean' | 'issues',
-        malware: 'clean' as 'clean' | 'infected',
-        webTrust: 'clean' as 'clean' | 'warning',
-        vulnerabilities: 0
-      },
-      scanHistory: [] as any[]
-    },
-    performance: {
-      totalChecks: 0,
-      lastScan: {
-        date: new Date().toISOString(),
-        pageSpeedScore: 85,
-        pageSpeedGrade: 'B',
-        ysloScore: 76,
-        ysloGrade: 'C',
-        loadTime: 2.5
-      },
-      history: [] as any[]
-    },
+    // Security and performance sections will be added only if real data exists
     customWork: [] as any[]
   };
 
@@ -10288,52 +10266,45 @@ if (maintenanceData._debugLogs && maintenanceData._debugLogs.length > 0) {
               ...reportRecord,
               reportData: {
                 ...(reportRecord.reportData as any || {}),
+                // Only include security section if real scans exist
+              ...(securityScans.length > 0 ? {
                 security: {
-                totalScans: securityScans.length,
-                scanHistory: securityScans.map(scan => ({
-                  date: scan.scanStartedAt.toISOString(),
-                  malware: scan.malwareStatus || 'clean',
-                  vulnerabilities: (scan.coreVulnerabilities || 0) + (scan.pluginVulnerabilities || 0) + (scan.themeVulnerabilities || 0),
-                  webTrust: scan.threatLevel === 'low' ? 'clean' : (scan.threatLevel === 'medium' ? 'suspicious' : 'high risk')
-                })),
-                lastScan: securityScans.length > 0 ? {
-                  date: securityScans[0].scanStartedAt.toISOString(),
-                  status: securityScans[0].malwareStatus || 'clean',
-                  malware: securityScans[0].malwareStatus || 'clean',
-                  webTrust: securityScans[0].threatLevel === 'low' ? 'clean' : 'warning',
-                  vulnerabilities: (securityScans[0].coreVulnerabilities || 0) + (securityScans[0].pluginVulnerabilities || 0) + (securityScans[0].themeVulnerabilities || 0)
-                } : {
-                  date: new Date().toISOString(),
-                  status: 'clean',
-                  malware: 'clean', 
-                  webTrust: 'clean',
-                  vulnerabilities: 0
+                  totalScans: securityScans.length,
+                  scanHistory: securityScans.map(scan => ({
+                    date: scan.scanStartedAt.toISOString(),
+                    malware: scan.malwareStatus || 'clean',
+                    vulnerabilities: (scan.coreVulnerabilities || 0) + (scan.pluginVulnerabilities || 0) + (scan.themeVulnerabilities || 0),
+                    webTrust: scan.threatLevel === 'low' ? 'clean' : (scan.threatLevel === 'medium' ? 'suspicious' : 'high risk')
+                  })),
+                  lastScan: {
+                    date: securityScans[0].scanStartedAt.toISOString(),
+                    status: securityScans[0].malwareStatus || 'clean',
+                    malware: securityScans[0].malwareStatus || 'clean',
+                    webTrust: securityScans[0].threatLevel === 'low' ? 'clean' : 'warning',
+                    vulnerabilities: (securityScans[0].coreVulnerabilities || 0) + (securityScans[0].pluginVulnerabilities || 0) + (securityScans[0].themeVulnerabilities || 0)
+                  }
                 }
-              },
-              performance: {
-                totalChecks: performanceScans.length,
-                history: performanceScans.map(scan => ({
-                  date: (scan.generatedAt || new Date()).toISOString(),
-                  loadTime: 2.5 + Math.random() * 2,
-                  pageSpeed: scan.userExperienceScore || 85,
-                  yslow: scan.technicalScore || 76
-                })),
-                lastScan: performanceScans.length > 0 ? {
-                  date: (performanceScans[0].generatedAt || new Date()).toISOString(),
-                  pageSpeedScore: performanceScans[0].userExperienceScore || 85,
-                  pageSpeedGrade: 'B',
-                  ysloScore: performanceScans[0].technicalScore || 76,
-                  ysloGrade: 'C',
-                  loadTime: 2.5 + Math.random() * 2
-                } : {
-                  date: new Date().toISOString(),
-                  pageSpeedScore: 85,
-                  pageSpeedGrade: 'B',
-                  ysloScore: 76,
-                  ysloGrade: 'C',
-                  loadTime: 2.5
+              } : {}),
+              // Only include performance section if real scans exist
+              ...(performanceScans.length > 0 ? {
+                performance: {
+                  totalChecks: performanceScans.length,
+                  history: performanceScans.map(scan => ({
+                    date: (scan.generatedAt || new Date()).toISOString(),
+                    loadTime: scan.technicalScore ? (scan.technicalScore / 20) : undefined, // Convert technical score to load time
+                    pageSpeed: scan.userExperienceScore,
+                    yslow: scan.technicalScore
+                  })),
+                  lastScan: {
+                    date: (performanceScans[0].generatedAt || new Date()).toISOString(),
+                    pageSpeedScore: performanceScans[0].userExperienceScore,
+                    pageSpeedGrade: performanceScans[0].userExperienceScore >= 90 ? 'A' : performanceScans[0].userExperienceScore >= 80 ? 'B' : 'C',
+                    ysloScore: performanceScans[0].technicalScore,
+                    ysloGrade: performanceScans[0].technicalScore >= 90 ? 'A' : performanceScans[0].technicalScore >= 80 ? 'B' : 'C',
+                    loadTime: performanceScans[0].technicalScore ? (performanceScans[0].technicalScore / 20) : undefined
+                  }
                 }
-              },
+              } : {}),
               updates: {
                 total: websiteUpdateLogs.length,
                 plugins: websiteUpdateLogs.filter(log => log.updateType === 'plugin').map(log => ({

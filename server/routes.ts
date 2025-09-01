@@ -5268,9 +5268,9 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
         uptimePercentage: 100.0,
         analyticsChange: 0,
         securityStatus: 'safe' as 'safe' | 'warning' | 'critical',
-        performanceScore: 85,
         seoScore: 92,
         keywordsTracked: 0
+        // performanceScore will be added only if real performance data exists
       },
       websites: [] as any[],
       updates: {
@@ -5292,29 +5292,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
           approvedComments: 0
         }
       },
-      security: {
-        totalScans: 0,
-        lastScan: {
-          date: new Date().toISOString(),
-          status: 'clean' as 'clean' | 'issues',
-          malware: 'clean' as 'clean' | 'infected',
-          webTrust: 'clean' as 'clean' | 'warning',
-          vulnerabilities: 0
-        },
-        scanHistory: [] as any[]
-      },
-      performance: {
-        totalChecks: 0,
-        lastScan: {
-          date: new Date().toISOString(),
-          pageSpeedScore: 85,
-          pageSpeedGrade: 'B',
-          ysloScore: 76,
-          ysloGrade: 'C',
-          loadTime: 2.5
-        },
-        history: [] as any[]
-      },
+      // Security and performance sections will be added only if real data exists
       customWork: [] as any[]
     };
 
@@ -5528,7 +5506,17 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
           try {
             const performanceScans = await storage.getPerformanceScans(websiteId, userId);
             if (performanceScans.length > 0) {
+              console.log(`[MAINTENANCE_DATA] Found ${performanceScans.length} real performance scans for website ${websiteId}`);
               const latestPerformanceScan = performanceScans[0]; // Most recent scan
+              
+              // Only add performance section if real data exists
+              if (!maintenanceData.performance) {
+                maintenanceData.performance = {
+                  totalChecks: 0,
+                  history: [] as any[]
+                };
+              }
+              
               maintenanceData.overview.performanceScore = latestPerformanceScan.pagespeedScore;
               maintenanceData.performance.lastScan = {
                 date: latestPerformanceScan.scanTimestamp.toISOString(),
@@ -5539,13 +5527,15 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
                 loadTime: latestPerformanceScan.lcpScore
               };
               maintenanceData.performance.totalChecks = performanceScans.length;
-              // Process performance history with enhanced data structure
+              // Process performance history with real data only
               maintenanceData.performance.history = performanceScans.slice(0, 10).map(scan => ({
                 date: scan.scanTimestamp.toISOString(),
-                loadTime: scan.scanData?.yslow_metrics?.load_time ? scan.scanData.yslow_metrics.load_time / 1000 : (scan.lcpScore || 2.5), // Convert ms to seconds or use LCP
+                loadTime: scan.scanData?.yslow_metrics?.load_time ? scan.scanData.yslow_metrics.load_time / 1000 : scan.lcpScore,
                 pageSpeedScore: scan.pagespeedScore,
                 ysloScore: scan.yslowScore
               }));
+            } else {
+              console.log(`[MAINTENANCE_DATA] No performance scans found for website ${websiteId} - excluding performance section`);
             }
           } catch (performanceError) {
             console.warn(`[MAINTENANCE_DATA] Performance scans not available for website ${websiteId}:`, performanceError instanceof Error ? performanceError.message : 'Unknown error');
@@ -5555,7 +5545,16 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
           try {
             const securityScans = await storage.getSecurityScans(websiteId, userId);
             if (securityScans.length > 0) {
+              console.log(`[MAINTENANCE_DATA] Found ${securityScans.length} real security scans for website ${websiteId}`);
               const latestSecurityScan = securityScans[0]; // Most recent scan
+              
+              // Only add security section if real data exists
+              if (!maintenanceData.security) {
+                maintenanceData.security = {
+                  totalScans: 0,
+                  scanHistory: [] as any[]
+                };
+              }
               
               // Determine security status based on scan results
               let securityStatus: 'safe' | 'warning' | 'critical' = 'safe';
@@ -5575,15 +5574,17 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
               };
               maintenanceData.security.totalScans = securityScans.length;
               
-              // Enhanced security scan history with proper structure
+              // Enhanced security scan history with real data only
               maintenanceData.security.scanHistory = securityScans.slice(0, 10).map(scan => ({
                 date: scan.scanStartedAt.toISOString(),
                 status: scan.scanStatus === 'completed' ? 'clean' : 'issues',
                 malware: scan.malwareStatus || 'clean',
                 webTrust: scan.blacklistStatus === 'clean' ? 'clean' : 'warning',
-                securityScore: scan.overallSecurityScore || 85,
+                securityScore: scan.overallSecurityScore,
                 vulnerabilities: (scan.coreVulnerabilities || 0) + (scan.pluginVulnerabilities || 0) + (scan.themeVulnerabilities || 0)
               }));
+            } else {
+              console.log(`[MAINTENANCE_DATA] No security scans found for website ${websiteId} - excluding security section`);
             }
           } catch (securityError) {
             console.warn(`[MAINTENANCE_DATA] Security scans not available for website ${websiteId}:`, securityError instanceof Error ? securityError.message : 'Unknown error');
