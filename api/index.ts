@@ -4,7 +4,7 @@ import postgres from 'postgres';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
-import { ManageWPStylePDFGenerator } from "../server/pdf-report-generator.js";
+import { ManageWPStylePDFGenerator } from "../server/pdf-report-generator.ts";
 import { eq, and, asc, desc, sql, gte, lte, inArray } from 'drizzle-orm';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
@@ -31,10 +31,10 @@ import {
   clientReports as clientReportsTable,
   seoReports as seoReportsTable,
   linkScanHistory as linkScanHistoryTable 
-} from '../shared/schema.js';
+} from '../shared/schema.ts';
 
 // Import WP Remote Manager Client
-import { WPRemoteManagerClient } from '../server/wp-remote-manager-client.js';
+import { WPRemoteManagerClient } from '../server/wp-remote-manager-client.ts';
 import { add } from 'date-fns';
 
 // Vercel-compatible SEO Analyzer for real data analysis
@@ -3458,7 +3458,7 @@ export default async function handler(req: any, res: any) {
 
       try {
         console.log(`🔐 [TEST] Starting security scan for: ${url}`);
-        const { VercelSecurityScanner } = await import('./security-scanner.js');
+        const { VercelSecurityScanner } = await import('./security-scanner.ts');
         const scanner = new VercelSecurityScanner(url, 0, 0);
         
         const scanResults = await scanner.performComprehensiveScan();
@@ -5859,13 +5859,13 @@ if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') 
         })),
         themes: limitArray(reportData.updates?.themes || [], 15).map((theme: any) => ({
           name: theme.name || theme.itemName || 'Unknown Theme',
-          fromVersion: theme.fromVersion || 'N/A',
-          toVersion: theme.toVersion || theme.newVersion || 'Latest',
+          versionFrom: theme.fromVersion || 'N/A',
+          versionTo: theme.toVersion || theme.newVersion || 'Latest',
           date: theme.date || new Date().toISOString()
         })),
         core: reportData.updates?.core ? [{
-          fromVersion: reportData.updates.core.fromVersion || 'N/A',
-          toVersion: reportData.updates.core.toVersion || 'Latest',
+          versionFrom: reportData.updates.core.fromVersion || 'N/A',
+          versionTo: reportData.updates.core.toVersion || 'Latest',
           date: reportData.updates.core.date || new Date().toISOString()
         }] : []
       },
@@ -5928,7 +5928,7 @@ if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') 
     };
 
     // Use the enhanced PDF generator for professional reports  
-    const { EnhancedPDFGenerator } = await import('../server/enhanced-pdf-generator.js');
+    const { EnhancedPDFGenerator } = await import('../server/enhanced-pdf-generator.ts');
     const pdfGenerator = new EnhancedPDFGenerator();
     const reportHtml = pdfGenerator.generateReportHTML(enhancedData);
     
@@ -6070,7 +6070,14 @@ if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') 
     }
 
     // Fetch REAL performance scan history from database
-    let realPerformanceHistory = [];
+    let realPerformanceHistory: Array<{
+      date: string;
+      loadTime: number;
+      pageSpeedScore: number;
+      pageSpeedGrade: string;
+      ysloScore: number;
+      ysloGrade: string;
+    }> = [];
     let realPerformanceScans = 0;
     try {
       const websiteIds = Array.isArray(reportRecord.websiteIds) ? reportRecord.websiteIds : [];
@@ -6099,7 +6106,13 @@ if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') 
     }
 
     // Fetch REAL security scan history from database
-    let realSecurityHistory = [];
+    let realSecurityHistory: Array<{
+      date: string;
+      malware: string;
+      vulnerabilities: number;
+      webTrust: string;
+      status: string;
+    }> = [];
     let realSecurityScans = 0;
     try {
       const websiteIds = Array.isArray(reportRecord.websiteIds) ? reportRecord.websiteIds : [];
@@ -6126,7 +6139,37 @@ if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') 
     }
 
     // Fetch REAL update logs from database
-    let realUpdateHistory = { plugins: [], themes: [], core: [], total: 0 };
+    let realUpdateHistory: {
+      plugins: Array<{
+        name: string;
+        slug: string;
+        fromVersion: string;
+        toVersion: string;
+        status: string;
+        date: string;
+        automated: boolean;
+        duration: number;
+      }>;
+      themes: Array<{
+        name: string;
+        slug: string;
+        fromVersion: string;
+        toVersion: string;
+        status: string;
+        date: string;
+        automated: boolean;
+        duration: number;
+      }>;
+      core: Array<{
+        fromVersion: string;
+        toVersion: string;
+        status: string;
+        date: string;
+        automated: boolean;
+        duration: number;
+      }>;
+      total: number;
+    } = { plugins: [], themes: [], core: [], total: 0 };
     try {
       const websiteIds = Array.isArray(reportRecord.websiteIds) ? reportRecord.websiteIds : [];
       if (websiteIds.length > 0) {
@@ -8423,7 +8466,7 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
 
         // Use VercelSecurityScanner with WRM updates integration
         try {
-          const { VercelSecurityScanner } = await import('./security-scanner.js');
+          const { VercelSecurityScanner } = await import('./security-scanner.ts');
           const scanner = new VercelSecurityScanner(website.url, websiteId, user.id, website.wrmApiKey || undefined);
           
           const scanResults = await scanner.performComprehensiveScan();
@@ -9539,6 +9582,7 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
         // Use ActivityLogger approach like localhost to get REAL data from database
         let realMaintenanceOverview = null;
         try {
+          const websiteIds = Array.isArray(reportRecord.websiteIds) ? reportRecord.websiteIds : [];
           if (websiteIds.length > 0) {
             console.log(`[PRODUCTION-STEP4] Using ActivityLogger approach to get real maintenance data for website ${websiteIds[0]}`);
             
