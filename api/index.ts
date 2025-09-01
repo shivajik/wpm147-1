@@ -2676,11 +2676,11 @@ function generateDetailedReportHTML(reportData: any): string {
               <div class="stat-label">Report ID</div>
             </div>
             <div class="stat-item">
-              <div class="stat-number">${reportData.security?.totalScans || 0}</div>
+              <div class="stat-number">${(reportData.security?.scanHistory || []).length || reportData.security?.totalScans || 0}</div>
               <div class="stat-label">Security Scans</div>
             </div>
             <div class="stat-item">
-              <div class="stat-number">${reportData.performance?.totalChecks || 0}</div>
+              <div class="stat-number">${(reportData.performance?.history || []).length || reportData.performance?.totalChecks || 0}</div>
               <div class="stat-label">Performance Checks</div>
             </div>
             <div class="stat-item">
@@ -2698,19 +2698,19 @@ function generateDetailedReportHTML(reportData: any): string {
           <p><strong>Date:</strong> ${formatDate(reportData.security?.lastScan?.date || new Date().toISOString())}</p>
           <div class="metrics-grid">
             <div class="metric-card">
-              <div class="metric-value status-good">${reportData.security?.lastScan?.status || 'Clean'}</div>
+              <div class="metric-value ${(reportData.security?.lastScan?.status === 'clean' || reportData.security?.lastScan?.status === 'good') ? 'status-good' : (reportData.security?.lastScan?.status === 'warning' ? 'status-warning' : 'status-error')}">${reportData.security?.lastScan?.status || 'No Data'}</div>
               <div class="metric-label">Overall Status</div>
             </div>
             <div class="metric-card">
-              <div class="metric-value status-good">${reportData.security?.lastScan?.malware || 'Clean'}</div>
+              <div class="metric-value ${(reportData.security?.lastScan?.malware === 'clean' || reportData.security?.lastScan?.malware === 'good') ? 'status-good' : (reportData.security?.lastScan?.malware === 'warning' ? 'status-warning' : 'status-error')}">${reportData.security?.lastScan?.malware || 'No Data'}</div>
               <div class="metric-label">Malware Status</div>
             </div>
             <div class="metric-card">
-              <div class="metric-value status-good">${reportData.security?.lastScan?.webTrust || 'Clean'}</div>
+              <div class="metric-value ${(reportData.security?.lastScan?.webTrust === 'clean' || reportData.security?.lastScan?.webTrust === 'good') ? 'status-good' : (reportData.security?.lastScan?.webTrust === 'warning' ? 'status-warning' : 'status-error')}">${reportData.security?.lastScan?.webTrust || 'No Data'}</div>
               <div class="metric-label">Web Trust</div>
             </div>
             <div class="metric-card">
-              <div class="metric-value status-good">${reportData.security?.lastScan?.vulnerabilities || 0}</div>
+              <div class="metric-value ${(reportData.security?.lastScan?.vulnerabilities || 0) === 0 ? 'status-good' : 'status-warning'}">${reportData.security?.lastScan?.vulnerabilities !== undefined ? reportData.security.lastScan.vulnerabilities : 'N/A'}</div>
               <div class="metric-label">Vulnerabilities</div>
             </div>
           </div>
@@ -2741,15 +2741,15 @@ function generateDetailedReportHTML(reportData: any): string {
           <p><strong>Date:</strong> ${formatDate(reportData.performance?.lastScan?.date || new Date().toISOString())}</p>
           <div class="metrics-grid">
             <div class="metric-card">
-              <div class="metric-value">${reportData.performance?.lastScan?.pageSpeedGrade || 'B'}</div>
-              <div class="metric-label">PageSpeed Grade (${reportData.performance?.lastScan?.pageSpeedScore || 85}/100)</div>
+              <div class="metric-value">${reportData.performance?.lastScan?.pageSpeedGrade || (reportData.performance?.lastScan?.pageSpeedScore ? (reportData.performance.lastScan.pageSpeedScore >= 90 ? 'A' : reportData.performance.lastScan.pageSpeedScore >= 80 ? 'B' : reportData.performance.lastScan.pageSpeedScore >= 70 ? 'C' : reportData.performance.lastScan.pageSpeedScore >= 60 ? 'D' : 'F') : 'N/A')}</div>
+              <div class="metric-label">PageSpeed Grade (${reportData.performance?.lastScan?.pageSpeedScore || 'N/A'}/100)</div>
             </div>
             <div class="metric-card">
-              <div class="metric-value">${reportData.performance?.lastScan?.ysloGrade || 'C'}</div>
-              <div class="metric-label">YSlow Grade (${reportData.performance?.lastScan?.ysloScore || 76}/100)</div>
+              <div class="metric-value">${reportData.performance?.lastScan?.ysloGrade || (reportData.performance?.lastScan?.ysloScore ? (reportData.performance.lastScan.ysloScore >= 90 ? 'A' : reportData.performance.lastScan.ysloScore >= 80 ? 'B' : reportData.performance.lastScan.ysloScore >= 70 ? 'C' : reportData.performance.lastScan.ysloScore >= 60 ? 'D' : 'F') : 'N/A')}</div>
+              <div class="metric-label">YSlow Grade (${reportData.performance?.lastScan?.ysloScore || 'N/A'}/100)</div>
             </div>
             <div class="metric-card">
-              <div class="metric-value">${reportData.performance?.lastScan?.loadTime || 2.5}s</div>
+              <div class="metric-value">${reportData.performance?.lastScan?.loadTime || 'N/A'}${reportData.performance?.lastScan?.loadTime ? 's' : ''}</div>
               <div class="metric-label">Load Time</div>
             </div>
           </div>
@@ -3260,15 +3260,28 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
               maintenanceData.backups.total = realBackupCount;
               maintenanceData.backups.totalAvailable = realBackupCount;
               
-              // Get WordPress installation details for backup info using real data
-              maintenanceData.backups.latest = {
-                ...maintenanceData.backups.latest, // PRESERVE existing data
-                date: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-                size: `${Math.floor(Math.random() * 500 + 100)} MB`,
-                wordpressVersion: enhancedWebsite.wpVersion || wpData.core?.version || wpData.version || 'Unknown',
-                publishedPosts: parseInt(enhancedWebsite.postsCount) || wpData.posts?.published || Math.floor(Math.random() * 100) + 10,
-                approvedComments: wpData.comments?.approved || Math.floor(Math.random() * 50)
-              };
+              // Get WordPress installation details for backup info using ONLY real data
+              if (wpData.backups.length > 0) {
+                // Use the latest backup data if available
+                const latestBackup = wpData.backups[0];
+                maintenanceData.backups.latest = {
+                  ...maintenanceData.backups.latest, // PRESERVE existing active theme/plugin data
+                  date: latestBackup.date || new Date().toISOString(),
+                  size: latestBackup.size || '0 MB',
+                  wordpressVersion: enhancedWebsite.wpVersion || wpData.core?.version || wpData.version || 'Unknown',
+                  publishedPosts: parseInt(enhancedWebsite.postsCount) || wpData.posts?.published || 0,
+                  approvedComments: wpData.comments?.approved || 0
+                };
+              } else {
+                // Only update WordPress version if no backup data available
+                maintenanceData.backups.latest.wordpressVersion = enhancedWebsite.wpVersion || wpData.core?.version || wpData.version || 'Unknown';
+                if (enhancedWebsite.postsCount) {
+                  maintenanceData.backups.latest.publishedPosts = parseInt(enhancedWebsite.postsCount) || 0;
+                }
+                if (wpData.comments?.approved !== undefined) {
+                  maintenanceData.backups.latest.approvedComments = wpData.comments.approved;
+                }
+              }
 
               // Add debug logs to confirm the values are preserved
               addDebugLog(`[BACKUP_UPDATE] After update - Active Theme: "${maintenanceData.backups.latest.activeTheme}"`);
