@@ -405,7 +405,7 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
             </div>
 
             {/* Security Status - Only show if security data exists */}
-            {(reportData.security && (reportData.security.lastScan || reportData.security.scanHistory?.length > 0 || reportData.security.totalScans > 0)) && (
+            {(reportData.security && (reportData.security.scanHistory?.length > 0 || reportData.security.totalScans > 0)) && (
               <div className={`p-6 rounded-xl border shadow-md ${
                 reportData.overview.securityStatus === 'safe' 
                   ? 'bg-gradient-to-br from-green-50 to-green-100 border-green-200' 
@@ -459,7 +459,7 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
             </div>
 
             {/* Performance Metrics - Only show if performance data exists */}
-            {(reportData.performance && (reportData.performance.lastScan || reportData.performance.history?.length > 0 || reportData.performance.totalChecks > 0)) && (
+            {(reportData.performance && (reportData.performance.history?.length > 0 || reportData.performance.totalChecks > 0)) && (
               <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 p-6 rounded-xl border border-yellow-200 shadow-md">
                 <div className="flex items-center justify-between mb-4">
                   <Zap className="w-10 h-10 text-yellow-600" />
@@ -800,7 +800,7 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
       </Card>
 
       {/* Security Section - Only render if security data exists */}
-      {reportData.security && (
+      {reportData.security && (reportData.security.scanHistory?.length > 0 || reportData.security.totalScans > 0) && (
         <Card className="mb-8 border-0 shadow-2xl bg-gradient-to-br from-white via-red-50 to-orange-100 overflow-hidden">
           <CardHeader className="bg-gradient-to-r from-red-600 via-orange-600 to-amber-600 text-white relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-r from-red-600/90 via-orange-600/90 to-amber-600/90 backdrop-blur-sm"></div>
@@ -877,7 +877,7 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
       )}
 
       {/* Performance Section - Only render if performance data exists */}
-      {reportData.performance && (
+      {reportData.performance && (reportData.performance.history?.length > 0 || reportData.performance.totalChecks > 0) && (
         <Card className="mb-8 border-0 shadow-2xl bg-gradient-to-br from-white via-yellow-50 to-orange-100 overflow-hidden">
           <CardHeader className="bg-gradient-to-r from-yellow-600 via-orange-600 to-red-600 text-white relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-r from-yellow-600/90 via-orange-600/90 to-red-600/90 backdrop-blur-sm"></div>

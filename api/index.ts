@@ -2691,7 +2691,7 @@ function generateDetailedReportHTML(reportData: any): string {
         </div>
       </div>
       
-      ${reportData.security && (reportData.security.lastScan || reportData.security.scanHistory?.length > 0 || reportData.security.totalScans > 0) ? `
+      ${reportData.security && (reportData.security.scanHistory?.length > 0 || reportData.security.totalScans > 0) ? `
         <div class="section">
           <div class="section-title">🔒 Security Overview</div>
           <div class="card">
@@ -2736,7 +2736,7 @@ function generateDetailedReportHTML(reportData: any): string {
         </div>
       ` : ''}
       
-      ${reportData.performance && (reportData.performance.lastScan || reportData.performance.history?.length > 0 || reportData.performance.totalChecks > 0) ? `
+      ${reportData.performance && (reportData.performance.history?.length > 0 || reportData.performance.totalChecks > 0) ? `
         <div class="section">
           <div class="section-title">⚡ Performance Overview</div>
           <div class="card">
