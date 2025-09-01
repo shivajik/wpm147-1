@@ -404,46 +404,48 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
               <div className="text-xs text-blue-500">Plugins, themes, and core updates</div>
             </div>
 
-            {/* Security Status */}
-            <div className={`p-6 rounded-xl border shadow-md ${
-              reportData.overview.securityStatus === 'safe' 
-                ? 'bg-gradient-to-br from-green-50 to-green-100 border-green-200' 
-                : reportData.overview.securityStatus === 'warning'
-                ? 'bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200'
-                : 'bg-gradient-to-br from-red-50 to-red-100 border-red-200'
-            }`}>
-              <div className="flex items-center justify-between mb-4">
-                <Shield className={`w-10 h-10 ${
+            {/* Security Status - Only show if security data exists */}
+            {reportData.overview.securityStatus && (
+              <div className={`p-6 rounded-xl border shadow-md ${
+                reportData.overview.securityStatus === 'safe' 
+                  ? 'bg-gradient-to-br from-green-50 to-green-100 border-green-200' 
+                  : reportData.overview.securityStatus === 'warning'
+                  ? 'bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200'
+                  : 'bg-gradient-to-br from-red-50 to-red-100 border-red-200'
+              }`}>
+                <div className="flex items-center justify-between mb-4">
+                  <Shield className={`w-10 h-10 ${
+                    reportData.overview.securityStatus === 'safe' ? 'text-green-600' : 
+                    reportData.overview.securityStatus === 'warning' ? 'text-yellow-600' : 'text-red-600'
+                  }`} />
+                  <Badge className={`px-3 py-1 text-white ${
+                    reportData.overview.securityStatus === 'safe' ? 'bg-green-600' : 
+                    reportData.overview.securityStatus === 'warning' ? 'bg-yellow-600' : 'bg-red-600'
+                  }`}>
+                    {reportData.overview.securityStatus === 'safe' ? 'Secure' : 
+                     reportData.overview.securityStatus === 'warning' ? 'Caution' : 'Alert'}
+                  </Badge>
+                </div>
+                <div className={`text-3xl font-bold mb-2 capitalize ${
+                  reportData.overview.securityStatus === 'safe' ? 'text-green-700' : 
+                  reportData.overview.securityStatus === 'warning' ? 'text-yellow-700' : 'text-red-700'
+                }`}>
+                  {reportData.overview.securityStatus}
+                </div>
+                <div className={`text-sm font-medium mb-1 ${
                   reportData.overview.securityStatus === 'safe' ? 'text-green-600' : 
                   reportData.overview.securityStatus === 'warning' ? 'text-yellow-600' : 'text-red-600'
-                }`} />
-                <Badge className={`px-3 py-1 text-white ${
-                  reportData.overview.securityStatus === 'safe' ? 'bg-green-600' : 
-                  reportData.overview.securityStatus === 'warning' ? 'bg-yellow-600' : 'bg-red-600'
                 }`}>
-                  {reportData.overview.securityStatus === 'safe' ? 'Secure' : 
-                   reportData.overview.securityStatus === 'warning' ? 'Caution' : 'Alert'}
-                </Badge>
+                  Security Status
+                </div>
+                <div className={`text-xs ${
+                  reportData.overview.securityStatus === 'safe' ? 'text-green-500' : 
+                  reportData.overview.securityStatus === 'warning' ? 'text-yellow-500' : 'text-red-500'
+                }`}>
+                  Latest security assessment
+                </div>
               </div>
-              <div className={`text-3xl font-bold mb-2 capitalize ${
-                reportData.overview.securityStatus === 'safe' ? 'text-green-700' : 
-                reportData.overview.securityStatus === 'warning' ? 'text-yellow-700' : 'text-red-700'
-              }`}>
-                {reportData.overview.securityStatus}
-              </div>
-              <div className={`text-sm font-medium mb-1 ${
-                reportData.overview.securityStatus === 'safe' ? 'text-green-600' : 
-                reportData.overview.securityStatus === 'warning' ? 'text-yellow-600' : 'text-red-600'
-              }`}>
-                Security Status
-              </div>
-              <div className={`text-xs ${
-                reportData.overview.securityStatus === 'safe' ? 'text-green-500' : 
-                reportData.overview.securityStatus === 'warning' ? 'text-yellow-500' : 'text-red-500'
-              }`}>
-                Latest security assessment
-              </div>
-            </div>
+            )}
 
             {/* Website Uptime */}
             <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl border border-purple-200 shadow-md">
@@ -456,16 +458,18 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
               <div className="text-xs text-purple-500">Website operational status</div>
             </div>
 
-            {/* Performance Metrics */}
-            <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 p-6 rounded-xl border border-yellow-200 shadow-md">
-              <div className="flex items-center justify-between mb-4">
-                <Zap className="w-10 h-10 text-yellow-600" />
-                <Badge className="bg-yellow-600 text-white px-3 py-1">Performance</Badge>
+            {/* Performance Metrics - Only show if performance data exists */}
+            {reportData.overview.performanceScore && (
+              <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 p-6 rounded-xl border border-yellow-200 shadow-md">
+                <div className="flex items-center justify-between mb-4">
+                  <Zap className="w-10 h-10 text-yellow-600" />
+                  <Badge className="bg-yellow-600 text-white px-3 py-1">Performance</Badge>
+                </div>
+                <div className="text-3xl font-bold text-yellow-700 mb-2">{reportData.overview.performanceScore}</div>
+                <div className="text-sm font-medium text-yellow-600 mb-1">PageSpeed Score</div>
+                <div className="text-xs text-yellow-500">Google PageSpeed insights</div>
               </div>
-              <div className="text-3xl font-bold text-yellow-700 mb-2">{reportData.overview.performanceScore}</div>
-              <div className="text-sm font-medium text-yellow-600 mb-1">PageSpeed Score</div>
-              <div className="text-xs text-yellow-500">Google PageSpeed insights</div>
-            </div>
+            )}
 
             {/* SEO Progress */}
             <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 p-6 rounded-xl border border-indigo-200 shadow-md">
@@ -792,149 +796,153 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
         </CardContent>
       </Card>
 
-      {/* Security Section */}
-      <Card className="mb-8 border-0 shadow-2xl bg-gradient-to-br from-white via-red-50 to-orange-100 overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-red-600 via-orange-600 to-amber-600 text-white relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-red-600/90 via-orange-600/90 to-amber-600/90 backdrop-blur-sm"></div>
-          <div className="relative z-10">
-            <CardTitle className="text-2xl font-bold flex items-center gap-4 mb-2">
-              <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm border border-white/30 shadow-lg">
-                <Shield className="w-6 h-6 text-white" />
-              </div>
-              <span className="bg-gradient-to-r from-white to-red-100 bg-clip-text text-transparent">
-                SECURITY
-              </span>
-            </CardTitle>
-            <div className="text-red-100 text-sm font-medium pl-16">
-              Total security checks: {reportData.security.totalScans}
-              <br />
-              {formatDate(reportData.dateFrom)} to {formatDate(reportData.dateTo)}
-            </div>
-          </div>
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
-          <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-12 -translate-x-12"></div>
-        </CardHeader>
-        <CardContent>
-          <div className="mb-6">
-            <h4 className="text-lg font-semibold mb-3">MOST RECENT SCAN</h4>
-            <div className="text-lg font-bold mb-4">{formatDateTime(reportData.security.lastScan.date)}</div>
-            
-            <div className="grid grid-cols-4 gap-4 mb-4">
-              <div className="text-center">
-                <div className="text-sm text-gray-600 mb-1">Status:</div>
-                <div className="font-bold text-green-600 capitalize">{reportData.security.lastScan.status}</div>
-              </div>
-              <div className="text-center">
-                <div className="text-sm text-gray-600 mb-1">Malware:</div>
-                <div className="font-bold text-green-600 capitalize">{reportData.security.lastScan.malware}</div>
-              </div>
-              <div className="text-center">
-                <div className="text-sm text-gray-600 mb-1">Web Trust:</div>
-                <div className="font-bold text-green-600 capitalize">{reportData.security.lastScan.webTrust}</div>
-              </div>
-              <div className="text-center">
-                <div className="text-sm text-gray-600 mb-1">Vulnerabilities:</div>
-                <div className="font-bold text-green-600">{reportData.security.lastScan.vulnerabilities}</div>
+      {/* Security Section - Only render if security data exists */}
+      {reportData.security && (
+        <Card className="mb-8 border-0 shadow-2xl bg-gradient-to-br from-white via-red-50 to-orange-100 overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-red-600 via-orange-600 to-amber-600 text-white relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-red-600/90 via-orange-600/90 to-amber-600/90 backdrop-blur-sm"></div>
+            <div className="relative z-10">
+              <CardTitle className="text-2xl font-bold flex items-center gap-4 mb-2">
+                <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm border border-white/30 shadow-lg">
+                  <Shield className="w-6 h-6 text-white" />
+                </div>
+                <span className="bg-gradient-to-r from-white to-red-100 bg-clip-text text-transparent">
+                  SECURITY
+                </span>
+              </CardTitle>
+              <div className="text-red-100 text-sm font-medium pl-16">
+                Total security checks: {reportData.security.totalScans}
+                <br />
+                {formatDate(reportData.dateFrom)} to {formatDate(reportData.dateTo)}
               </div>
             </div>
-          </div>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-12 -translate-x-12"></div>
+          </CardHeader>
+          <CardContent>
+            <div className="mb-6">
+              <h4 className="text-lg font-semibold mb-3">MOST RECENT SCAN</h4>
+              <div className="text-lg font-bold mb-4">{formatDateTime(reportData.security.lastScan.date)}</div>
+              
+              <div className="grid grid-cols-4 gap-4 mb-4">
+                <div className="text-center">
+                  <div className="text-sm text-gray-600 mb-1">Status:</div>
+                  <div className="font-bold text-green-600 capitalize">{reportData.security.lastScan.status}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-sm text-gray-600 mb-1">Malware:</div>
+                  <div className="font-bold text-green-600 capitalize">{reportData.security.lastScan.malware}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-sm text-gray-600 mb-1">Web Trust:</div>
+                  <div className="font-bold text-green-600 capitalize">{reportData.security.lastScan.webTrust}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-sm text-gray-600 mb-1">Vulnerabilities:</div>
+                  <div className="font-bold text-green-600">{reportData.security.lastScan.vulnerabilities}</div>
+                </div>
+              </div>
+            </div>
 
-          <div>
-            <h4 className="text-lg font-semibold mb-3">SECURITY SCAN HISTORY</h4>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left p-2 font-medium">Date</th>
-                    <th className="text-left p-2 font-medium">Malware</th>
-                    <th className="text-left p-2 font-medium">Vulnerabilities</th>
-                    <th className="text-left p-2 font-medium">Web Trust</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {reportData.security.scanHistory.slice(0, 10).map((scan, index) => (
-                    <tr key={index} className="border-b">
-                      <td className="p-2">{formatDateTime(scan.date)}</td>
-                      <td className="p-2 capitalize text-green-600">{scan.malware}</td>
-                      <td className="p-2 capitalize text-green-600">{scan.vulnerabilities}</td>
-                      <td className="p-2 capitalize text-green-600">{scan.webTrust}</td>
+            <div>
+              <h4 className="text-lg font-semibold mb-3">SECURITY SCAN HISTORY</h4>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left p-2 font-medium">Date</th>
+                      <th className="text-left p-2 font-medium">Malware</th>
+                      <th className="text-left p-2 font-medium">Vulnerabilities</th>
+                      <th className="text-left p-2 font-medium">Web Trust</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {reportData.security.scanHistory.slice(0, 10).map((scan, index) => (
+                      <tr key={index} className="border-b">
+                        <td className="p-2">{formatDateTime(scan.date)}</td>
+                        <td className="p-2 capitalize text-green-600">{scan.malware}</td>
+                        <td className="p-2 capitalize text-green-600">{scan.vulnerabilities}</td>
+                        <td className="p-2 capitalize text-green-600">{scan.webTrust}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
-      {/* Performance Section */}
-      <Card className="mb-8 border-0 shadow-2xl bg-gradient-to-br from-white via-yellow-50 to-orange-100 overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-yellow-600 via-orange-600 to-red-600 text-white relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-yellow-600/90 via-orange-600/90 to-red-600/90 backdrop-blur-sm"></div>
-          <div className="relative z-10">
-            <CardTitle className="text-2xl font-bold flex items-center gap-4 mb-2">
-              <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm border border-white/30 shadow-lg">
-                <Zap className="w-6 h-6 text-white" />
-              </div>
-              <span className="bg-gradient-to-r from-white to-yellow-100 bg-clip-text text-transparent">
-                PERFORMANCE
-              </span>
-            </CardTitle>
-            <div className="text-yellow-100 text-sm font-medium pl-16">
-              Total performance checks: {reportData.performance.totalChecks || 0}
-              <br />
-              {formatDate(reportData.dateFrom)} to {formatDate(reportData.dateTo)}
-            </div>
-          </div>
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
-          <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-12 -translate-x-12"></div>
-        </CardHeader>
-        <CardContent>
-          <div className="mb-6">
-            <h4 className="text-lg font-semibold mb-3">MOST RECENT SCAN</h4>
-            <div className="text-lg font-bold mb-4">{formatDateTime(reportData.performance.lastScan.date)}</div>
-            
-            <div className="grid grid-cols-2 gap-6 mb-6">
-              <div className="text-center p-6 bg-gray-50 rounded-lg">
-                <div className="text-sm text-gray-600 mb-2">PageSpeed Grade</div>
-                <div className="text-4xl font-bold text-blue-600 mb-2">{reportData.performance.lastScan.pageSpeedGrade || 'N/A'} ({reportData.performance.lastScan.pageSpeedScore || 'N/A'}%)</div>
-                <div className="text-sm text-gray-600">Previous check: {reportData.performance.lastScan.pageSpeedScore || 'N/A'}%</div>
-              </div>
-              <div className="text-center p-6 bg-gray-50 rounded-lg">
-                <div className="text-sm text-gray-600 mb-2">YSlow Grade</div>
-                <div className="text-4xl font-bold text-orange-600 mb-2">{reportData.performance.lastScan.ysloGrade || 'N/A'} ({reportData.performance.lastScan.ysloScore || 'N/A'}%)</div>
-                <div className="text-sm text-gray-600">Previous check: {reportData.performance.lastScan.ysloScore || 'N/A'}%</div>
+      {/* Performance Section - Only render if performance data exists */}
+      {reportData.performance && (
+        <Card className="mb-8 border-0 shadow-2xl bg-gradient-to-br from-white via-yellow-50 to-orange-100 overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-yellow-600 via-orange-600 to-red-600 text-white relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-yellow-600/90 via-orange-600/90 to-red-600/90 backdrop-blur-sm"></div>
+            <div className="relative z-10">
+              <CardTitle className="text-2xl font-bold flex items-center gap-4 mb-2">
+                <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm border border-white/30 shadow-lg">
+                  <Zap className="w-6 h-6 text-white" />
+                </div>
+                <span className="bg-gradient-to-r from-white to-yellow-100 bg-clip-text text-transparent">
+                  PERFORMANCE
+                </span>
+              </CardTitle>
+              <div className="text-yellow-100 text-sm font-medium pl-16">
+                Total performance checks: {reportData.performance.totalChecks || 0}
+                <br />
+                {formatDate(reportData.dateFrom)} to {formatDate(reportData.dateTo)}
               </div>
             </div>
-          </div>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-12 -translate-x-12"></div>
+          </CardHeader>
+          <CardContent>
+            <div className="mb-6">
+              <h4 className="text-lg font-semibold mb-3">MOST RECENT SCAN</h4>
+              <div className="text-lg font-bold mb-4">{formatDateTime(reportData.performance.lastScan.date)}</div>
+              
+              <div className="grid grid-cols-2 gap-6 mb-6">
+                <div className="text-center p-6 bg-gray-50 rounded-lg">
+                  <div className="text-sm text-gray-600 mb-2">PageSpeed Grade</div>
+                  <div className="text-4xl font-bold text-blue-600 mb-2">{reportData.performance.lastScan.pageSpeedGrade || 'N/A'} ({reportData.performance.lastScan.pageSpeedScore || 'N/A'}%)</div>
+                  <div className="text-sm text-gray-600">Previous check: {reportData.performance.lastScan.pageSpeedScore || 'N/A'}%</div>
+                </div>
+                <div className="text-center p-6 bg-gray-50 rounded-lg">
+                  <div className="text-sm text-gray-600 mb-2">YSlow Grade</div>
+                  <div className="text-4xl font-bold text-orange-600 mb-2">{reportData.performance.lastScan.ysloGrade || 'N/A'} ({reportData.performance.lastScan.ysloScore || 'N/A'}%)</div>
+                  <div className="text-sm text-gray-600">Previous check: {reportData.performance.lastScan.ysloScore || 'N/A'}%</div>
+                </div>
+              </div>
+            </div>
 
-          <div>
-            <h4 className="text-lg font-semibold mb-3">PERFORMANCE HISTORY</h4>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left p-2 font-medium">Date</th>
-                    <th className="text-left p-2 font-medium">Load time</th>
-                    <th className="text-left p-2 font-medium">PageSpeed</th>
-                    <th className="text-left p-2 font-medium">YSlow</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {reportData.performance.history.slice(0, 5).map((perf, index) => (
-                    <tr key={index} className="border-b">
-                      <td className="p-2">{formatDateTime(perf.date)}</td>
-                      <td className="p-2">{perf.loadTime ? perf.loadTime.toFixed(2) : 'N/A'} s</td>
-                      <td className="p-2">{getGradeFromScore(perf.pageSpeedScore || 0)} ({perf.pageSpeedScore || 'N/A'}%)</td>
-                      <td className="p-2">{getGradeFromScore(perf.ysloScore || 0)} ({perf.ysloScore || 'N/A'}%)</td>
+            <div>
+              <h4 className="text-lg font-semibold mb-3">PERFORMANCE HISTORY</h4>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left p-2 font-medium">Date</th>
+                      <th className="text-left p-2 font-medium">Load time</th>
+                      <th className="text-left p-2 font-medium">PageSpeed</th>
+                      <th className="text-left p-2 font-medium">YSlow</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {reportData.performance.history.slice(0, 5).map((perf, index) => (
+                      <tr key={index} className="border-b">
+                        <td className="p-2">{formatDateTime(perf.date)}</td>
+                        <td className="p-2">{perf.loadTime ? perf.loadTime.toFixed(2) : 'N/A'} s</td>
+                        <td className="p-2">{getGradeFromScore(perf.pageSpeedScore || 0)} ({perf.pageSpeedScore || 'N/A'}%)</td>
+                        <td className="p-2">{getGradeFromScore(perf.ysloScore || 0)} ({perf.ysloScore || 'N/A'}%)</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {/* SEO Section */}
       <Card className="mb-8 border-0 shadow-2xl bg-gradient-to-br from-white via-indigo-50 to-purple-100 overflow-hidden">
