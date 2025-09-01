@@ -2691,87 +2691,91 @@ function generateDetailedReportHTML(reportData: any): string {
         </div>
       </div>
       
-      <div class="section">
-        <div class="section-title">🔒 Security Overview</div>
-        <div class="card">
-          <h4>Most Recent Security Scan</h4>
-          <p><strong>Date:</strong> ${formatDate(reportData.security?.lastScan?.date || new Date().toISOString())}</p>
-          <div class="metrics-grid">
-            <div class="metric-card">
-              <div class="metric-value ${(reportData.security?.lastScan?.status === 'clean' || reportData.security?.lastScan?.status === 'good') ? 'status-good' : (reportData.security?.lastScan?.status === 'warning' ? 'status-warning' : 'status-error')}">${reportData.security?.lastScan?.status || 'No Data'}</div>
-              <div class="metric-label">Overall Status</div>
+      ${reportData.security && (reportData.security.lastScan || reportData.security.scanHistory?.length > 0 || reportData.security.totalScans > 0) ? `
+        <div class="section">
+          <div class="section-title">🔒 Security Overview</div>
+          <div class="card">
+            <h4>Most Recent Security Scan</h4>
+            <p><strong>Date:</strong> ${formatDate(reportData.security?.lastScan?.date || new Date().toISOString())}</p>
+            <div class="metrics-grid">
+              <div class="metric-card">
+                <div class="metric-value ${(reportData.security?.lastScan?.status === 'clean' || reportData.security?.lastScan?.status === 'good') ? 'status-good' : (reportData.security?.lastScan?.status === 'warning' ? 'status-warning' : 'status-error')}">${reportData.security?.lastScan?.status || 'No Data'}</div>
+                <div class="metric-label">Overall Status</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-value ${(reportData.security?.lastScan?.malware === 'clean' || reportData.security?.lastScan?.malware === 'good') ? 'status-good' : (reportData.security?.lastScan?.malware === 'warning' ? 'status-warning' : 'status-error')}">${reportData.security?.lastScan?.malware || 'No Data'}</div>
+                <div class="metric-label">Malware Status</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-value ${(reportData.security?.lastScan?.webTrust === 'clean' || reportData.security?.lastScan?.webTrust === 'good') ? 'status-good' : (reportData.security?.lastScan?.webTrust === 'warning' ? 'status-warning' : 'status-error')}">${reportData.security?.lastScan?.webTrust || 'No Data'}</div>
+                <div class="metric-label">Web Trust</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-value ${(reportData.security?.lastScan?.vulnerabilities || 0) === 0 ? 'status-good' : 'status-warning'}">${reportData.security?.lastScan?.vulnerabilities !== undefined ? reportData.security.lastScan.vulnerabilities : 'N/A'}</div>
+                <div class="metric-label">Vulnerabilities</div>
+              </div>
             </div>
-            <div class="metric-card">
-              <div class="metric-value ${(reportData.security?.lastScan?.malware === 'clean' || reportData.security?.lastScan?.malware === 'good') ? 'status-good' : (reportData.security?.lastScan?.malware === 'warning' ? 'status-warning' : 'status-error')}">${reportData.security?.lastScan?.malware || 'No Data'}</div>
-              <div class="metric-label">Malware Status</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-value ${(reportData.security?.lastScan?.webTrust === 'clean' || reportData.security?.lastScan?.webTrust === 'good') ? 'status-good' : (reportData.security?.lastScan?.webTrust === 'warning' ? 'status-warning' : 'status-error')}">${reportData.security?.lastScan?.webTrust || 'No Data'}</div>
-              <div class="metric-label">Web Trust</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-value ${(reportData.security?.lastScan?.vulnerabilities || 0) === 0 ? 'status-good' : 'status-warning'}">${reportData.security?.lastScan?.vulnerabilities !== undefined ? reportData.security.lastScan.vulnerabilities : 'N/A'}</div>
-              <div class="metric-label">Vulnerabilities</div>
-            </div>
+            
+            ${securityScanHistory ? `
+              <h4>Security Scan History</h4>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Malware Status</th>
+                    <th>Vulnerabilities</th>
+                    <th>Web Trust</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${securityScanHistory}
+                </tbody>
+              </table>
+            ` : '<p>No security scan history available.</p>'}
           </div>
-          
-          ${securityScanHistory ? `
-            <h4>Security Scan History</h4>
-            <table>
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Malware Status</th>
-                  <th>Vulnerabilities</th>
-                  <th>Web Trust</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${securityScanHistory}
-              </tbody>
-            </table>
-          ` : '<p>No security scan history available.</p>'}
         </div>
-      </div>
+      ` : ''}
       
-      <div class="section">
-        <div class="section-title">⚡ Performance Overview</div>
-        <div class="card">
-          <h4>Most Recent Performance Scan</h4>
-          <p><strong>Date:</strong> ${formatDate(reportData.performance?.lastScan?.date || new Date().toISOString())}</p>
-          <div class="metrics-grid">
-            <div class="metric-card">
-              <div class="metric-value">${reportData.performance?.lastScan?.pageSpeedGrade || (reportData.performance?.lastScan?.pageSpeedScore ? (reportData.performance.lastScan.pageSpeedScore >= 90 ? 'A' : reportData.performance.lastScan.pageSpeedScore >= 80 ? 'B' : reportData.performance.lastScan.pageSpeedScore >= 70 ? 'C' : reportData.performance.lastScan.pageSpeedScore >= 60 ? 'D' : 'F') : 'N/A')}</div>
-              <div class="metric-label">PageSpeed Grade (${reportData.performance?.lastScan?.pageSpeedScore || 'N/A'}/100)</div>
+      ${reportData.performance && (reportData.performance.lastScan || reportData.performance.history?.length > 0 || reportData.performance.totalChecks > 0) ? `
+        <div class="section">
+          <div class="section-title">⚡ Performance Overview</div>
+          <div class="card">
+            <h4>Most Recent Performance Scan</h4>
+            <p><strong>Date:</strong> ${formatDate(reportData.performance?.lastScan?.date || new Date().toISOString())}</p>
+            <div class="metrics-grid">
+              <div class="metric-card">
+                <div class="metric-value">${reportData.performance?.lastScan?.pageSpeedGrade || (reportData.performance?.lastScan?.pageSpeedScore ? (reportData.performance.lastScan.pageSpeedScore >= 90 ? 'A' : reportData.performance.lastScan.pageSpeedScore >= 80 ? 'B' : reportData.performance.lastScan.pageSpeedScore >= 70 ? 'C' : reportData.performance.lastScan.pageSpeedScore >= 60 ? 'D' : 'F') : 'N/A')}</div>
+                <div class="metric-label">PageSpeed Grade (${reportData.performance?.lastScan?.pageSpeedScore || 'N/A'}/100)</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-value">${reportData.performance?.lastScan?.ysloGrade || (reportData.performance?.lastScan?.ysloScore ? (reportData.performance.lastScan.ysloScore >= 90 ? 'A' : reportData.performance.lastScan.ysloScore >= 80 ? 'B' : reportData.performance.lastScan.ysloScore >= 70 ? 'C' : reportData.performance.lastScan.ysloScore >= 60 ? 'D' : 'F') : 'N/A')}</div>
+                <div class="metric-label">YSlow Grade (${reportData.performance?.lastScan?.ysloScore || 'N/A'}/100)</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-value">${reportData.performance?.lastScan?.loadTime || 'N/A'}${reportData.performance?.lastScan?.loadTime ? 's' : ''}</div>
+                <div class="metric-label">Load Time</div>
+              </div>
             </div>
-            <div class="metric-card">
-              <div class="metric-value">${reportData.performance?.lastScan?.ysloGrade || (reportData.performance?.lastScan?.ysloScore ? (reportData.performance.lastScan.ysloScore >= 90 ? 'A' : reportData.performance.lastScan.ysloScore >= 80 ? 'B' : reportData.performance.lastScan.ysloScore >= 70 ? 'C' : reportData.performance.lastScan.ysloScore >= 60 ? 'D' : 'F') : 'N/A')}</div>
-              <div class="metric-label">YSlow Grade (${reportData.performance?.lastScan?.ysloScore || 'N/A'}/100)</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-value">${reportData.performance?.lastScan?.loadTime || 'N/A'}${reportData.performance?.lastScan?.loadTime ? 's' : ''}</div>
-              <div class="metric-label">Load Time</div>
-            </div>
+            
+            ${performanceHistory ? `
+              <h4>Performance History</h4>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Load Time</th>
+                    <th>PageSpeed Score</th>
+                    <th>YSlow Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${performanceHistory}
+                </tbody>
+              </table>
+            ` : '<p>No performance history available.</p>'}
           </div>
-          
-          ${performanceHistory ? `
-            <h4>Performance History</h4>
-            <table>
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Load Time</th>
-                  <th>PageSpeed Score</th>
-                  <th>YSlow Score</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${performanceHistory}
-              </tbody>
-            </table>
-          ` : '<p>No performance history available.</p>'}
         </div>
-      </div>
+      ` : ''}
       
       <div class="section">
         <div class="section-title">🔄 Updates & Maintenance</div>

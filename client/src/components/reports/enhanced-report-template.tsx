@@ -405,7 +405,7 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
             </div>
 
             {/* Security Status - Only show if security data exists */}
-            {reportData.overview.securityStatus && (
+            {(reportData.security && (reportData.security.lastScan || reportData.security.scanHistory?.length > 0 || reportData.security.totalScans > 0)) && (
               <div className={`p-6 rounded-xl border shadow-md ${
                 reportData.overview.securityStatus === 'safe' 
                   ? 'bg-gradient-to-br from-green-50 to-green-100 border-green-200' 
@@ -459,13 +459,13 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
             </div>
 
             {/* Performance Metrics - Only show if performance data exists */}
-            {reportData.overview.performanceScore && (
+            {(reportData.performance && (reportData.performance.lastScan || reportData.performance.history?.length > 0 || reportData.performance.totalChecks > 0)) && (
               <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 p-6 rounded-xl border border-yellow-200 shadow-md">
                 <div className="flex items-center justify-between mb-4">
                   <Zap className="w-10 h-10 text-yellow-600" />
                   <Badge className="bg-yellow-600 text-white px-3 py-1">Performance</Badge>
                 </div>
-                <div className="text-3xl font-bold text-yellow-700 mb-2">{reportData.overview.performanceScore}</div>
+                <div className="text-3xl font-bold text-yellow-700 mb-2">{reportData.overview.performanceScore || reportData.performance.lastScan?.pageSpeedScore || 'N/A'}</div>
                 <div className="text-sm font-medium text-yellow-600 mb-1">PageSpeed Score</div>
                 <div className="text-xs text-yellow-500">Google PageSpeed insights</div>
               </div>
