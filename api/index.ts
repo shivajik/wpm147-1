@@ -7647,6 +7647,88 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
       }
     }
 
+    // Get wordpress data endpoint
+    if (path.startsWith('/api/websites/') && path.endsWith('/wordpress-data') && req.method === 'GET') {
+      const user = authenticateToken(req);
+      if (!user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const websiteId = parseInt(path.split('/')[3]);
+      if (isNaN(websiteId)) {
+        return res.status(400).json({ message: 'Invalid website ID' });
+      }
+
+      try {
+        const websiteResult = await db.select()
+          .from(websites)
+          .innerJoin(clients, eq(websites.clientId, clients.id))
+          .where(and(eq(websites.id, websiteId), eq(clients.userId, user.id)))
+          .limit(1);
+          
+        if (websiteResult.length === 0) {
+          return res.status(404).json({ message: "Website not found" });
+        }
+        
+        const website = websiteResult[0].websites;
+        
+        // Try to fetch fresh WordPress data if API key exists
+        if (website.wrmApiKey && website.url) {
+          try {
+            console.log('[WordPress Data] Fetching fresh data for website:', websiteId);
+            const wpClient = new WPRemoteManagerClient(website.url, website.wrmApiKey);
+            const wordpressData = await wpClient.getWordPressData();
+            
+            // Cache the fetched data
+            await db.update(websites)
+              .set({ 
+                wpData: JSON.stringify(wordpressData),
+                lastSync: new Date()
+              })
+              .where(eq(websites.id, websiteId));
+            
+            console.log('[WordPress Data] Successfully fetched and cached data for website:', websiteId);
+            return res.status(200).json(wordpressData);
+          } catch (wpError) {
+            console.error('[WordPress Data] WordPress API error:', wpError);
+            // Fall through to cached data or fallback
+          }
+        }
+        
+        // If we have cached WordPress data, return it
+        if (website.wpData) {
+          try {
+            const cachedData = JSON.parse(website.wpData);
+            console.log('[WordPress Data] Returning cached data for website:', websiteId);
+            return res.status(200).json(cachedData);
+          } catch (parseError) {
+            console.error("Error parsing cached WordPress data:", parseError);
+          }
+        }
+        
+        // Return basic fallback data with proper array structures if no cached data available
+        return res.status(200).json({
+          systemInfo: null,
+          healthData: null,
+          updateData: {
+            count: { total: 0, plugins: 0, themes: 0, core: 0 },
+            plugins: [],
+            themes: [],
+            wordpress: { update_available: false }
+          },
+          pluginData: [],
+          themeData: [],
+          userData: [],
+          maintenanceMode: { enabled: false },
+          lastSync: null,
+          message: "WordPress data not available. Please sync the website to fetch data."
+        });
+      } catch (error) {
+        console.error("Error fetching WordPress data:", error);
+        return res.status(500).json({ message: "Failed to fetch WordPress data" });
+      }
+    }
+
     // PerformanceScanner class (inline for serverless compatibility)
     class PerformanceScanner {
       private readonly GOOGLE_PAGESPEED_API_URL = 'https://www.googleapis.com/pagespeedonline/v5/runPagespeed';
