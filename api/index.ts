@@ -11517,17 +11517,37 @@ if (path.match(/^\/api\/websites\/\d+\/comments$/) && req.method === 'GET') {
         }
 
         debugLog.push(`[COMMENT-DELETE] Comment IDs to delete: ${JSON.stringify(comment_ids)}`);
-        debugLog.push(`[COMMENT-DELETE] Creating WRM client for ${website.url}`);
-
-        const wrmClient = new VercelWPRemoteManagerClient({
-          url: website.url,
-          apiKey: website.wrmApiKey
-        });
-
-        debugLog.push(`[COMMENT-DELETE] Calling deleteComments method...`);
-        const result = await wrmClient.deleteComments(comment_ids);
+        debugLog.push(`[COMMENT-DELETE] Using direct AIOWebcare API approach`);
+        debugLog.push(`[COMMENT-DELETE] Target URL: ${website.url}`);
+        debugLog.push(`[COMMENT-DELETE] API Key preview: ${website.wrmApiKey.substring(0, 10)}...`);
         
-        debugLog.push(`[COMMENT-DELETE] WRM client result: ${JSON.stringify(result)}`);
+        // Use the same approach as your working hardcoded version but with dynamic values
+        const apiBase = `${website.url.replace(/\/$/, '')}/wp-json/aiowebcare/v1`;
+        const deleteEndpoint = `${apiBase}/comments/delete`;
+        
+        debugLog.push(`[COMMENT-DELETE] Direct API endpoint: ${deleteEndpoint}`);
+        
+        const response = await fetch(deleteEndpoint, {
+          method: 'POST',
+          headers: {
+            'X-AIOWebcare-API-Key': website.wrmApiKey,
+            'X-WRM-API-Key': website.wrmApiKey,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ comment_ids }),
+        });
+        
+        debugLog.push(`[COMMENT-DELETE] Response status: ${response.status}`);
+        debugLog.push(`[COMMENT-DELETE] Response headers: ${JSON.stringify(Object.fromEntries(response.headers.entries()))}`);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          debugLog.push(`[COMMENT-DELETE] Error response: ${errorText}`);
+          throw new Error(`Comment deletion failed: ${response.status} ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        debugLog.push(`[COMMENT-DELETE] Success response: ${JSON.stringify(result)}`);
         debugLog.push(`[COMMENT-DELETE] Operation completed successfully`);
         
         return res.status(200).json({

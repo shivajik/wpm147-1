@@ -1,0 +1,18 @@
+{
+    "success": false,
+    "message": "Failed to delete comments. Comments may be in a protected state or require manual cleanup via WordPress admin.",
+    "deleted_count": 0,
+    "debugLog": [
+        "[LOCALHOST-DELETE] Starting comment deletion request",
+        "[LOCALHOST-DELETE] Timestamp: 2025-09-01T10:10:59.642Z",
+        "[LOCALHOST-DELETE] User authenticated: ID 1",
+        "[LOCALHOST-DELETE] Website ID: 3",
+        "[LOCALHOST-DELETE] Comment IDs to delete: [\"90\"]",
+        "[LOCALHOST-DELETE] Website found: AS College Chincholi (https://ascollegechincholi.com)",
+        "[LOCALHOST-DELETE] Has API key: true",
+        "[LOCALHOST-DELETE] Creating AIOWebcare client for https://ascollegechincholi.com",
+        "[LOCALHOST-DELETE] Calling deleteComments method...",
+        "[LOCALHOST-DELETE] AIOWebcare client result: {\"success\":false,\"message\":\"Failed to delete comments. Comments may be in a protected state or require manual cleanup via WordPress admin.\",\"deleted_count\":0,\"debugLog\":[\"[LOCALHOST-AIOWebcare] Starting deleteComments for IDs: [\\\"90\\\"]\",\"[LOCALHOST-AIOWebcare] Base URL: https://ascollegechincholi.com\",\"[LOCALHOST-AIOWebcare] Has API key: true\",\"[LOCALHOST-AIOWebcare] API key length: 32\",\"[LOCALHOST-AIOWebcare] Trying primary endpoint: /comments/delete\",\"[LOCALHOST-AIOWebcare] Request payload: {\\\"comment_ids\\\":[\\\"90\\\"]}\",\"[LOCALHOST-AIOWebcare] Primary endpoint failed: WordPress site returned HTML error page (400). The site may be experiencing issues or the AIOWebcare plugin may not be properly installed.\",\"[LOCALHOST-AIOWebcare] Primary error status: undefined\",\"[LOCALHOST-AIOWebcare] Trying WordPress REST API fallback...\",\"[LOCALHOST-AIOWebcare] Attempting REST API delete for comment 90\",\"[LOCALHOST-AIOWebcare] REST API delete failed for comment 90: 401\",\"[LOCALHOST-AIOWebcare] Trying bulk cleanup methods for failed comments...\",\"[LOCALHOST-AIOWebcare] Final result: FAILURE, deleted: 0\"]}",
+        "[LOCALHOST-DELETE] Operation completed successfully"
+    ]
+}

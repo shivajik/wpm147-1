@@ -7967,17 +7967,37 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
         return res.status(400).json({ message: "comment_ids array is required", debugLog });
       }
 
-      debugLog.push(`[LOCALHOST-DELETE] Creating AIOWebcare client for ${website.url}`);
-      const credentials: WPRemoteManagerCredentials = {
-        url: website.url,
-        apiKey: website.wrmApiKey
-      };
-
-      const wrmClient = new WPRemoteManagerClient(credentials);
-      debugLog.push(`[LOCALHOST-DELETE] Calling deleteComments method...`);
-      const result = await wrmClient.deleteComments(comment_ids);
+      debugLog.push(`[LOCALHOST-DELETE] Using direct AIOWebcare API approach`);
+      debugLog.push(`[LOCALHOST-DELETE] Target URL: ${website.url}`);
+      debugLog.push(`[LOCALHOST-DELETE] API Key preview: ${website.wrmApiKey.substring(0, 10)}...`);
       
-      debugLog.push(`[LOCALHOST-DELETE] AIOWebcare client result: ${JSON.stringify(result)}`);
+      // Use the same approach as your working hardcoded version but with dynamic values
+      const apiBase = `${website.url.replace(/\/$/, '')}/wp-json/aiowebcare/v1`;
+      const deleteEndpoint = `${apiBase}/comments/delete`;
+      
+      debugLog.push(`[LOCALHOST-DELETE] Direct API endpoint: ${deleteEndpoint}`);
+      
+      const response = await fetch(deleteEndpoint, {
+        method: 'POST',
+        headers: {
+          'X-AIOWebcare-API-Key': website.wrmApiKey,
+          'X-WRM-API-Key': website.wrmApiKey,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ comment_ids }),
+      });
+      
+      debugLog.push(`[LOCALHOST-DELETE] Response status: ${response.status}`);
+      debugLog.push(`[LOCALHOST-DELETE] Response headers: ${JSON.stringify(Object.fromEntries(response.headers.entries()))}`);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        debugLog.push(`[LOCALHOST-DELETE] Error response: ${errorText}`);
+        throw new Error(`Comment deletion failed: ${response.status} ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      debugLog.push(`[LOCALHOST-DELETE] Success response: ${JSON.stringify(result)}`);
       debugLog.push(`[LOCALHOST-DELETE] Operation completed successfully`);
       
       res.json({
