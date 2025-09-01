@@ -90,6 +90,17 @@ export default function WebsiteMaintenanceReports() {
   // Fetch maintenance reports from the real API
   const { data: reports, isLoading } = useQuery<MaintenanceReport[]>({
     queryKey: ['/api/websites', websiteId, 'maintenance-reports'],
+    queryFn: async () => {
+      const response = await fetch(`/api/websites/${websiteId}/maintenance-reports`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+        },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch maintenance reports');
+      }
+      return response.json();
+    },
   });
 
   const generateMaintenanceReport = useMutation({
