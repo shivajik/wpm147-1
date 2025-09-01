@@ -859,8 +859,13 @@ console.log('🔗 [Vercel] DATABASE_URL exists:', !!process.env.DATABASE_URL);
 const connectionConfig = {
   ssl: { rejectUnauthorized: false },
   max: 1, // Vercel serverless functions work better with 1 connection
-  idle_timeout: 20,
-  connect_timeout: 30,
+  idle_timeout: 10, // Reduce idle timeout for faster cleanup
+  connect_timeout: 8, // Reduce connection timeout to fail fast
+  socket_timeout: 15, // Add socket timeout for stuck connections
+  max_lifetime: 60 * 5, // 5 minutes max connection lifetime
+  transform: {
+    undefined: null // Transform undefined to null for better JSON handling
+  }
 };
 
 const client = postgres(DATABASE_URL, connectionConfig);
@@ -2846,11 +2851,23 @@ function generateDetailedReportHTML(reportData: any): string {
 
 // Helper functions
 async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, 12);
+  // Use lower salt rounds for Vercel serverless performance
+  return bcrypt.hash(password, 10);
 }
 
 async function comparePassword(password: string, hashedPassword: string): Promise<boolean> {
-  return bcrypt.compare(password, hashedPassword);
+  try {
+    // Add timeout for serverless environment
+    return await Promise.race([
+      bcrypt.compare(password, hashedPassword),
+      new Promise<boolean>((_, reject) => {
+        setTimeout(() => reject(new Error('Password comparison timeout')), 8000);
+      })
+    ]);
+  } catch (error) {
+    console.error('Password comparison error:', error);
+    throw new Error('Authentication process failed');
+  }
 }
 
 function generateToken(payload: { id: number; email: string }): string {
@@ -3324,6 +3341,21 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
 // Main handler function
 
 export default async function handler(req: any, res: any) {
+  // Add global error handling to prevent FUNCTION_INVOCATION_FAILED
+  try {
+    return await handleRequest(req, res);
+  } catch (globalError) {
+    console.error('Global Vercel function error:', globalError);
+    return res.status(500).json({
+      message: 'Server function error occurred',
+      type: 'FUNCTION_ERROR',
+      timestamp: new Date().toISOString(),
+      details: globalError instanceof Error ? globalError.message : 'Unknown error'
+    });
+  }
+}
+
+async function handleRequest(req: any, res: any) {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -3623,45 +3655,87 @@ export default async function handler(req: any, res: any) {
 
     // Login endpoint
     if (path === '/api/auth/login' && req.method === 'POST') {
-      const body = req.body;
-      console.log('Login attempt:', { email: body?.email, hasPassword: !!body?.password });
-      
-      const userData = loginSchema.parse(body);
-      console.log('Validation passed, attempting login...');
-      
-      // Find user
-      const userResult = await db.select().from(users).where(eq(users.email, userData.email)).limit(1);
-      if (userResult.length === 0) {
-        return res.status(401).json({ 
-          message: "No account found with this email address. Please check your email or create a new account.",
-          type: "USER_NOT_FOUND"
+      try {
+        const body = req.body;
+        console.log('Login attempt:', { email: body?.email, hasPassword: !!body?.password });
+        
+        // Validate request data
+        const userData = loginSchema.parse(body);
+        console.log('Validation passed, attempting login...');
+        
+        // Find user with timeout protection
+        const userResult = await Promise.race([
+          db.select().from(users).where(eq(users.email, userData.email)).limit(1),
+          new Promise<never>((_, reject) => {
+            setTimeout(() => reject(new Error('Database query timeout')), 8000);
+          })
+        ]);
+        
+        if (userResult.length === 0) {
+          return res.status(401).json({ 
+            message: "No account found with this email address. Please check your email or create a new account.",
+            type: "USER_NOT_FOUND"
+          });
+        }
+
+        const user = userResult[0];
+        
+        // Verify password with timeout protection
+        console.log('Found user, verifying password...');
+        const isPasswordValid = await comparePassword(userData.password, user.password);
+        if (!isPasswordValid) {
+          return res.status(401).json({ 
+            message: "Incorrect password. Please try again or reset your password.",
+            type: "INVALID_PASSWORD"
+          });
+        }
+
+        // Generate token
+        const token = generateToken({ id: user.id, email: user.email });
+
+        console.log('Login successful for user:', userData.email);
+        return res.status(200).json({
+          user: {
+            id: user.id,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+          },
+          token,
+        });
+      } catch (error) {
+        console.error('Login error in Vercel function:', error);
+        
+        if (error instanceof z.ZodError) {
+          return res.status(400).json({ 
+            message: "Please check your email and password format.", 
+            type: "VALIDATION_ERROR",
+            errors: error.errors 
+          });
+        }
+        
+        if (error instanceof Error) {
+          if (error.message.includes('timeout')) {
+            return res.status(504).json({ 
+              message: "Login is taking longer than expected. Please try again.",
+              type: "TIMEOUT_ERROR"
+            });
+          }
+          
+          if (error.message.includes('Authentication process failed')) {
+            return res.status(500).json({ 
+              message: "Authentication system error. Please try again in a moment.",
+              type: "AUTH_SYSTEM_ERROR"
+            });
+          }
+        }
+        
+        return res.status(500).json({ 
+          message: "An unexpected error occurred during login. Please try again.",
+          type: "SYSTEM_ERROR",
+          details: error instanceof Error ? error.message : "Unknown error"
         });
       }
-
-      const user = userResult[0];
-      
-      // Verify password
-      const isPasswordValid = await comparePassword(userData.password, user.password);
-      if (!isPasswordValid) {
-        return res.status(401).json({ 
-          message: "Incorrect password. Please try again or reset your password.",
-          type: "INVALID_PASSWORD"
-        });
-      }
-
-      // Generate token
-      const token = generateToken({ id: user.id, email: user.email });
-
-      console.log('Login successful for user:', userData.email);
-      return res.status(200).json({
-        user: {
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-        },
-        token,
-      });
     }
 
     // User info endpoint
