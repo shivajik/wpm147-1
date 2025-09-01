@@ -7867,8 +7867,51 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
         page: page ? parseInt(page as string) : undefined,
       };
       
-      const commentsData = await wrmClient.getComments(params);
-      console.log('[Comments API] Raw comments data received:', JSON.stringify(commentsData, null, 2));
+      // Fetch comments from all statuses to get a representative sample
+      console.log('[Comments API] Fetching comments from all statuses...');
+      
+      const [allComments, approvedComments, pendingComments, spamComments, trashComments] = await Promise.allSettled([
+        wrmClient.getComments(params), // All recent comments
+        wrmClient.getComments({ ...params, status: 'approved' }),
+        wrmClient.getComments({ ...params, status: 'pending' }), 
+        wrmClient.getComments({ ...params, status: 'spam' }),
+        wrmClient.getComments({ ...params, status: 'trash' })
+      ]);
+
+      // Combine all comments from different status calls
+      let combinedComments: any[] = [];
+      let mainData: any = {};
+
+      // Get the main stats from the "all comments" call
+      if (allComments.status === 'fulfilled' && allComments.value) {
+        mainData = allComments.value;
+        combinedComments = [...(allComments.value.recent_comments || [])];
+      }
+
+      // Add comments from each status-specific call
+      [approvedComments, pendingComments, spamComments, trashComments].forEach((result, index) => {
+        const statusName = ['approved', 'pending', 'spam', 'trash'][index];
+        if (result.status === 'fulfilled' && result.value?.recent_comments) {
+          console.log(`[Comments API] Found ${result.value.recent_comments.length} ${statusName} comments`);
+          // Add comments that aren't already in our combined list
+          result.value.recent_comments.forEach((comment: any) => {
+            const commentId = comment.comment_ID || comment.id;
+            if (!combinedComments.find(c => (c.comment_ID || c.id) === commentId)) {
+              combinedComments.push(comment);
+            }
+          });
+        } else {
+          console.log(`[Comments API] No ${statusName} comments found or error occurred`);
+        }
+      });
+
+      // Create final comments data with combined comments
+      const commentsData = {
+        ...mainData,
+        recent_comments: combinedComments
+      };
+
+      console.log(`[Comments API] Combined ${combinedComments.length} total comments from all statuses`);
       
       // Ensure we always return a valid JSON response
       if (commentsData === undefined || commentsData === null) {
