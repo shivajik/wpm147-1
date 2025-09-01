@@ -878,11 +878,22 @@ export class EnhancedPDFGenerator {
 
   private generateEnhancedUpdatesPage(reportData: ClientReportData): string {
     // Only include updates section if there are actual updates performed
-    if (!reportData.updates || 
-        ((!reportData.updates.plugins || reportData.updates.plugins.length === 0) && 
-         (!reportData.updates.themes || reportData.updates.themes.length === 0) && 
-         (!reportData.updates.core || reportData.updates.core.length === 0) &&
-         (!reportData.updates.total || reportData.updates.total === 0))) {
+    // Handle both ClientReportData and internal maintenance report structures
+    if (!reportData.updates) {
+      return '';
+    }
+
+    // Check for updates in both data structures
+    const hasPluginUpdates = reportData.updates.plugins && reportData.updates.plugins.length > 0;
+    const hasThemeUpdates = reportData.updates.themes && reportData.updates.themes.length > 0;
+    const hasCoreUpdates = reportData.updates.core && (
+      Array.isArray(reportData.updates.core) ? reportData.updates.core.length > 0 : reportData.updates.core
+    );
+    const hasWordPressUpdate = (reportData.updates as any).wordpress; // Internal structure
+    const totalUpdates = reportData.updates.total || 0;
+
+    // Return empty if no updates in any category
+    if (!hasPluginUpdates && !hasThemeUpdates && !hasCoreUpdates && !hasWordPressUpdate && totalUpdates === 0) {
       return '';
     }
 
@@ -966,7 +977,15 @@ export class EnhancedPDFGenerator {
 
   private generateEnhancedBackupsPage(reportData: ClientReportData): string {
     // Only include backups section if backups were actually created during this period
-    if (!reportData.backups || !reportData.backups.total || reportData.backups.total === 0) {
+    // Handle both ClientReportData and internal maintenance report structures
+    if (!reportData.backups) {
+      return '';
+    }
+
+    const backupsTotal = reportData.backups.total || 0;
+    const hasBackups = backupsTotal > 0 || reportData.backups.latest || (reportData.backups as any).lastBackup;
+
+    if (!hasBackups) {
       return '';
     }
 
@@ -1023,6 +1042,16 @@ export class EnhancedPDFGenerator {
   }
 
   private generateEnhancedUptimePage(reportData: ClientReportData): string {
+    // Only include uptime section if uptime monitoring data exists
+    if (!reportData.uptime || 
+        (typeof reportData.uptime.percentage === 'undefined' && 
+         typeof reportData.uptime.last24h === 'undefined' && 
+         typeof reportData.uptime.last7days === 'undefined' && 
+         typeof reportData.uptime.last30days === 'undefined' &&
+         (!reportData.uptime.incidents || reportData.uptime.incidents.length === 0))) {
+      return '';
+    }
+
     return `
       <div class="page content-page">
         <div class="section-header" style="background: linear-gradient(135deg, #f0fdff 0%, #cffafe 100%); border-color: #a5f3fc;">
@@ -1088,7 +1117,16 @@ export class EnhancedPDFGenerator {
 
   private generateEnhancedSecurityPage(reportData: ClientReportData): string {
     // Only include security section if security scans were performed
-    if (!reportData.security || !reportData.security.totalScans || reportData.security.totalScans === 0) {
+    // Handle both ClientReportData and internal maintenance report structures
+    if (!reportData.security) {
+      return '';
+    }
+
+    const totalScans = reportData.security.totalScans || 0;
+    const hasLastScan = reportData.security.lastScan;
+    const hasScanHistory = reportData.security.scanHistory && reportData.security.scanHistory.length > 0;
+
+    if (totalScans === 0 && !hasLastScan && !hasScanHistory) {
       return '';
     }
 
@@ -1162,7 +1200,16 @@ export class EnhancedPDFGenerator {
 
   private generateEnhancedPerformancePage(reportData: ClientReportData): string {
     // Only include performance section if performance checks were performed
-    if (!reportData.performance || !reportData.performance.totalChecks || reportData.performance.totalChecks === 0) {
+    // Handle both ClientReportData and internal maintenance report structures
+    if (!reportData.performance) {
+      return '';
+    }
+
+    const totalChecks = reportData.performance.totalChecks || 0;
+    const hasLastScan = reportData.performance.lastScan;
+    const hasHistory = reportData.performance.history && reportData.performance.history.length > 0;
+
+    if (totalChecks === 0 && !hasLastScan && !hasHistory) {
       return '';
     }
 
