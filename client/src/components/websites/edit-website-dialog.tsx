@@ -68,12 +68,28 @@ export default function EditWebsiteDialog({ website, trigger }: EditWebsiteDialo
       // Check if WRM API key was updated to show appropriate message
       const wasWrmKeyUpdated = variables.wrmApiKey && variables.wrmApiKey !== website.wrmApiKey;
       
-      toast({
-        title: "Website Updated",
-        description: wasWrmKeyUpdated 
-          ? "Settings updated and WordPress connection refreshed automatically."
-          : "Website settings have been updated successfully.",
-      });
+      // Check the connection status after update
+      const isConnectionWorking = updatedWebsite?.connectionStatus === 'connected';
+      
+      if (wasWrmKeyUpdated) {
+        if (isConnectionWorking) {
+          toast({
+            title: "API Key Updated Successfully",
+            description: "WordPress connection established. Your site is now connected and ready for management.",
+          });
+        } else {
+          toast({
+            title: "API Key Saved",
+            description: "API key has been saved, but connection failed. Please ensure the AIOWebcare plugin is installed and activated on your WordPress site.",
+            variant: "default", // Not destructive since the key was saved
+          });
+        }
+      } else {
+        toast({
+          title: "Website Updated",
+          description: "Website settings have been updated successfully.",
+        });
+      }
       
       // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: ["/api/websites"] });

@@ -497,10 +497,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } catch (reconnectionError) {
           console.error(`[API-KEY-UPDATE] Failed to reconnect website ${websiteId}:`, reconnectionError);
           
-          // Update with failed connection status
+          let connectionStatus = 'error';
+          let healthStatus = 'critical';
+          
+          // Provide more specific status based on the error type
+          if (reconnectionError instanceof Error) {
+            if (reconnectionError.message.includes('No route was found matching the URL') || 
+                reconnectionError.message.includes('plugin endpoints not found')) {
+              connectionStatus = 'plugin_missing';
+              healthStatus = 'plugin_required';
+            } else if (reconnectionError.message.includes('Invalid or incorrect AIOWebcare API key')) {
+              connectionStatus = 'auth_failed';
+              healthStatus = 'auth_error';
+            }
+          }
+          
+          // Update with failed connection status but keep the new API key
           await storage.updateWebsite(websiteId, {
-            connectionStatus: 'disconnected',
-            healthStatus: 'critical',
+            connectionStatus,
+            healthStatus,
             lastSync: new Date()
           }, userId);
         }
@@ -705,12 +720,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           statusCode = 401;
         } else if (error.message.includes('Access denied') || error.message.includes('API key may be correct but lacks proper permissions')) {
           statusCode = 403;
-        } else if (error.message.includes('plugin endpoints not found')) {
+        } else if (error.message.includes('plugin endpoints not found') || error.message.includes('No route was found matching the URL')) {
           statusCode = 404;
-          errorMessage = "WordPress Remote Manager plugin not found. Please ensure the plugin is installed and activated on your WordPress site.";
+          errorMessage = "AIOWebcare plugin not found or not properly activated. Please ensure the AIOWebcare plugin is installed and activated on your WordPress site. The API key has been saved but connection cannot be established until the plugin is active.";
         } else if (error.message.includes('HTML error page')) {
           statusCode = 502;
           errorMessage = "WordPress site is experiencing server issues. Please check your site's health and try again later.";
+        } else if (error.message.includes('Failed to get site status')) {
+          statusCode = 503;
+          errorMessage = "WordPress connection failed - the AIOWebcare plugin may not be installed or activated. Your API key has been saved, but you'll need to install the plugin to establish connection.";
         }
       }
       
