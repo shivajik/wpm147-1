@@ -4,7 +4,7 @@ import postgres from 'postgres';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
-import { ManageWPStylePDFGenerator } from "../server/pdf-report-generator.ts";
+import { ManageWPStylePDFGenerator } from "../server/pdf-report-generator.js";
 import { eq, and, asc, desc, sql, gte, lte, inArray } from 'drizzle-orm';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
@@ -3490,7 +3490,7 @@ async function handleRequest(req: any, res: any) {
 
       try {
         console.log(`🔐 [TEST] Starting security scan for: ${url}`);
-        const { VercelSecurityScanner } = await import('./security-scanner.ts');
+        const { VercelSecurityScanner } = await import('./security-scanner.js');
         const scanner = new VercelSecurityScanner(url, 0, 0);
         
         const scanResults = await scanner.performComprehensiveScan();
@@ -6002,7 +6002,7 @@ if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') 
     };
 
     // Use the enhanced PDF generator for professional reports  
-    const { EnhancedPDFGenerator } = await import('../server/enhanced-pdf-generator.ts');
+    const { EnhancedPDFGenerator } = await import('../server/enhanced-pdf-generator.js');
     const pdfGenerator = new EnhancedPDFGenerator();
     const reportHtml = pdfGenerator.generateReportHTML(enhancedData);
     
@@ -8622,7 +8622,7 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
 
         // Use VercelSecurityScanner with WRM updates integration
         try {
-          const { VercelSecurityScanner } = await import('./security-scanner.ts');
+          const { VercelSecurityScanner } = await import('./security-scanner.js');
           const scanner = new VercelSecurityScanner(website.url, websiteId, user.id, website.wrmApiKey || undefined);
           
           const scanResults = await scanner.performComprehensiveScan();
