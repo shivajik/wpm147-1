@@ -31,10 +31,10 @@ import {
   clientReports as clientReportsTable,
   seoReports as seoReportsTable,
   linkScanHistory as linkScanHistoryTable 
-} from '../shared/schema.ts';
+} from '../shared/schema.js';
 
 // Import WP Remote Manager Client
-import { WPRemoteManagerClient } from '../server/wp-remote-manager-client.ts';
+import { WPRemoteManagerClient } from '../server/wp-remote-manager-client.js';
 import { add } from 'date-fns';
 
 // Vercel-compatible SEO Analyzer for real data analysis
