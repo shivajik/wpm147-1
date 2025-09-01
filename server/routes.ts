@@ -7859,7 +7859,8 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
       const wrmClient = new WPRemoteManagerClient(credentials);
       
       const params = {
-        status: status as string,
+        // Removed status filter due to WordPress plugin bug - filtering now handled on frontend
+        // status: status as string,
         post_id: post_id ? parseInt(post_id as string) : undefined,
         per_page: per_page ? parseInt(per_page as string) : undefined,
         page: page ? parseInt(page as string) : undefined,
