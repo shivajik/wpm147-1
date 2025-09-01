@@ -607,63 +607,66 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
             </div>
           </div>
 
-          <div className="space-y-6">
-            <div>
-              <h4 className="text-lg font-semibold mb-3">UPDATES HISTORY</h4>
-              
-              {reportData.updates.plugins.length > 0 && (
-                <div className="mb-4">
-                  <h5 className="font-medium mb-2">Plugin name</h5>
-                  <div className="overflow-x-auto">
-                    <table className="w-full border-collapse">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="text-left p-2 font-medium">Plugin name</th>
-                          <th className="text-left p-2 font-medium">Plugin version</th>
-                          <th className="text-left p-2 font-medium">Date</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {reportData.updates.plugins.map((plugin, index) => (
-                          <tr key={index} className="border-b">
-                            <td className="p-2">{plugin.name}</td>
-                            <td className="p-2">{plugin.fromVersion} → {plugin.toVersion}</td>
-                            <td className="p-2">{formatDate(plugin.date)}</td>
+          {/* Only show UPDATES HISTORY section if there are actual updates */}
+          {(reportData.updates.plugins.length > 0 || reportData.updates.themes.length > 0) && (
+            <div className="space-y-6">
+              <div>
+                <h4 className="text-lg font-semibold mb-3">UPDATES HISTORY</h4>
+                
+                {reportData.updates.plugins.length > 0 && (
+                  <div className="mb-4">
+                    <h5 className="font-medium mb-2">Plugin name</h5>
+                    <div className="overflow-x-auto">
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="text-left p-2 font-medium">Plugin name</th>
+                            <th className="text-left p-2 font-medium">Plugin version</th>
+                            <th className="text-left p-2 font-medium">Date</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {reportData.updates.plugins.map((plugin, index) => (
+                            <tr key={index} className="border-b">
+                              <td className="p-2">{plugin.name}</td>
+                              <td className="p-2">{plugin.fromVersion} → {plugin.toVersion}</td>
+                              <td className="p-2">{formatDate(plugin.date)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {reportData.updates.themes.length > 0 && (
-                <div>
-                  <h5 className="font-medium mb-2">Theme name</h5>
-                  <div className="overflow-x-auto">
-                    <table className="w-full border-collapse">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="text-left p-2 font-medium">Theme name</th>
-                          <th className="text-left p-2 font-medium">Theme version</th>
-                          <th className="text-left p-2 font-medium">Date</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {reportData.updates.themes.map((theme, index) => (
-                          <tr key={index} className="border-b">
-                            <td className="p-2">{theme.name}</td>
-                            <td className="p-2">{theme.versionFrom} → {theme.versionTo}</td>
-                            <td className="p-2">{formatDate(theme.date)}</td>
+                {reportData.updates.themes.length > 0 && (
+                  <div>
+                    <h5 className="font-medium mb-2">Theme name</h5>
+                    <div className="overflow-x-auto">
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="text-left p-2 font-medium">Theme name</th>
+                            <th className="text-left p-2 font-medium">Theme version</th>
+                            <th className="text-left p-2 font-medium">Date</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {reportData.updates.themes.map((theme, index) => (
+                            <tr key={index} className="border-b">
+                              <td className="p-2">{theme.name}</td>
+                              <td className="p-2">{theme.versionFrom} → {theme.versionTo}</td>
+                              <td className="p-2">{formatDate(theme.date)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
