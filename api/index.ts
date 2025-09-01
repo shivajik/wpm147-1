@@ -3183,9 +3183,15 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
               const activePluginsCount = plugins.filter((p: any) => p && p.active).length;
               enhancedWebsite.activePluginsCount = activePluginsCount;
               
-              // Always set the fetched data
-              maintenanceData.backups.latest.activeTheme = enhancedWebsite.activeTheme || 'Unknown';
-              maintenanceData.backups.latest.activePlugins = enhancedWebsite.activePluginsCount || 0;
+              // Always set the fetched data - prioritize real data over fallbacks
+              if (enhancedWebsite.activeTheme) {
+                maintenanceData.backups.latest.activeTheme = enhancedWebsite.activeTheme;
+                addDebugLog(`[THEME_SUCCESS] Set active theme to: "${enhancedWebsite.activeTheme}"`);
+              }
+              if (enhancedWebsite.activePluginsCount !== undefined) {
+                maintenanceData.backups.latest.activePlugins = enhancedWebsite.activePluginsCount;
+                addDebugLog(`[PLUGINS_SUCCESS] Set active plugins count to: ${enhancedWebsite.activePluginsCount}`);
+              }
               
               
             } catch (healthError) {
@@ -3197,45 +3203,47 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
                   const wpDataObj = JSON.parse(wpDataStr);
                   
                   
-                  // Extract active theme from wpData
-                  if (wpDataObj.theme && wpDataObj.theme.name) {
-                    enhancedWebsite.activeTheme = wpDataObj.theme.name;
-                    maintenanceData.backups.latest.activeTheme = wpDataObj.theme.name;
-                  } else if (wpDataObj.themes && Array.isArray(wpDataObj.themes)) {
-                    const activeTheme = wpDataObj.themes.find((t: any) => t.active);
-                    if (activeTheme && activeTheme.name) {
-                      enhancedWebsite.activeTheme = activeTheme.name;
-                      maintenanceData.backups.latest.activeTheme = activeTheme.name;
+                  // Extract active theme from wpData (only if not already set by API)
+                  if (!enhancedWebsite.activeTheme) {
+                    if (wpDataObj.theme && wpDataObj.theme.name) {
+                      enhancedWebsite.activeTheme = wpDataObj.theme.name;
+                      maintenanceData.backups.latest.activeTheme = wpDataObj.theme.name;
+                      addDebugLog(`[WPDATA_THEME] Found theme from wpData: "${wpDataObj.theme.name}"`);
+                    } else if (wpDataObj.themes && Array.isArray(wpDataObj.themes)) {
+                      const activeTheme = wpDataObj.themes.find((t: any) => t.active);
+                      if (activeTheme && activeTheme.name) {
+                        enhancedWebsite.activeTheme = activeTheme.name;
+                        maintenanceData.backups.latest.activeTheme = activeTheme.name;
+                        addDebugLog(`[WPDATA_THEME] Found active theme from themes array: "${activeTheme.name}"`);
+                      }
                     }
                   }
                   
-                  // Extract active plugins count from wpData
-                  if (wpDataObj.plugins && Array.isArray(wpDataObj.plugins)) {
-                    const activePluginsCount = wpDataObj.plugins.filter((p: any) => p && p.active === true).length;
-                    enhancedWebsite.activePluginsCount = activePluginsCount;
-                    maintenanceData.backups.latest.activePlugins = activePluginsCount;
-                  } else if (wpDataObj.systemInfo && wpDataObj.systemInfo.plugins_count) {
-                    // Use system info plugin count as fallback
-                    const pluginsCount = parseInt(wpDataObj.systemInfo.plugins_count) || 0;
-                    enhancedWebsite.activePluginsCount = pluginsCount;
-                    maintenanceData.backups.latest.activePlugins = pluginsCount;
-                    addDebugLog(`[PLUGINS_FALLBACK] Using system info plugin count: ${pluginsCount}`);
-                  } else {
-                    addDebugLog(`[PLUGINS_MISSING] No plugin data found in wpData`);
-                    maintenanceData.backups.latest.activePlugins = 0;
+                  // Extract active plugins count from wpData (only if not already set by API)
+                  if (enhancedWebsite.activePluginsCount === undefined) {
+                    if (wpDataObj.plugins && Array.isArray(wpDataObj.plugins)) {
+                      const activePluginsCount = wpDataObj.plugins.filter((p: any) => p && p.active === true).length;
+                      enhancedWebsite.activePluginsCount = activePluginsCount;
+                      maintenanceData.backups.latest.activePlugins = activePluginsCount;
+                      addDebugLog(`[WPDATA_PLUGINS] Found ${activePluginsCount} active plugins from wpData`);
+                    } else if (wpDataObj.systemInfo && wpDataObj.systemInfo.plugins_count) {
+                      // Use system info plugin count as fallback
+                      const pluginsCount = parseInt(wpDataObj.systemInfo.plugins_count) || 0;
+                      enhancedWebsite.activePluginsCount = pluginsCount;
+                      maintenanceData.backups.latest.activePlugins = pluginsCount;
+                      addDebugLog(`[PLUGINS_FALLBACK] Using system info plugin count: ${pluginsCount}`);
+                    } else {
+                      addDebugLog(`[PLUGINS_MISSING] No plugin data found in wpData`);
+                    }
                   }
                   
                 } catch (parseError) {
                   addDebugLog(`[WPDATA_PARSE_ERROR] Failed to parse wpData: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
-                  // Set fallback values when parsing fails
-                  maintenanceData.backups.latest.activeTheme = 'Unknown';
-                  maintenanceData.backups.latest.activePlugins = 0;
+                  // Don't override real data with fallbacks - let existing data remain
                 }
               } else {
                 addDebugLog(`[NO_WPDATA] No wpData available for fallback`);
-                // Set fallback values when no data available
-                maintenanceData.backups.latest.activeTheme = 'Unknown';
-                maintenanceData.backups.latest.activePlugins = 0;
+                // Don't override real data with fallbacks - let existing data remain
               }
             }
           } else {
@@ -3245,12 +3253,12 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
           if (websiteData.wpData && typeof websiteData.wpData === 'object') {
             const wpData = websiteData.wpData as any;
             
-            // Update backup data using real WordPress data
-            if (wpData.backups || wpData.plugins || wpData.themes || enhancedWebsite.pluginsCount) {
-              const backupCount = Math.floor(Math.random() * 5) + 1;
-              maintenanceData.overview.backupsCreated = backupCount;
-              maintenanceData.backups.total = backupCount;
-              maintenanceData.backups.totalAvailable = (wpData.backups?.length || 0) + backupCount;
+            // Update backup data using real WordPress data ONLY (no fake data)
+            if (wpData.backups && Array.isArray(wpData.backups)) {
+              const realBackupCount = wpData.backups.length;
+              maintenanceData.overview.backupsCreated = realBackupCount;
+              maintenanceData.backups.total = realBackupCount;
+              maintenanceData.backups.totalAvailable = realBackupCount;
               
               // Get WordPress installation details for backup info using real data
               maintenanceData.backups.latest = {
@@ -3296,16 +3304,10 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
       }
     }
 
-    // Calculate summary statistics and ensure minimum data for meaningful reports
+    // Calculate summary statistics using ONLY real data (no fake minimum data)
     maintenanceData.backups.total = maintenanceData.overview.backupsCreated;
     
-    // Ensure minimum backup activity
-    if (maintenanceData.overview.backupsCreated === 0 && websiteIds.length > 0) {
-      const daysDiff = Math.ceil((dateTo.getTime() - dateFrom.getTime()) / (1000 * 60 * 60 * 24));
-      maintenanceData.overview.backupsCreated = Math.max(1, Math.floor(daysDiff / 7));
-      maintenanceData.backups.total = maintenanceData.overview.backupsCreated;
-      maintenanceData.backups.totalAvailable = maintenanceData.overview.backupsCreated + 3;
-    }    
+    // Keep accurate data - if no backups exist, show 0 (like localhost does)    
     return {
       ...maintenanceData,
       _debugLogs: debugLogs
@@ -5928,8 +5930,8 @@ if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') 
           date: reportData.backups?.latest?.date || new Date().toISOString(),
           size: reportData.backups?.latest?.size || '0 MB',
           wordpressVersion: reportData.backups?.latest?.wordpressVersion || reportData.health?.wpVersion || 'Unknown',
-          activeTheme: reportData.backups?.latest?.activeTheme || 'Unknown',
-          activePlugins: reportData.backups?.latest?.activePlugins || 0,
+          activeTheme: reportData.backups?.latest?.activeTheme || 'Current Theme',
+          activePlugins: reportData.backups?.latest?.activePlugins !== undefined ? reportData.backups?.latest?.activePlugins : 0,
           publishedPosts: reportData.backups?.latest?.publishedPosts || 0,
           approvedComments: reportData.backups?.latest?.approvedComments || 0
         }
@@ -9862,8 +9864,8 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
               date: reportData.backups?.latest?.date || new Date().toISOString(),
               size: reportData.backups?.latest?.size || '0 MB',
               wordpressVersion: realWordPressVersion,
-              activeTheme: reportData.backups?.latest?.activeTheme || 'Unknown',
-              activePlugins: reportData.backups?.latest?.activePlugins || 0,
+              activeTheme: reportData.backups?.latest?.activeTheme || 'Current Theme',
+              activePlugins: reportData.backups?.latest?.activePlugins !== undefined ? reportData.backups?.latest?.activePlugins : 0,
               publishedPosts: reportData.backups?.latest?.publishedPosts || 0,
               approvedComments: reportData.backups?.latest?.approvedComments || 0
             }
