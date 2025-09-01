@@ -102,7 +102,15 @@ export default function WebsiteComments() {
       });
       
       if (statusFilter !== 'all') {
-        params.append('status', statusFilter);
+        // Map frontend status names to backend expected values
+        const statusMapping: { [key: string]: string } = {
+          'pending': 'pending',
+          'approved': 'approved', 
+          'spam': 'spam',
+          'trash': 'trash'
+        };
+        const backendStatus = statusMapping[statusFilter] || statusFilter;
+        params.append('status', backendStatus);
       }
       
       const token = localStorage.getItem('auth_token');
@@ -120,6 +128,38 @@ export default function WebsiteComments() {
   // Debug log
   console.log('Website data for comments:', website);
   console.log('Comments data:', commentsData);
+
+  // Individual comment deletion mutation
+  const deleteCommentsMutation = useMutation({
+    mutationFn: async (commentIds: string[]) => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/websites/${websiteId}/comments/delete`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ comment_ids: commentIds })
+      });
+      if (!response.ok) throw new Error('Failed to delete comments');
+      return response.json();
+    },
+    onSuccess: (data) => {
+      refetchComments();
+      toast({
+        title: "Comments Deleted",
+        description: data.message || `${data.deleted_count || 0} comment(s) deleted successfully`
+      });
+      setSelectedComments([]);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to delete comments",
+        variant: "destructive"
+      });
+    }
+  });
 
   // WordPress-style bulk cleanup mutations
   const removeUnapprovedMutation = useMutation({
@@ -189,7 +229,7 @@ export default function WebsiteComments() {
     removeSpamTrashMutation.mutate();
   };
 
-  // Filter comments based on status and search
+  // Filter comments based on status and search (frontend fallback)
   const filteredComments = commentsData?.recent_comments?.filter((comment: RecentComment) => {
     const authorName = comment.comment_author || comment.author_name || '';
     const contentText = comment.content?.rendered || comment.comment_content || '';
@@ -200,8 +240,25 @@ export default function WebsiteComments() {
       contentText.toLowerCase().includes(searchTerm.toLowerCase()) ||
       postTitle.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const commentStatus = comment.status || (comment.comment_approved === '1' ? 'approved' : comment.comment_approved === 'spam' ? 'spam' : 'pending');
-    const matchesStatus = statusFilter === "all" || commentStatus === statusFilter;
+    // Normalize comment status - handle both uppercase and lowercase
+    let commentStatus = comment.status || '';
+    if (!commentStatus) {
+      // Fallback to comment_approved field
+      if (comment.comment_approved === '1') {
+        commentStatus = 'approved';
+      } else if (comment.comment_approved === 'spam') {
+        commentStatus = 'spam';
+      } else if (comment.comment_approved === 'trash') {
+        commentStatus = 'trash';
+      } else {
+        commentStatus = 'pending';
+      }
+    }
+    
+    // Convert to lowercase for comparison
+    commentStatus = commentStatus.toLowerCase();
+    
+    const matchesStatus = statusFilter === "all" || commentStatus === statusFilter.toLowerCase();
     
     return matchesSearch && matchesStatus;
   }) || [];
@@ -216,7 +273,25 @@ export default function WebsiteComments() {
     });
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (comment: RecentComment) => {
+    // Determine the actual status from comment data
+    let status = comment.status || '';
+    if (!status) {
+      // Fallback to comment_approved field
+      if (comment.comment_approved === '1') {
+        status = 'approved';
+      } else if (comment.comment_approved === 'spam') {
+        status = 'spam';
+      } else if (comment.comment_approved === 'trash') {
+        status = 'trash';
+      } else {
+        status = 'pending';
+      }
+    }
+    
+    // Normalize to lowercase
+    status = status.toLowerCase();
+    
     switch (status) {
       case 'approved':
         return <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"><CheckCircle className="w-3 h-3 mr-1" />Approved</Badge>;
@@ -489,7 +564,7 @@ export default function WebsiteComments() {
                         data-testid={`comment-${comment.id}`}
                       >
                         <div className="w-5 h-5 mt-1 flex items-center justify-center">
-                          {getStatusBadge(comment.status || (comment.comment_approved === '1' ? 'approved' : 'pending')).props.children[1]}
+                          {getStatusBadge(comment).props.children[1]}
                         </div>
                         
                         <div className="flex-1 min-w-0">
@@ -498,7 +573,7 @@ export default function WebsiteComments() {
                               <h4 className="font-semibold text-gray-900 dark:text-white truncate">
                                 {comment.comment_author || comment.author_name || 'Anonymous'}
                               </h4>
-                              {getStatusBadge(comment.status || (comment.comment_approved === '1' ? 'approved' : 'pending'))}
+                              {getStatusBadge(comment)}
                             </div>
                             <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                               <Calendar className="w-3 h-3" />
