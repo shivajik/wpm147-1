@@ -165,6 +165,19 @@ export class EnhancedPDFGenerator {
   generateReportHTML(reportData: ClientReportData): string {
     const { title } = reportData;
 
+    // Collect only sections that have meaningful data
+    const sections = [
+      this.generateEnhancedCoverPage(reportData), // Always include cover page
+      this.generateEnhancedOverviewPage(reportData), // Always include overview
+      this.generateEnhancedCustomWorkPage(reportData), // Conditional (already implemented)
+      this.generateEnhancedUpdatesPage(reportData), // Conditional
+      this.generateEnhancedBackupsPage(reportData), // Conditional
+      this.generateEnhancedUptimePage(reportData), // Conditional
+      this.generateEnhancedSecurityPage(reportData), // Conditional
+      this.generateEnhancedPerformancePage(reportData), // Conditional
+      this.generateEnhancedSEOPage(reportData), // Conditional
+    ].filter(section => section.trim() !== ''); // Filter out empty sections
+
     return `
 <!DOCTYPE html>
 <html>
@@ -176,15 +189,7 @@ export class EnhancedPDFGenerator {
     </style>
 </head>
 <body>
-    ${this.generateEnhancedCoverPage(reportData)}
-    ${this.generateEnhancedOverviewPage(reportData)}
-    ${this.generateEnhancedCustomWorkPage(reportData)}
-    ${this.generateEnhancedUpdatesPage(reportData)}
-    ${this.generateEnhancedBackupsPage(reportData)}
-    ${this.generateEnhancedUptimePage(reportData)}
-    ${this.generateEnhancedSecurityPage(reportData)}
-    ${this.generateEnhancedPerformancePage(reportData)}
-    ${this.generateEnhancedSEOPage(reportData)}
+    ${sections.join('')}
 </body>
 </html>`;
   }
@@ -872,6 +877,15 @@ export class EnhancedPDFGenerator {
   }
 
   private generateEnhancedUpdatesPage(reportData: ClientReportData): string {
+    // Only include updates section if there are actual updates performed
+    if (!reportData.updates || 
+        ((!reportData.updates.plugins || reportData.updates.plugins.length === 0) && 
+         (!reportData.updates.themes || reportData.updates.themes.length === 0) && 
+         (!reportData.updates.core || reportData.updates.core.length === 0) &&
+         (!reportData.updates.total || reportData.updates.total === 0))) {
+      return '';
+    }
+
     return `
       <div class="page content-page">
         <div class="section-header" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-color: #bbf7d0;">
@@ -951,6 +965,11 @@ export class EnhancedPDFGenerator {
   }
 
   private generateEnhancedBackupsPage(reportData: ClientReportData): string {
+    // Only include backups section if backups were actually created during this period
+    if (!reportData.backups || !reportData.backups.total || reportData.backups.total === 0) {
+      return '';
+    }
+
     return `
       <div class="page content-page">
         <div class="section-header" style="background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%); border-color: #c4b5fd;">
@@ -1068,6 +1087,11 @@ export class EnhancedPDFGenerator {
   }
 
   private generateEnhancedSecurityPage(reportData: ClientReportData): string {
+    // Only include security section if security scans were performed
+    if (!reportData.security || !reportData.security.totalScans || reportData.security.totalScans === 0) {
+      return '';
+    }
+
     return `
       <div class="page content-page">
         <div class="section-header" style="background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%); border-color: #fca5a5;">
@@ -1137,6 +1161,11 @@ export class EnhancedPDFGenerator {
   }
 
   private generateEnhancedPerformancePage(reportData: ClientReportData): string {
+    // Only include performance section if performance checks were performed
+    if (!reportData.performance || !reportData.performance.totalChecks || reportData.performance.totalChecks === 0) {
+      return '';
+    }
+
     return `
       <div class="page content-page">
         <div class="section-header" style="background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%); border-color: #fde047;">
@@ -1206,6 +1235,15 @@ export class EnhancedPDFGenerator {
   }
 
   private generateEnhancedSEOPage(reportData: ClientReportData): string {
+    // Only include SEO section if keywords are being tracked or SEO data exists
+    if (!reportData.seo || 
+        (!reportData.seo.keywords || reportData.seo.keywords.length === 0) && 
+        !reportData.seo.visibility && 
+        !reportData.seo.topRankKeywords && 
+        !reportData.seo.firstPageKeywords) {
+      return '';
+    }
+
     return `
       <div class="page content-page">
         <div class="section-header" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-color: #7dd3fc;">
