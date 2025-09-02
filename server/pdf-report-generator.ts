@@ -29,12 +29,29 @@ export class ManageWPStylePDFGenerator {
     const overview = data.overview || {};
     const updates = data.updates || { total: 0, plugins: [], themes: [], core: [] };
     const backups = data.backups || { total: 0, latest: { date: new Date().toISOString() } };
-    const security = data.security || { lastScan: { status: 'clean' }, scansTotal: 0 };
-    const performance = data.performance || { lastScan: {}, scansTotal: 0 };
+    const security = data.security || { lastScan: { status: 'clean' }, totalScans: 0 };
+    const performance = data.performance || { lastScan: {}, totalChecks: 0 };
     const customWork = data.customWork || [];
-    const uptime = data.uptime || { percentage: '100.000%' };
-    const analytics = data.analytics || { sessionsIncrease: '0%' };
-    const seo = data.seo || { keywordsTracked: 0, visibility: 0 };
+    const uptime = data.uptime || { percentage: '100.000%', incidents: [] };
+    const analytics = data.analytics || { sessionsIncrease: '0%', sessions: [] };
+    const seo = data.seo || { keywordsTracked: 0, visibility: 0, keywords: [] };
+
+    // Check if there's any activity to show in the report
+    const hasActivity = (
+      (overview.updatesPerformed > 0) ||
+      (security.totalScans > 0) ||
+      (performance.totalChecks > 0) ||
+      (backups.total > 0) ||
+      (seo.keywords && seo.keywords.length > 0) ||
+      (analytics.sessions && analytics.sessions.length > 0) ||
+      (customWork.length > 0) ||
+      (uptime.incidents && uptime.incidents.length > 0)
+    );
+
+    // If no activity, return a simple report
+    if (!hasActivity) {
+      return this.generateNoActivityReport(reportData);
+    }
 
     return `
 <!DOCTYPE html>
@@ -49,14 +66,63 @@ export class ManageWPStylePDFGenerator {
 <body>
     ${this.generateCoverPage(reportData)}
     ${this.generateOverviewPage(reportData)}
-    ${this.generateCustomWorkPage(reportData)}
-    ${this.generateUpdatesPage(reportData)}
-    ${this.generateBackupsPage(reportData)}
-    ${this.generateUptimePage(reportData)}
-    ${this.generateAnalyticsPage(reportData)}
-    ${this.generateSecurityPage(reportData)}
-    ${this.generatePerformancePage(reportData)}
-    ${this.generateSEOPage(reportData)}
+    ${customWork.length > 0 ? this.generateCustomWorkPage(reportData) : ''}
+    ${(updates.total > 0 && (updates.plugins?.length > 0 || updates.themes?.length > 0)) ? this.generateUpdatesPage(reportData) : ''}
+    ${backups.total > 0 ? this.generateBackupsPage(reportData) : ''}
+    ${(uptime.incidents && uptime.incidents.length > 0) ? this.generateUptimePage(reportData) : ''}
+    ${(analytics.sessions && analytics.sessions.length > 0) ? this.generateAnalyticsPage(reportData) : ''}
+    ${security.totalScans > 0 ? this.generateSecurityPage(reportData) : ''}
+    ${performance.totalChecks > 0 ? this.generatePerformancePage(reportData) : ''}
+    ${(seo.keywords && seo.keywords.length > 0) ? this.generateSEOPage(reportData) : ''}
+</body>
+</html>`;
+  }
+
+  private generateNoActivityReport(reportData: ReportData): string {
+    const { title, dateFrom, dateTo, clientName, websiteName, websiteUrl } = reportData;
+    const dateRange = this.getDateRange(dateFrom, dateTo);
+
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>${title}</title>
+    <style>
+        ${this.getStyles()}
+    </style>
+</head>
+<body>
+    ${this.generateCoverPage(reportData)}
+    
+    <div class="page">
+        <div class="page-header">
+            <div>AIO Webcare</div>
+            <div>${dateRange}</div>
+        </div>
+        
+        <h1 class="section-title">Report Summary</h1>
+        
+        <div class="summary-box" style="text-align: center; padding: 60px 40px;">
+            <h2 style="color: #007cba; margin-bottom: 30px;">No Maintenance Activity Performed</h2>
+            <p style="font-size: 18px; line-height: 1.8; color: #666; margin-bottom: 30px;">
+                Your website <strong>${websiteName}</strong> did not require any updates, security scans, 
+                performance optimization, or maintenance activities during the period from 
+                <strong>${this.formatDate(dateFrom)}</strong> to <strong>${this.formatDate(dateTo)}</strong>.
+            </p>
+            <p style="font-size: 16px; color: #666; margin-bottom: 40px;">
+                This indicates that your website was stable and did not need any intervention during this time period.
+            </p>
+            <div style="border-top: 2px solid #007cba; padding-top: 30px; margin-top: 40px;">
+                <p style="font-weight: bold; color: #333;">Professional WordPress Maintenance Team</p>
+                <p style="font-size: 14px; color: #666;">AIO Webcare - Comprehensive WordPress Management</p>
+            </div>
+        </div>
+        
+        <div class="page-footer">
+            <div>AIO Webcare - ${clientName} - ${dateRange} - Page 1</div>
+        </div>
+    </div>
 </body>
 </html>`;
   }
@@ -449,47 +515,54 @@ export class ManageWPStylePDFGenerator {
         </div>
         
         <div class="overview-grid">
+            ${(overview.updatesPerformed > 0) ? `
             <div class="overview-item">
                 <h3>Updates</h3>
                 <div class="value">${updates.total || 0}</div>
                 <div class="description">Updates performed</div>
-            </div>
+            </div>` : ''}
             
+            ${(backups.total > 0) ? `
             <div class="overview-item">
                 <h3>Backups</h3>
                 <div class="value">${backups.total || 0}</div>
                 <div class="description">Backups created; Latest one on: ${latestBackupDate}</div>
-            </div>
+            </div>` : ''}
             
+            ${(uptime.incidents && uptime.incidents.length > 0) ? `
             <div class="overview-item">
                 <h3>Uptime</h3>
                 <div class="value">${uptime.percentage}</div>
                 <div class="description">Overall uptime</div>
-            </div>
+            </div>` : ''}
             
+            ${(analytics.sessions && analytics.sessions.length > 0) ? `
             <div class="overview-item">
                 <h3>Analytics</h3>
                 <div class="value">${analytics.sessionsIncrease}</div>
                 <div class="description">average increase in sessions in the previous period</div>
-            </div>
+            </div>` : ''}
             
+            ${(security.totalScans > 0) ? `
             <div class="overview-item">
                 <h3>Security</h3>
                 <div class="value">${security.lastScan?.status === 'clean' ? 'Your website is safe' : 'Issues detected'}</div>
                 <div class="description">Security status</div>
-            </div>
+            </div>` : ''}
             
+            ${(performance.totalChecks > 0) ? `
             <div class="overview-item">
                 <h3>Performance</h3>
                 <div class="value">${performance.lastScan?.score || 'N/A'}</div>
                 <div class="description">Performance score</div>
-            </div>
+            </div>` : ''}
             
+            ${(seo.keywords && seo.keywords.length > 0) ? `
             <div class="overview-item">
                 <h3>SEO</h3>
                 <div class="value">${seo.keywordsTracked}</div>
                 <div class="description">Keywords tracked; Latest visibility score: ${seo.visibility}</div>
-            </div>
+            </div>` : ''}
         </div>
         
         <div class="page-footer">
