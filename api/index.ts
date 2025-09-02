@@ -2734,7 +2734,17 @@ function generateDetailedReportHTML(reportData: any): string {
             ` : '<p>No security scan history available.</p>'}
           </div>
         </div>
-      ` : ''}
+      ` : `
+        <div class="section">
+          <div class="section-title">🔒 Security Overview</div>
+          <div class="card">
+            <p class="text-center" style="padding: 40px; color: #6b7280; font-size: 16px;">
+              <strong>No security activity performed during this reporting period.</strong><br>
+              No security scans have been conducted for this website.
+            </p>
+          </div>
+        </div>
+      `}
       
       ${reportData.performance && (reportData.performance.history?.length > 0 || reportData.performance.totalChecks > 0) ? `
         <div class="section">
@@ -2775,7 +2785,17 @@ function generateDetailedReportHTML(reportData: any): string {
             ` : '<p>No performance history available.</p>'}
           </div>
         </div>
-      ` : ''}
+      ` : `
+        <div class="section">
+          <div class="section-title">⚡ Performance Overview</div>
+          <div class="card">
+            <p class="text-center" style="padding: 40px; color: #6b7280; font-size: 16px;">
+              <strong>No performance activity performed during this reporting period.</strong><br>
+              No performance scans have been conducted for this website.
+            </p>
+          </div>
+        </div>
+      `}
       
       ${reportData.updates && ((reportData.updates.plugins && reportData.updates.plugins.length > 0) || (reportData.updates.themes && reportData.updates.themes.length > 0) || (reportData.updates.core && reportData.updates.core.length > 0) || (reportData.updates.total > 0)) ? `
         <div class="section">
@@ -2844,7 +2864,110 @@ function generateDetailedReportHTML(reportData: any): string {
             ` : '<p>No WordPress core updates during this period.</p>'}
           </div>
         </div>
-      ` : ''}
+      ` : `
+        <div class="section">
+          <div class="section-title">🔄 Updates & Maintenance</div>
+          <div class="card">
+            <p class="text-center" style="padding: 40px; color: #6b7280; font-size: 16px;">
+              <strong>No updates performed during this reporting period.</strong><br>
+              No plugin, theme, or WordPress core updates were applied to this website.
+            </p>
+          </div>
+        </div>
+      `}
+      
+      ${reportData.uptime && (reportData.uptime.percentage > 0 || reportData.uptime.incidents?.length > 0) ? `
+        <div class="section">
+          <div class="section-title">⏱️ Uptime Monitoring</div>
+          <div class="card">
+            <h4>Uptime Performance</h4>
+            <div class="metrics-grid">
+              <div class="metric-card">
+                <div class="metric-value status-good">${reportData.uptime?.percentage || 'N/A'}%</div>
+                <div class="metric-label">Overall Uptime</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-value">${reportData.uptime?.last24h || 'N/A'}%</div>
+                <div class="metric-label">Last 24 Hours</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-value">${reportData.uptime?.last7days || 'N/A'}%</div>
+                <div class="metric-label">Last 7 Days</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-value">${reportData.uptime?.last30days || 'N/A'}%</div>
+                <div class="metric-label">Last 30 Days</div>
+              </div>
+            </div>
+            
+            ${(reportData.uptime?.incidents && reportData.uptime.incidents.length > 0) ? `
+              <h4>Downtime Incidents</h4>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Duration</th>
+                    <th>Reason</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${reportData.uptime.incidents.map(incident => `
+                    <tr>
+                      <td>${formatDate(incident.date)}</td>
+                      <td>${incident.duration}</td>
+                      <td>${incident.reason}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            ` : '<p>No downtime incidents recorded during this period.</p>'}
+          </div>
+        </div>
+      ` : `
+        <div class="section">
+          <div class="section-title">⏱️ Uptime Monitoring</div>
+          <div class="card">
+            <p class="text-center" style="padding: 40px; color: #6b7280; font-size: 16px;">
+              <strong>No uptime monitoring performed during this reporting period.</strong><br>
+              Uptime monitoring has not been configured or activated for this website.
+            </p>
+          </div>
+        </div>
+      `}
+      
+      ${reportData.analytics && (reportData.analytics.changePercentage !== 0 || reportData.analytics.sessions?.length > 0) ? `
+        <div class="section">
+          <div class="section-title">📈 Analytics Overview</div>
+          <div class="card">
+            <h4>Traffic Analysis</h4>
+            <div class="metrics-grid">
+              <div class="metric-card">
+                <div class="metric-value ${(reportData.analytics?.changePercentage || 0) >= 0 ? 'status-good' : 'status-warning'}">${(reportData.analytics?.changePercentage || 0) >= 0 ? '+' : ''}${reportData.analytics?.changePercentage || 0}%</div>
+                <div class="metric-label">Traffic Change</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-value">${(reportData.analytics?.sessions || []).length}</div>
+                <div class="metric-label">Sessions Tracked</div>
+              </div>
+            </div>
+            
+            ${(reportData.analytics?.sessions && reportData.analytics.sessions.length > 0) ? `
+              <h4>Recent Sessions Data</h4>
+              <p>Analytics data showing website traffic patterns and user engagement during this period.</p>
+            ` : '<p>No detailed analytics data available for this period.</p>'}
+          </div>
+        </div>
+      ` : `
+        <div class="section">
+          <div class="section-title">📈 Analytics Overview</div>
+          <div class="card">
+            <p class="text-center" style="padding: 40px; color: #6b7280; font-size: 16px;">
+              <strong>No analytics activity performed during this reporting period.</strong><br>
+              Google Analytics integration has not been configured or activated for this website.
+            </p>
+          </div>
+        </div>
+      `}
       
       <footer style="margin-top: 50px; text-align: center; color: #6b7280; font-size: 14px; border-top: 1px solid #e5e7eb; padding-top: 20px;">
         <p><strong>Generated by AIO Webcare - WordPress Maintenance Dashboard</strong></p>
@@ -6644,15 +6767,15 @@ if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') 
         health: {
           wpVersion: website.wpVersion,
           phpVersion: 'Unknown',
-          overallScore: 85
+          overallScore: null
         },
         
         overview: {
           updatesPerformed: 0,
           backupsCreated: 0,
-          uptimePercentage: 99.9,
+          uptimePercentage: null,
           securityStatus: 'safe' as 'safe' | 'warning' | 'critical',
-          performanceScore: 85
+          performanceScore: null
         },
         
         generatedAt: new Date().toISOString(),

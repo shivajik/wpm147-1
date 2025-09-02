@@ -404,8 +404,8 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
               <div className="text-xs text-blue-500">Plugins, themes, and core updates</div>
             </div>
 
-            {/* Security Status - Only show if security data exists */}
-            {(reportData.security && (reportData.security.scanHistory?.length > 0 || reportData.security.totalScans > 0)) && (
+            {/* Security Status - Always show */}
+            {(reportData.security && (reportData.security.scanHistory?.length > 0 || reportData.security.totalScans > 0)) ? (
               <div className={`p-6 rounded-xl border shadow-md ${
                 reportData.overview.securityStatus === 'safe' 
                   ? 'bg-gradient-to-br from-green-50 to-green-100 border-green-200' 
@@ -445,6 +445,16 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
                   Latest security assessment
                 </div>
               </div>
+            ) : (
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-xl border border-gray-200 shadow-md">
+                <div className="flex items-center justify-between mb-4">
+                  <Shield className="w-10 h-10 text-gray-400" />
+                  <Badge className="bg-gray-400 text-white px-3 py-1">Security</Badge>
+                </div>
+                <div className="text-lg font-bold text-gray-600 mb-2">No Activity</div>
+                <div className="text-sm font-medium text-gray-500 mb-1">Security Status</div>
+                <div className="text-xs text-gray-400">No security scans performed</div>
+              </div>
             )}
 
             {/* Website Uptime */}
@@ -458,8 +468,8 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
               <div className="text-xs text-purple-500">Website operational status</div>
             </div>
 
-            {/* Performance Metrics - Only show if performance data exists */}
-            {(reportData.performance && (reportData.performance.history?.length > 0 || reportData.performance.totalChecks > 0)) && (
+            {/* Performance Metrics - Always show */}
+            {(reportData.performance && (reportData.performance.history?.length > 0 || reportData.performance.totalChecks > 0)) ? (
               <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 p-6 rounded-xl border border-yellow-200 shadow-md">
                 <div className="flex items-center justify-between mb-4">
                   <Zap className="w-10 h-10 text-yellow-600" />
@@ -468,6 +478,16 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
                 <div className="text-3xl font-bold text-yellow-700 mb-2">{reportData.overview.performanceScore || reportData.performance.lastScan?.pageSpeedScore || 'N/A'}</div>
                 <div className="text-sm font-medium text-yellow-600 mb-1">PageSpeed Score</div>
                 <div className="text-xs text-yellow-500">Google PageSpeed insights</div>
+              </div>
+            ) : (
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-xl border border-gray-200 shadow-md">
+                <div className="flex items-center justify-between mb-4">
+                  <Zap className="w-10 h-10 text-gray-400" />
+                  <Badge className="bg-gray-400 text-white px-3 py-1">Performance</Badge>
+                </div>
+                <div className="text-lg font-bold text-gray-600 mb-2">No Activity</div>
+                <div className="text-sm font-medium text-gray-500 mb-1">Performance Score</div>
+                <div className="text-xs text-gray-400">No performance scans conducted</div>
               </div>
             )}
 
@@ -570,8 +590,8 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
         </Card>
       )}
 
-      {/* Updates Section - Only render if updates exist */}
-      {reportData.updates && ((reportData.updates.plugins && reportData.updates.plugins.length > 0) || (reportData.updates.themes && reportData.updates.themes.length > 0) || (reportData.updates.core && reportData.updates.core.length > 0) || (reportData.updates.total > 0)) && (
+      {/* Updates Section - Always show */}
+      {reportData.updates && ((reportData.updates.plugins && reportData.updates.plugins.length > 0) || (reportData.updates.themes && reportData.updates.themes.length > 0) || (reportData.updates.core && reportData.updates.core.length > 0) || (reportData.updates.total > 0)) ? (
       <Card className="mb-8 border-0 shadow-2xl bg-gradient-to-br from-white via-green-50 to-emerald-100 overflow-hidden">
         <CardHeader className="bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 text-white relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-green-600/90 via-emerald-600/90 to-teal-600/90 backdrop-blur-sm"></div>
@@ -670,6 +690,50 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
           )}
         </CardContent>
       </Card>
+      ) : (
+        <Card className="mb-8 border-0 shadow-2xl bg-gradient-to-br from-white via-gray-50 to-gray-100 overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-gray-600 via-gray-700 to-gray-800 text-white relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-gray-600/90 via-gray-700/90 to-gray-800/90 backdrop-blur-sm"></div>
+            <div className="relative z-10">
+              <CardTitle className="text-2xl font-bold flex items-center gap-4 mb-2">
+                <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm border border-white/30 shadow-lg">
+                  <RefreshCw className="w-6 h-6 text-white" />
+                </div>
+                <span className="bg-gradient-to-r from-white to-gray-100 bg-clip-text text-transparent">
+                  UPDATES
+                </span>
+              </CardTitle>
+              <div className="text-gray-100 text-sm font-medium pl-16">
+                No updates performed during this reporting period
+              </div>
+            </div>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-12 -translate-x-12"></div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-12">
+              <RefreshCw className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+              <h4 className="text-xl font-semibold text-gray-600 mb-2">No Updates Performed</h4>
+              <p className="text-gray-500 mb-4">
+                No plugin, theme, or WordPress core updates were applied to this website during the reporting period.
+              </p>
+              <div className="grid grid-cols-3 gap-4 max-w-md mx-auto">
+                <div className="text-center p-3 bg-gray-50 rounded-lg">
+                  <div className="text-lg font-bold text-gray-400">0</div>
+                  <div className="text-sm text-gray-500">Plugin Updates</div>
+                </div>
+                <div className="text-center p-3 bg-gray-50 rounded-lg">
+                  <div className="text-lg font-bold text-gray-400">0</div>
+                  <div className="text-sm text-gray-500">Theme Updates</div>
+                </div>
+                <div className="text-center p-3 bg-gray-50 rounded-lg">
+                  <div className="text-lg font-bold text-gray-400">0</div>
+                  <div className="text-sm text-gray-500">Core Updates</div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Backups Section - Only render if backup data exists */}

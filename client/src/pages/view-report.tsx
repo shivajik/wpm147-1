@@ -212,227 +212,97 @@ export default function ViewReport() {
     }
   };
 
-  // Generate mock data for demonstration if no data is available
+  // Fallback data structure with empty/null values - no fake data
   const getMockReportData = (): ClientReportData => {
     return {
       id: parseInt(reportId || '1'),
-      title: report?.title || 'Website Care Report - Premium',
+      title: report?.title || 'Website Care Report',
       client: {
-        name: 'Commander Harken',
-        email: 'commander@alliance.logistics',
-        contactPerson: 'Commander Harken'
+        name: report?.clientName || 'Client',
+        email: '',
+        contactPerson: report?.clientName || 'Client'
       },
       website: {
-        name: 'Alliance Logistics',
-        url: 'http://demo4.managewp-demo.com/site1/',
-        ipAddress: '72.14.189.129',
-        wordpressVersion: '5.0.6'
+        name: report?.websiteName || 'Website',
+        url: '',
+        ipAddress: '',
+        wordpressVersion: ''
       },
-      dateFrom: report?.dateFrom ? new Date(report.dateFrom).toISOString() : '2024-08-24T00:00:00Z',
-      dateTo: report?.dateTo ? new Date(report.dateTo).toISOString() : '2024-09-23T23:59:59Z',
-      reportType: 'Premium',
+      dateFrom: report?.dateFrom ? new Date(report.dateFrom).toISOString() : new Date().toISOString(),
+      dateTo: report?.dateTo ? new Date(report.dateTo).toISOString() : new Date().toISOString(),
+      reportType: 'Website Care Report',
       overview: {
-        updatesPerformed: 3,
-        backupsCreated: 88,
-        uptimePercentage: 100.000,
-        analyticsChange: 50,
+        updatesPerformed: 0,
+        backupsCreated: 0,
+        uptimePercentage: 0,
+        analyticsChange: 0,
         securityStatus: 'safe',
-        performanceScore: 87,
+        performanceScore: 0,
         seoScore: 0,
-        keywordsTracked: 1
+        keywordsTracked: 0
       },
-      customWork: [
-        {
-          title: 'AdWords campaign',
-          description: 'Optimizing campaign to make sure we hit our ROI targets.',
-          date: '2024-09-11T00:00:00Z'
-        },
-        {
-          title: 'Custom Work Order 1',
-          description: 'September focus on site optimization.',
-          date: '2024-09-15T00:00:00Z'
-        }
-      ],
+      customWork: [],
       updates: {
-        total: 3,
-        plugins: [
-          {
-            name: 'All In One SEO Pack',
-            versionFrom: '3.2.5',
-            versionTo: '3.2.7',
-            date: '2024-09-12T00:00:00Z'
-          },
-          {
-            name: 'All In One SEO Pack',
-            versionFrom: '3.2.4',
-            versionTo: '3.2.5',
-            date: '2024-09-04T00:00:00Z'
-          }
-        ],
-        themes: [
-          {
-            name: 'Twenty Sixteen',
-            versionFrom: '1.7',
-            versionTo: '2.0',
-            date: '2024-09-17T00:00:00Z'
-          }
-        ]
+        total: 0,
+        plugins: [],
+        themes: [],
+        core: []
       },
       backups: {
-        total: 30,
-        totalAvailable: 88,
+        total: 0,
+        totalAvailable: 0,
         latest: {
-          date: '2024-09-23T01:04:00Z',
-          size: '96.01MB',
-          wordpressVersion: '5.0.6',
-          activeTheme: 'Twenty Fourteen v2.4',
-          activePlugins: 5,
-          publishedPosts: 39,
-          approvedComments: 30
+          date: '',
+          size: '',
+          wordpressVersion: '',
+          activeTheme: '',
+          activePlugins: 0,
+          publishedPosts: 0,
+          approvedComments: 0
         }
       },
       uptime: {
-        percentage: 100.000,
-        last24h: 100,
-        last7days: 100,
-        last30days: 100,
-        incidents: [
-          {
-            date: '2024-01-25T00:00:00Z',
-            reason: '-',
-            duration: '240d 23h'
-          }
-        ]
+        percentage: 0,
+        last24h: 0,
+        last7days: 0,
+        last30days: 0,
+        incidents: []
       },
       analytics: {
-        changePercentage: 50,
+        changePercentage: 0,
         sessions: []
       },
       security: {
-        totalScans: 31,
+        totalScans: 0,
         lastScan: {
-          date: '2024-09-23T00:37:00Z',
+          date: '',
           status: 'clean',
           malware: 'clean',
           webTrust: 'clean',
           vulnerabilities: 0
         },
-        scanHistory: [
-          {
-            date: '2024-09-23T00:37:00Z',
-            malware: 'clean',
-            vulnerabilities: 'clean',
-            webTrust: 'clean'
-          },
-          {
-            date: '2024-09-22T07:30:00Z',
-            malware: 'clean',
-            vulnerabilities: 'clean',
-            webTrust: 'clean'
-          },
-          {
-            date: '2024-09-21T05:07:00Z',
-            malware: 'clean',
-            vulnerabilities: 'clean',
-            webTrust: 'clean'
-          },
-          {
-            date: '2024-09-20T07:00:00Z',
-            malware: 'clean',
-            vulnerabilities: 'clean',
-            webTrust: 'clean'
-          },
-          {
-            date: '2024-09-19T02:30:00Z',
-            malware: 'clean',
-            vulnerabilities: 'clean',
-            webTrust: 'clean'
-          }
-        ]
+        scanHistory: []
       },
       performance: {
-        totalChecks: 30,
+        totalChecks: 0,
         lastScan: {
-          date: '2024-09-23T05:41:00Z',
-          pageSpeedScore: 87,
-          pageSpeedGrade: 'B',
-          ysloScore: 76,
-          ysloGrade: 'C',
-          loadTime: 1.26
+          date: '',
+          pageSpeedScore: 0,
+          pageSpeedGrade: '',
+          ysloScore: 0,
+          ysloGrade: '',
+          loadTime: 0
         },
-        history: [
-          {
-            date: '2024-09-23T05:41:00Z',
-            loadTime: 1.26,
-            pageSpeedScore: 87,
-            ysloScore: 76
-          },
-          {
-            date: '2024-09-22T07:44:00Z',
-            loadTime: 1.25,
-            pageSpeedScore: 87,
-            ysloScore: 76
-          },
-          {
-            date: '2024-09-21T05:21:00Z',
-            loadTime: 1.38,
-            pageSpeedScore: 87,
-            ysloScore: 76
-          },
-          {
-            date: '2024-09-20T03:06:00Z',
-            loadTime: 1.43,
-            pageSpeedScore: 87,
-            ysloScore: 76
-          },
-          {
-            date: '2024-09-19T05:37:00Z',
-            loadTime: 1.25,
-            pageSpeedScore: 87,
-            ysloScore: 76
-          }
-        ]
+        history: []
       },
       seo: {
         visibilityChange: 0,
-        competitors: 9,
-        keywords: [
-          {
-            keyword: 'backup',
-            currentRank: 0,
-            previousRank: 0,
-            page: '-'
-          }
-        ],
+        competitors: 0,
+        keywords: [],
         topRankKeywords: 0,
         firstPageKeywords: 0,
         visibility: 0,
-        topCompetitors: [
-          {
-            domain: 'searchdatabackup.techtarget.com',
-            visibilityScore: 85.00
-          },
-          {
-            domain: 'www.techopedia.com',
-            visibilityScore: 70.00
-          },
-          {
-            domain: 'dictionary.cambridge.org',
-            visibilityScore: 64.00
-          },
-          {
-            domain: 'www.computerhope.com',
-            visibilityScore: 57.00
-          },
-          {
-            domain: 'www.netapp.com',
-            visibilityScore: 30.34
-          },
-          {
-            domain: 'www.backblaze.com',
-            visibilityScore: 27.42
-          }
-        ]
+        topCompetitors: []
       }
     };
   };
