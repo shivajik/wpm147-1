@@ -2777,72 +2777,74 @@ function generateDetailedReportHTML(reportData: any): string {
         </div>
       ` : ''}
       
-      <div class="section">
-        <div class="section-title">🔄 Updates & Maintenance</div>
-        <div class="card">
-          <p><strong>Total Updates Applied:</strong> ${reportData.updates?.total || 0}</p>
-          
-          ${pluginUpdates ? `
-            <h4>Plugin Updates (${(reportData.updates?.plugins || []).length})</h4>
-            <table>
-              <thead>
-                <tr>
-                  <th>Plugin Name</th>
-                  <th>From Version</th>
-                  <th>To Version</th>
-                  <th>Date</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${pluginUpdates}
-              </tbody>
-            </table>
-          ` : '<p>No plugin updates during this period.</p>'}
-          
-          ${themeUpdates ? `
-            <h4>Theme Updates (${(reportData.updates?.themes || []).length})</h4>
-            <table>
-              <thead>
-                <tr>
-                  <th>Theme Name</th>
-                  <th>From Version</th>
-                  <th>To Version</th>
-                  <th>Date</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${themeUpdates}
-              </tbody>
-            </table>
-          ` : '<p>No theme updates during this period.</p>'}
-          
-          ${(reportData.updates?.core || []).length > 0 ? `
-            <h4>WordPress Core Updates</h4>
-            <table>
-              <thead>
-                <tr>
-                  <th>From Version</th>
-                  <th>To Version</th>
-                  <th>Date</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${(reportData.updates?.core || []).map(update => `
+      ${reportData.updates && ((reportData.updates.plugins && reportData.updates.plugins.length > 0) || (reportData.updates.themes && reportData.updates.themes.length > 0) || (reportData.updates.core && reportData.updates.core.length > 0) || (reportData.updates.total > 0)) ? `
+        <div class="section">
+          <div class="section-title">🔄 Updates & Maintenance</div>
+          <div class="card">
+            <p><strong>Total Updates Applied:</strong> ${reportData.updates?.total || 0}</p>
+            
+            ${pluginUpdates ? `
+              <h4>Plugin Updates (${(reportData.updates?.plugins || []).length})</h4>
+              <table>
+                <thead>
                   <tr>
-                    <td>${update.versionFrom}</td>
-                    <td>${update.versionTo}</td>
-                    <td>${formatDate(update.date)}</td>
-                    <td><span class="status-good">${update.status || 'completed'}</span></td>
+                    <th>Plugin Name</th>
+                    <th>From Version</th>
+                    <th>To Version</th>
+                    <th>Date</th>
+                    <th>Status</th>
                   </tr>
-                `).join('')}
-              </tbody>
-            </table>
-          ` : '<p>No WordPress core updates during this period.</p>'}
+                </thead>
+                <tbody>
+                  ${pluginUpdates}
+                </tbody>
+              </table>
+            ` : '<p>No plugin updates during this period.</p>'}
+            
+            ${themeUpdates ? `
+              <h4>Theme Updates (${(reportData.updates?.themes || []).length})</h4>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Theme Name</th>
+                    <th>From Version</th>
+                    <th>To Version</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${themeUpdates}
+                </tbody>
+              </table>
+            ` : '<p>No theme updates during this period.</p>'}
+            
+            ${(reportData.updates?.core || []).length > 0 ? `
+              <h4>WordPress Core Updates</h4>
+              <table>
+                <thead>
+                  <tr>
+                    <th>From Version</th>
+                    <th>To Version</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${(reportData.updates?.core || []).map(update => `
+                    <tr>
+                      <td>${update.versionFrom}</td>
+                      <td>${update.versionTo}</td>
+                      <td>${formatDate(update.date)}</td>
+                      <td><span class="status-good">${update.status || 'completed'}</span></td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            ` : '<p>No WordPress core updates during this period.</p>'}
+          </div>
         </div>
-      </div>
+      ` : ''}
       
       <footer style="margin-top: 50px; text-align: center; color: #6b7280; font-size: 14px; border-top: 1px solid #e5e7eb; padding-top: 20px;">
         <p><strong>Generated by AIO Webcare - WordPress Maintenance Dashboard</strong></p>

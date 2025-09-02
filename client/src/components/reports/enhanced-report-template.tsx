@@ -570,7 +570,8 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
         </Card>
       )}
 
-      {/* Updates Section */}
+      {/* Updates Section - Only render if updates exist */}
+      {reportData.updates && ((reportData.updates.plugins && reportData.updates.plugins.length > 0) || (reportData.updates.themes && reportData.updates.themes.length > 0) || (reportData.updates.core && reportData.updates.core.length > 0) || (reportData.updates.total > 0)) && (
       <Card className="mb-8 border-0 shadow-2xl bg-gradient-to-br from-white via-green-50 to-emerald-100 overflow-hidden">
         <CardHeader className="bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 text-white relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-green-600/90 via-emerald-600/90 to-teal-600/90 backdrop-blur-sm"></div>
@@ -669,8 +670,10 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
           )}
         </CardContent>
       </Card>
+      )}
 
-      {/* Backups Section */}
+      {/* Backups Section - Only render if backup data exists */}
+      {reportData.backups && (reportData.backups.total > 0 || reportData.backups.latest) && (
       <Card className="mb-8 border-0 shadow-2xl bg-gradient-to-br from-white via-purple-50 to-violet-100 overflow-hidden">
         <CardHeader className="bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 text-white relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-purple-600/90 via-violet-600/90 to-indigo-600/90 backdrop-blur-sm"></div>
@@ -729,8 +732,10 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
           </div>
         </CardContent>
       </Card>
+      )}
 
-      {/* Uptime Section */}
+      {/* Uptime Section - Only render if uptime monitoring data exists */}
+      {reportData.uptime && (reportData.uptime.totalChecks > 0 || reportData.uptime.percentage !== undefined || reportData.uptime.incidents) && (
       <Card className="mb-8 border-0 shadow-2xl bg-gradient-to-br from-white via-cyan-50 to-blue-100 overflow-hidden">
         <CardHeader className="bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 text-white relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-cyan-600/90 via-blue-600/90 to-indigo-600/90 backdrop-blur-sm"></div>
@@ -798,6 +803,7 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
           )}
         </CardContent>
       </Card>
+      )}
 
       {/* Security Section - Only render if security data exists */}
       {reportData.security && (reportData.security.scanHistory?.length > 0 || reportData.security.totalScans > 0) && (
@@ -947,7 +953,8 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
         </Card>
       )}
 
-      {/* SEO Section */}
+      {/* SEO Section - Only render if SEO data exists */}
+      {reportData.seo && (reportData.seo.keywords?.length > 0 || reportData.seo.totalChecks > 0 || reportData.seo.ranking) && (
       <Card className="mb-8 border-0 shadow-2xl bg-gradient-to-br from-white via-indigo-50 to-purple-100 overflow-hidden">
         <CardHeader className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/90 via-purple-600/90 to-pink-600/90 backdrop-blur-sm"></div>
@@ -1069,6 +1076,7 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
           </div>
         </CardContent>
       </Card>
+      )}
     </div>
   );
 }
