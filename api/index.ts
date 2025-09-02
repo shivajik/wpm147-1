@@ -11270,6 +11270,68 @@ if (maintenanceData._debugLogs && maintenanceData._debugLogs.length > 0) {
       }
     }
 
+    // User subscription endpoint
+    if (path === '/api/user/subscription' && req.method === 'GET') {
+      const user = authenticateToken(req);
+      if (!user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      try {
+        const [userRecord] = await db.select().from(users).where(eq(users.id, user.id));
+        
+        if (!userRecord) {
+          return res.status(404).json({ message: "User not found" });
+        }
+        
+        return res.status(200).json({
+          subscriptionPlan: userRecord.subscriptionPlan || 'free',
+          subscriptionStatus: userRecord.subscriptionStatus || 'inactive',
+          subscriptionEndsAt: userRecord.subscriptionEndsAt
+        });
+      } catch (error) {
+        console.error("Error fetching user subscription:", error);
+        return res.status(500).json({ message: "Failed to fetch user subscription" });
+      }
+    }
+
+    // Upgrade subscription endpoint
+    if (path === '/api/upgrade-subscription' && req.method === 'POST') {
+      const user = authenticateToken(req);
+      if (!user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      try {
+        const { planName } = req.body;
+        
+        if (!planName) {
+          return res.status(400).json({ message: "Plan name is required" });
+        }
+        
+        // Update user's subscription plan
+        await db.update(users)
+          .set({
+            subscriptionPlan: planName,
+            subscriptionStatus: 'active',
+            updatedAt: new Date()
+          })
+          .where(eq(users.id, user.id));
+        
+        return res.status(200).json({
+          success: true,
+          message: "Subscription upgraded successfully",
+          plan: planName
+        });
+      } catch (error) {
+        console.error("Error upgrading subscription:", error);
+        return res.status(500).json({ 
+          message: "Failed to upgrade subscription",
+          error: error instanceof Error ? error.message : "Unknown error"
+        });
+      }
+    }
+
     // Auto-sync all websites endpoint
     if (path === '/api/websites/auto-sync' && req.method === 'POST') {
       const user = authenticateToken(req);
