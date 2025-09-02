@@ -106,12 +106,18 @@ export class ManageWPStylePDFGenerator {
         <div class="summary-box" style="text-align: center; padding: 60px 40px;">
             <h2 style="color: #007cba; margin-bottom: 30px;">No Maintenance Activity Performed</h2>
             <p style="font-size: 18px; line-height: 1.8; color: #666; margin-bottom: 30px;">
-                Your website <strong>${websiteName}</strong> did not require any updates, security scans, 
-                performance optimization, or maintenance activities during the period from 
-                <strong>${this.formatDate(dateFrom)}</strong> to <strong>${this.formatDate(dateTo)}</strong>.
+                Your website <strong>${websiteName}</strong> did not have any maintenance activities recorded 
+                for the period from <strong>${this.formatDate(dateFrom)}</strong> to <strong>${this.formatDate(dateTo)}</strong>.
+            </p>
+            <p style="font-size: 16px; color: #ff6b35; font-weight: bold; margin-bottom: 20px;">
+                Important: This does not necessarily mean your website is completely secure or optimized.
+            </p>
+            <p style="font-size: 16px; color: #666; margin-bottom: 30px;">
+                Regular maintenance including security scans, updates, and performance checks are essential 
+                for maintaining website health, security, and optimal performance.
             </p>
             <p style="font-size: 16px; color: #666; margin-bottom: 40px;">
-                This indicates that your website was stable and did not need any intervention during this time period.
+                We recommend scheduling regular maintenance to ensure your website remains secure and performs at its best.
             </p>
             <div style="border-top: 2px solid #007cba; padding-top: 30px; margin-top: 40px;">
                 <p style="font-weight: bold; color: #333;">Professional WordPress Maintenance Team</p>
