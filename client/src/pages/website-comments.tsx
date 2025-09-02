@@ -78,7 +78,7 @@ export default function WebsiteComments() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedComments, setSelectedComments] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [perPage] = useState(100); // Increased to get better representation of all comment statuses
+  const [perPage] = useState(20); // Increased to get better representation of all comment statuses
   
   const { toast } = useToast();
 
