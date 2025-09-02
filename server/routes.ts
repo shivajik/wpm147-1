@@ -651,6 +651,122 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // White-label branding endpoints
+
+  // GET white-label branding configuration
+  app.get("/api/websites/:id/white-label", authenticateToken, async (req, res) => {
+    try {
+      const userId = (req as AuthRequest).user!.id;
+      const websiteId = parseInt(req.params.id);
+      const website = await storage.getWebsite(websiteId, userId);
+      
+      if (!website) {
+        return res.status(404).json({ message: "Website not found" });
+      }
+
+      // Get user's subscription info for branding permissions
+      const user = await storage.getUser(userId);
+      
+      // Default AIOWebcare branding
+      const defaultBranding = {
+        brandLogo: "https://aiowebcare.com/logo.png", // Your default logo URL
+        brandName: "AIOWebcare",
+        brandColor: "#3b82f6", // Blue color
+        brandWebsite: "https://aiowebcare.com",
+        whiteLabelEnabled: false,
+        canCustomize: user?.subscriptionPlan !== 'free' && user?.subscriptionStatus === 'active'
+      };
+
+      // If white-labeling is enabled and user has custom branding, return it
+      const branding = website.whiteLabelEnabled ? {
+        brandLogo: website.brandLogo || defaultBranding.brandLogo,
+        brandName: website.brandName || defaultBranding.brandName,
+        brandColor: website.brandColor || defaultBranding.brandColor,
+        brandWebsite: website.brandWebsite || defaultBranding.brandWebsite,
+        brandingData: website.brandingData ? JSON.parse(website.brandingData as string) : null,
+        whiteLabelEnabled: true,
+        canCustomize: defaultBranding.canCustomize
+      } : defaultBranding;
+
+      res.json(branding);
+    } catch (error) {
+      console.error("Error fetching white-label config:", error);
+      res.status(500).json({ message: "Failed to fetch white-label configuration" });
+    }
+  });
+
+  // POST update white-label branding configuration
+  app.post("/api/websites/:id/white-label", authenticateToken, async (req, res) => {
+    try {
+      const userId = (req as AuthRequest).user!.id;
+      const websiteId = parseInt(req.params.id);
+      const website = await storage.getWebsite(websiteId, userId);
+      
+      if (!website) {
+        return res.status(404).json({ message: "Website not found" });
+      }
+
+      // Get user's subscription info to check permissions
+      const user = await storage.getUser(userId);
+      
+      // Check if user can customize branding (paid plan required)
+      if (!user || user.subscriptionPlan === 'free' || user.subscriptionStatus !== 'active') {
+        return res.status(403).json({ 
+          message: "White-label branding customization requires a paid subscription plan.",
+          error: "SUBSCRIPTION_REQUIRED",
+          subscriptionPlan: user?.subscriptionPlan || 'free',
+          subscriptionStatus: user?.subscriptionStatus || 'inactive'
+        });
+      }
+
+      const { brandLogo, brandName, brandColor, brandWebsite, brandingData, whiteLabelEnabled } = req.body;
+
+      // Validate input data
+      if (brandColor && !brandColor.match(/^#[0-9A-F]{6}$/i)) {
+        return res.status(400).json({ message: "Brand color must be a valid hex color code (e.g., #3b82f6)" });
+      }
+
+      if (brandWebsite && !brandWebsite.match(/^https?:\/\/.+/)) {
+        return res.status(400).json({ message: "Brand website must be a valid URL" });
+      }
+
+      // Update website branding configuration
+      const updateData: any = {
+        whiteLabelEnabled: whiteLabelEnabled !== undefined ? whiteLabelEnabled : website.whiteLabelEnabled,
+        updatedAt: new Date()
+      };
+
+      if (brandLogo) updateData.brandLogo = brandLogo;
+      if (brandName) updateData.brandName = brandName;
+      if (brandColor) updateData.brandColor = brandColor;
+      if (brandWebsite) updateData.brandWebsite = brandWebsite;
+      if (brandingData) updateData.brandingData = JSON.stringify(brandingData);
+
+      const updatedWebsite = await storage.updateWebsite(websiteId, updateData, userId);
+
+      // Return the updated branding configuration
+      const branding = {
+        brandLogo: updatedWebsite.brandLogo || "https://aiowebcare.com/logo.png",
+        brandName: updatedWebsite.brandName || "AIOWebcare",
+        brandColor: updatedWebsite.brandColor || "#3b82f6",
+        brandWebsite: updatedWebsite.brandWebsite || "https://aiowebcare.com",
+        brandingData: updatedWebsite.brandingData ? JSON.parse(updatedWebsite.brandingData as string) : null,
+        whiteLabelEnabled: updatedWebsite.whiteLabelEnabled,
+        canCustomize: true
+      };
+
+      res.json({
+        success: true,
+        message: "White-label branding updated successfully",
+        data: branding
+      });
+
+    } catch (error) {
+      console.error("Error updating white-label config:", error);
+      res.status(500).json({ message: "Failed to update white-label configuration" });
+    }
+  });
+
   // WordPress test connection endpoint
   app.post("/api/websites/:id/test-connection", authenticateToken, async (req, res) => {
     try {

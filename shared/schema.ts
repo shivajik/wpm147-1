@@ -112,6 +112,13 @@ export const websites = pgTable("websites", {
   thumbnailUrl: varchar("thumbnail_url", { length: 500 }), // Screenshot/thumbnail URL
   screenshotUrl: varchar("screenshot_url", { length: 500 }), // External screenshot service URL
   thumbnailLastUpdated: timestamp("thumbnail_last_updated"), // Last time thumbnail was captured
+  // White-label branding fields
+  whiteLabelEnabled: boolean("white_label_enabled").default(false), // Whether white-labeling is enabled
+  brandLogo: varchar("brand_logo", { length: 500 }), // Custom logo URL
+  brandName: varchar("brand_name", { length: 255 }), // Custom brand name
+  brandColor: varchar("brand_color", { length: 7 }), // Hex color code
+  brandWebsite: varchar("brand_website", { length: 500 }), // Custom brand website URL
+  brandingData: jsonb("branding_data"), // Additional branding configuration
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
   clientId: integer("client_id").notNull().references(() => clients.id),
