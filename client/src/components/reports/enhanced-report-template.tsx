@@ -404,8 +404,8 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
               <div className="text-xs text-blue-500">Plugins, themes, and core updates</div>
             </div>
 
-            {/* Security Status - Always show */}
-            {(reportData.security && (reportData.security.scanHistory?.length > 0 || reportData.security.totalScans > 0)) ? (
+            {/* Security Status - Only show if security data exists */}
+            {(reportData.security && (reportData.security.scanHistory?.length > 0 || reportData.security.totalScans > 0)) && (
               <div className={`p-6 rounded-xl border shadow-md ${
                 reportData.overview.securityStatus === 'safe' 
                   ? 'bg-gradient-to-br from-green-50 to-green-100 border-green-200' 
@@ -445,16 +445,6 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
                   Latest security assessment
                 </div>
               </div>
-            ) : (
-              <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-xl border border-gray-200 shadow-md">
-                <div className="flex items-center justify-between mb-4">
-                  <Shield className="w-10 h-10 text-gray-400" />
-                  <Badge className="bg-gray-400 text-white px-3 py-1">Security</Badge>
-                </div>
-                <div className="text-lg font-bold text-gray-600 mb-2">No Activity</div>
-                <div className="text-sm font-medium text-gray-500 mb-1">Security Status</div>
-                <div className="text-xs text-gray-400">No security scans performed</div>
-              </div>
             )}
 
             {/* Website Uptime */}
@@ -468,8 +458,8 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
               <div className="text-xs text-purple-500">Website operational status</div>
             </div>
 
-            {/* Performance Metrics - Always show */}
-            {(reportData.performance && (reportData.performance.history?.length > 0 || reportData.performance.totalChecks > 0)) ? (
+            {/* Performance Metrics - Only show if performance data exists */}
+            {(reportData.performance && (reportData.performance.history?.length > 0 || reportData.performance.totalChecks > 0)) && (
               <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 p-6 rounded-xl border border-yellow-200 shadow-md">
                 <div className="flex items-center justify-between mb-4">
                   <Zap className="w-10 h-10 text-yellow-600" />
@@ -479,45 +469,39 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
                 <div className="text-sm font-medium text-yellow-600 mb-1">PageSpeed Score</div>
                 <div className="text-xs text-yellow-500">Google PageSpeed insights</div>
               </div>
-            ) : (
-              <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-xl border border-gray-200 shadow-md">
+            )}
+
+            {/* SEO Progress - Only show if keywords are tracked */}
+            {reportData.overview.keywordsTracked > 0 && (
+              <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 p-6 rounded-xl border border-indigo-200 shadow-md">
                 <div className="flex items-center justify-between mb-4">
-                  <Zap className="w-10 h-10 text-gray-400" />
-                  <Badge className="bg-gray-400 text-white px-3 py-1">Performance</Badge>
+                  <Search className="w-10 h-10 text-indigo-600" />
+                  <Badge className="bg-indigo-600 text-white px-3 py-1">SEO</Badge>
                 </div>
-                <div className="text-lg font-bold text-gray-600 mb-2">No Activity</div>
-                <div className="text-sm font-medium text-gray-500 mb-1">Performance Score</div>
-                <div className="text-xs text-gray-400">No performance scans conducted</div>
+                <div className="text-3xl font-bold text-indigo-700 mb-2">{reportData.overview.keywordsTracked}</div>
+                <div className="text-sm font-medium text-indigo-600 mb-1">Keywords Tracked</div>
+                <div className="text-xs text-indigo-500">Search engine optimization</div>
               </div>
             )}
 
-            {/* SEO Progress */}
-            <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 p-6 rounded-xl border border-indigo-200 shadow-md">
-              <div className="flex items-center justify-between mb-4">
-                <Search className="w-10 h-10 text-indigo-600" />
-                <Badge className="bg-indigo-600 text-white px-3 py-1">SEO</Badge>
+            {/* Analytics Growth - Only show if analytics data exists */}
+            {(reportData.analytics && (reportData.analytics.sessions?.length > 0 || reportData.overview.analyticsChange !== 0)) && (
+              <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-xl border border-orange-200 shadow-md">
+                <div className="flex items-center justify-between mb-4">
+                  {reportData.overview.analyticsChange >= 0 ? (
+                    <TrendingUp className="w-10 h-10 text-orange-600" />
+                  ) : (
+                    <TrendingDown className="w-10 h-10 text-orange-600" />
+                  )}
+                  <Badge className="bg-orange-600 text-white px-3 py-1">Analytics</Badge>
+                </div>
+                <div className="text-3xl font-bold text-orange-700 mb-2">
+                  {reportData.overview.analyticsChange >= 0 ? '+' : ''}{reportData.overview.analyticsChange}%
+                </div>
+                <div className="text-sm font-medium text-orange-600 mb-1">Session Change</div>
+                <div className="text-xs text-orange-500">Visitor traffic analysis</div>
               </div>
-              <div className="text-3xl font-bold text-indigo-700 mb-2">{reportData.overview.keywordsTracked}</div>
-              <div className="text-sm font-medium text-indigo-600 mb-1">Keywords Tracked</div>
-              <div className="text-xs text-indigo-500">Search engine optimization</div>
-            </div>
-
-            {/* Analytics Growth */}
-            <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-xl border border-orange-200 shadow-md">
-              <div className="flex items-center justify-between mb-4">
-                {reportData.overview.analyticsChange >= 0 ? (
-                  <TrendingUp className="w-10 h-10 text-orange-600" />
-                ) : (
-                  <TrendingDown className="w-10 h-10 text-orange-600" />
-                )}
-                <Badge className="bg-orange-600 text-white px-3 py-1">Analytics</Badge>
-              </div>
-              <div className="text-3xl font-bold text-orange-700 mb-2">
-                {reportData.overview.analyticsChange >= 0 ? '+' : ''}{reportData.overview.analyticsChange}%
-              </div>
-              <div className="text-sm font-medium text-orange-600 mb-1">Session Change</div>
-              <div className="text-xs text-orange-500">Visitor traffic analysis</div>
-            </div>
+            )}
           </div>
           
           {/* Professional Summary */}

@@ -2734,17 +2734,7 @@ function generateDetailedReportHTML(reportData: any): string {
             ` : '<p>No security scan history available.</p>'}
           </div>
         </div>
-      ` : `
-        <div class="section">
-          <div class="section-title">🔒 Security Overview</div>
-          <div class="card">
-            <p class="text-center" style="padding: 40px; color: #6b7280; font-size: 16px;">
-              <strong>No security activity performed during this reporting period.</strong><br>
-              No security scans have been conducted for this website.
-            </p>
-          </div>
-        </div>
-      `}
+      ` : ''}
       
       ${reportData.performance && (reportData.performance.history?.length > 0 || reportData.performance.totalChecks > 0) ? `
         <div class="section">
@@ -2785,17 +2775,7 @@ function generateDetailedReportHTML(reportData: any): string {
             ` : '<p>No performance history available.</p>'}
           </div>
         </div>
-      ` : `
-        <div class="section">
-          <div class="section-title">⚡ Performance Overview</div>
-          <div class="card">
-            <p class="text-center" style="padding: 40px; color: #6b7280; font-size: 16px;">
-              <strong>No performance activity performed during this reporting period.</strong><br>
-              No performance scans have been conducted for this website.
-            </p>
-          </div>
-        </div>
-      `}
+      ` : ''}
       
       ${reportData.updates && ((reportData.updates.plugins && reportData.updates.plugins.length > 0) || (reportData.updates.themes && reportData.updates.themes.length > 0) || (reportData.updates.core && reportData.updates.core.length > 0) || (reportData.updates.total > 0)) ? `
         <div class="section">
@@ -2864,17 +2844,7 @@ function generateDetailedReportHTML(reportData: any): string {
             ` : '<p>No WordPress core updates during this period.</p>'}
           </div>
         </div>
-      ` : `
-        <div class="section">
-          <div class="section-title">🔄 Updates & Maintenance</div>
-          <div class="card">
-            <p class="text-center" style="padding: 40px; color: #6b7280; font-size: 16px;">
-              <strong>No updates performed during this reporting period.</strong><br>
-              No plugin, theme, or WordPress core updates were applied to this website.
-            </p>
-          </div>
-        </div>
-      `}
+      ` : ''}
       
       ${reportData.uptime && (reportData.uptime.percentage > 0 || reportData.uptime.incidents?.length > 0) ? `
         <div class="section">
@@ -2923,17 +2893,7 @@ function generateDetailedReportHTML(reportData: any): string {
             ` : '<p>No downtime incidents recorded during this period.</p>'}
           </div>
         </div>
-      ` : `
-        <div class="section">
-          <div class="section-title">⏱️ Uptime Monitoring</div>
-          <div class="card">
-            <p class="text-center" style="padding: 40px; color: #6b7280; font-size: 16px;">
-              <strong>No uptime monitoring performed during this reporting period.</strong><br>
-              Uptime monitoring has not been configured or activated for this website.
-            </p>
-          </div>
-        </div>
-      `}
+      ` : ''}
       
       ${reportData.analytics && (reportData.analytics.changePercentage !== 0 || reportData.analytics.sessions?.length > 0) ? `
         <div class="section">
@@ -2957,17 +2917,69 @@ function generateDetailedReportHTML(reportData: any): string {
             ` : '<p>No detailed analytics data available for this period.</p>'}
           </div>
         </div>
-      ` : `
+      ` : ''}
+      ${reportData.backups && (reportData.backups.total > 0 || reportData.overview?.backupsCreated > 0) ? `
         <div class="section">
-          <div class="section-title">📈 Analytics Overview</div>
+          <div class="section-title">💾 Backups</div>
           <div class="card">
-            <p class="text-center" style="padding: 40px; color: #6b7280; font-size: 16px;">
-              <strong>No analytics activity performed during this reporting period.</strong><br>
-              Google Analytics integration has not been configured or activated for this website.
-            </p>
+            <h4>Backup Overview</h4>
+            <p><strong>Backups Created:</strong> ${reportData.backups?.total || reportData.overview?.backupsCreated || 0} | <strong>Total Available:</strong> ${reportData.backups?.totalAvailable || 0}</p>
+            
+            ${reportData.backups?.latest ? `
+              <h4>Latest Backup</h4>
+              <p><strong>Date:</strong> ${formatDate(reportData.backups.latest.date)}</p>
+              <div class="metrics-grid">
+                <div class="metric-card">
+                  <div class="metric-value">${reportData.backups.latest.size || '0 MB'}</div>
+                  <div class="metric-label">Backup Size</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-value">${reportData.backups.latest.wordpressVersion || 'Unknown'}</div>
+                  <div class="metric-label">WordPress Version</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-value">${reportData.backups.latest.activeTheme || 'Unknown'}</div>
+                  <div class="metric-label">Active Theme</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-value">${reportData.backups.latest.activePlugins || 0}</div>
+                  <div class="metric-label">Active Plugins</div>
+                </div>
+              </div>
+              
+              <div class="summary-stats">
+                <div class="stat-item">
+                  <div class="stat-number">${reportData.backups.latest.publishedPosts || 0}</div>
+                  <div class="stat-label">Published Posts</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-number">${reportData.backups.latest.approvedComments || 0}</div>
+                  <div class="stat-label">Approved Comments</div>
+                </div>
+              </div>
+            ` : '<p>No detailed backup information available.</p>'}
           </div>
         </div>
-      `}
+      ` : ''}
+      
+      ${reportData.overview?.keywordsTracked > 0 || reportData.overview?.seoScore > 0 ? `
+        <div class="section">
+          <div class="section-title">🔍 SEO Overview</div>
+          <div class="card">
+            <h4>SEO Metrics</h4>
+            <div class="metrics-grid">
+              <div class="metric-card">
+                <div class="metric-value ${reportData.overview?.seoScore >= 80 ? 'status-good' : reportData.overview?.seoScore >= 60 ? 'status-warning' : 'status-error'}">${reportData.overview?.seoScore || 0}/100</div>
+                <div class="metric-label">SEO Score</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-value">${reportData.overview?.keywordsTracked || 0}</div>
+                <div class="metric-label">Keywords Tracked</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ` : ''}
       
       <footer style="margin-top: 50px; text-align: center; color: #6b7280; font-size: 14px; border-top: 1px solid #e5e7eb; padding-top: 20px;">
         <p><strong>Generated by AIO Webcare - WordPress Maintenance Dashboard</strong></p>
