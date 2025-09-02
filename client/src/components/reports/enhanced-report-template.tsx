@@ -346,10 +346,13 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
                   No maintenance activity was performed during this reporting period.
                 </p>
                 <p>
-                  Your website <span className="font-semibold text-green-200">{reportData.website?.name || 'your website'}</span> did not require any updates, security scans, performance optimization, or maintenance activities during the period from {formatDate(reportData.dateFrom)} to {formatDate(reportData.dateTo)}.
+                  Your website <span className="font-semibold text-green-200">{reportData.website?.name || 'your website'}</span> did not have any maintenance activities recorded for the period from {formatDate(reportData.dateFrom)} to {formatDate(reportData.dateTo)}.
                 </p>
                 <p>
-                  This indicates that your website was stable and did not need any intervention during this time period.
+                  <span className="font-semibold text-orange-200">Important:</span> This does not necessarily mean your website is completely secure or optimized. Regular maintenance including security scans, updates, and performance checks are essential for website health and security.
+                </p>
+                <p>
+                  We recommend scheduling regular maintenance to ensure your website remains secure, up-to-date, and performing optimally.
                 </p>
                 
                 <div className="mt-8 pt-6 border-t border-white/20">
