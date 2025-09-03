@@ -5932,6 +5932,14 @@ if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') 
     }
 
     const website = websiteResult[0].websites;
+    
+    // Get user information including subscription plan
+    const userResult = await db.select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    
+    const userInfo = userResult.length > 0 ? userResult[0] : { subscriptionPlan: 'free', subscriptionStatus: 'active' };
 
     // Get the report
     const reportResult = await db.select()
@@ -5978,8 +5986,8 @@ if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') 
     
     // Get user subscription information for branding logic
     const userSubscription = {
-      subscriptionPlan: user.subscriptionPlan || 'free',
-      subscriptionStatus: user.subscriptionStatus || 'active'
+      subscriptionPlan: userInfo.subscriptionPlan || 'free',
+      subscriptionStatus: userInfo.subscriptionStatus || 'active'
     };
 
     // Get website branding information if available
