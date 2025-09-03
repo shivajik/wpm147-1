@@ -21,7 +21,8 @@ import {
   Calendar, 
   Settings, 
   FileText,
-  Star
+  Star,
+  Crown
 } from "lucide-react";
 import { SiWordpress } from "react-icons/si";
 import { cn } from "@/lib/utils";
@@ -52,6 +53,12 @@ export default function AppSidebar() {
     enabled: !!user 
   }) as { data: any[] };
 
+  // Check user subscription for branding access
+  const { data: subscription } = useQuery({ 
+    queryKey: ['/api/user/subscription'], 
+    enabled: !!user 
+  }) as { data: any };
+
   // Calculate real counts
   const pendingTasks = Array.isArray(tasks) ? tasks.filter((task: any) => task.status !== "completed").length : 0;
   const websiteCount = Array.isArray(websites) ? websites.length : 0;
@@ -64,9 +71,13 @@ export default function AppSidebar() {
     { name: "Tasks", href: "/tasks", icon: Calendar, badge: pendingTasks > 0 ? pendingTasks.toString() : null },
   ];
 
+  // Check if user is on paid plan for branding access
+  const isPaidUser = subscription?.subscriptionPlan && subscription.subscriptionPlan !== 'free';
+
   const accountNavigation = [
     { name: "Account Settings", href: "/profile", icon: Settings, badge: null },
     { name: "Subscription", href: "/subscription", icon: Star, badge: null },
+    ...(isPaidUser ? [{ name: "White-Label Branding", href: "/branding-settings", icon: Crown, badge: null }] : []),
   ];
 
   return (

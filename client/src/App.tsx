@@ -32,6 +32,7 @@ import Subscription from "@/pages/subscription";
 import SubscriptionPreview from "@/pages/subscription-preview";
 import ViewReport from "@/pages/view-report";
 import SeoReportPage from "@/pages/seo-report";
+import BrandingSettings from "@/pages/branding-settings";
 
 // Lazy load heavy components for performance
 import { 
@@ -129,6 +130,7 @@ function Router() {
           <Route path="/reports/:id" component={ViewReport} />
           <Route path="/profile" component={() => <Suspense fallback={<PageSkeleton />}><LazyProfile /></Suspense>} />
           <Route path="/subscription" component={Subscription} />
+          <Route path="/branding-settings" component={BrandingSettings} />
         </>
       )}
       {/* SEO reports should be accessible in both authenticated and unauthenticated modes */}
