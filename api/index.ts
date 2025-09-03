@@ -4936,8 +4936,8 @@ debug.push('Fetching website by ID');
         brandingData: websites.branding_data,
       })
       .from(websites)
-      .innerJoin(clients, eq(websites.clientId, clients.id))
-      .where(and(eq(websites.id, websiteId), eq(clients.userId, user.id)))
+      .innerJoin(clients, eq(websites.client_id, clients.id))   // FIXED
+      .where(and(eq(websites.id, websiteId), eq(clients.user_id, user.id))) // FIXED
       .limit(1);
 
     debug.push(`Website result: ${JSON.stringify(websiteResult)}`);
