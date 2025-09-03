@@ -543,6 +543,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Website branding endpoints
+  app.put("/api/websites/:id/branding", authenticateToken, async (req, res) => {
+    try {
+      const userId = (req as AuthRequest).user!.id;
+      const websiteId = parseInt(req.params.id);
+      
+      // Check if user has access to this website
+      const website = await storage.getWebsite(websiteId, userId);
+      if (!website) {
+        return res.status(404).json({ message: "Website not found" });
+      }
+
+      // Check user subscription plan - only paid users can use white-label branding
+      const user = await storage.getUserProfile(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const isPaidUser = user.subscriptionPlan && user.subscriptionPlan !== 'free';
+      
+      if (!isPaidUser) {
+        return res.status(403).json({ 
+          message: "White-label branding is only available for paid subscription plans. Please upgrade your plan to customize your branding.",
+          code: "UPGRADE_REQUIRED"
+        });
+      }
+
+      // Validate branding data
+      const brandingSchema = z.object({
+        brandName: z.string().min(1, "Brand name is required").max(255),
+        brandLogo: z.string().url("Brand logo must be a valid URL").optional(),
+        brandColor: z.string().regex(/^#[0-9A-F]{6}$/i, "Brand color must be a valid hex color").optional(),
+        brandWebsite: z.string().url("Brand website must be a valid URL").optional(),
+        footerText: z.string().max(500, "Footer text cannot exceed 500 characters").optional(),
+        whiteLabelEnabled: z.boolean().default(true)
+      });
+
+      const brandingData = brandingSchema.parse(req.body);
+      
+      // Update website with branding information
+      const updatedWebsite = await storage.updateWebsite(websiteId, {
+        whiteLabelEnabled: brandingData.whiteLabelEnabled,
+        brandName: brandingData.brandName,
+        brandLogo: brandingData.brandLogo,
+        brandColor: brandingData.brandColor,
+        brandWebsite: brandingData.brandWebsite,
+        brandingData: {
+          footerText: brandingData.footerText,
+          lastUpdated: new Date().toISOString()
+        }
+      }, userId);
+
+      res.json({
+        message: "Branding updated successfully",
+        branding: {
+          whiteLabelEnabled: updatedWebsite.whiteLabelEnabled,
+          brandName: updatedWebsite.brandName,
+          brandLogo: updatedWebsite.brandLogo,
+          brandColor: updatedWebsite.brandColor,
+          brandWebsite: updatedWebsite.brandWebsite,
+          footerText: updatedWebsite.brandingData?.footerText
+        }
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Invalid branding data", 
+          errors: error.errors 
+        });
+      }
+      console.error("Error updating website branding:", error);
+      res.status(500).json({ message: "Failed to update branding" });
+    }
+  });
+
+  app.get("/api/websites/:id/branding", authenticateToken, async (req, res) => {
+    try {
+      const userId = (req as AuthRequest).user!.id;
+      const websiteId = parseInt(req.params.id);
+      
+      const website = await storage.getWebsite(websiteId, userId);
+      if (!website) {
+        return res.status(404).json({ message: "Website not found" });
+      }
+
+      res.json({
+        whiteLabelEnabled: website.whiteLabelEnabled || false,
+        brandName: website.brandName,
+        brandLogo: website.brandLogo,
+        brandColor: website.brandColor,
+        brandWebsite: website.brandWebsite,
+        footerText: website.brandingData?.footerText
+      });
+    } catch (error) {
+      console.error("Error fetching website branding:", error);
+      res.status(500).json({ message: "Failed to fetch branding" });
+    }
+  });
+
   // Website statistics endpoint
   app.get("/api/websites/:id/stats", authenticateToken, async (req, res) => {
     try {

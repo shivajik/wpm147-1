@@ -21,10 +21,12 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiCall } from "@/lib/queryClient";
-import { Settings } from "lucide-react";
+import { Settings, Globe, Crown } from "lucide-react";
 import type { Website } from "@shared/schema";
+import BrandingManagement from "./branding-management";
 
 const editWebsiteSchema = z.object({
   name: z.string().min(1, "Website name is required"),
@@ -123,13 +125,26 @@ export default function EditWebsiteDialog({ website, trigger }: EditWebsiteDialo
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px] max-h-[85vh] flex flex-col">
+      <DialogContent className="sm:max-w-[700px] max-h-[85vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>Edit Website Settings</DialogTitle>
+          <DialogTitle>Website Settings</DialogTitle>
         </DialogHeader>
-        <Form {...form}>
-          <div className="flex-1 overflow-y-auto pr-4">
-            <form id="edit-website-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <div className="flex-1 overflow-hidden">
+          <Tabs defaultValue="general" className="h-full flex flex-col">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="general" className="flex items-center gap-2">
+                <Globe className="h-4 w-4" />
+                General
+              </TabsTrigger>
+              <TabsTrigger value="branding" className="flex items-center gap-2">
+                <Crown className="h-4 w-4" />
+                Branding
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="general" className="flex-1 overflow-y-auto">
+              <Form {...form}>
+                <form id="edit-website-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="name"
@@ -237,25 +252,31 @@ export default function EditWebsiteDialog({ website, trigger }: EditWebsiteDialo
               </div>
             </div>
 
-            </form>
-          </div>
-          <div className="flex justify-end space-x-2 pt-4 border-t mt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={updateWebsiteMutation.isPending}
-              form="edit-website-form"
-            >
-              {updateWebsiteMutation.isPending ? "Saving..." : "Save Changes"}
-            </Button>
-          </div>
-        </Form>
+                </form>
+                <div className="flex justify-end space-x-2 pt-4 border-t mt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={updateWebsiteMutation.isPending}
+                    form="edit-website-form"
+                  >
+                    {updateWebsiteMutation.isPending ? "Saving..." : "Save Changes"}
+                  </Button>
+                </div>
+              </Form>
+            </TabsContent>
+            
+            <TabsContent value="branding" className="flex-1 overflow-y-auto">
+              <BrandingManagement websiteId={website.id} />
+            </TabsContent>
+          </Tabs>
+        </div>
       </DialogContent>
     </Dialog>
   );

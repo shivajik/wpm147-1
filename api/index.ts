@@ -5878,6 +5878,22 @@ if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') 
     // Helper function to limit array sizes for serverless memory efficiency
     const limitArray = (arr: any[], maxSize: number = 50) => arr ? arr.slice(0, maxSize) : [];
     
+    // Get user subscription information for branding logic
+    const userSubscription = {
+      subscriptionPlan: user.subscriptionPlan || 'free',
+      subscriptionStatus: user.subscriptionStatus || 'active'
+    };
+
+    // Get website branding information if available
+    const websiteBranding = {
+      whiteLabelEnabled: website.whiteLabelEnabled || false,
+      brandName: website.brandName,
+      brandLogo: website.brandLogo,
+      brandColor: website.brandColor,
+      brandWebsite: website.brandWebsite,
+      footerText: website.brandingData?.footerText
+    };
+
     const enhancedData = {
       id: report.id,
       title: report.title,
@@ -5892,6 +5908,8 @@ if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') 
         ipAddress: '',
         wordpressVersion: reportData.health?.wpVersion || reportData.website?.wpVersion || 'Unknown'
       },
+      branding: websiteBranding,
+      userSubscription: userSubscription,
       dateFrom: (report.dateFrom || new Date()).toISOString(),
       dateTo: (report.dateTo || new Date()).toISOString(),
       reportType: 'Website Maintenance Report',

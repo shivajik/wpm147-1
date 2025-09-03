@@ -14,6 +14,18 @@ interface ClientReportData {
     ipAddress?: string;
     wordpressVersion?: string;
   };
+  branding?: {
+    whiteLabelEnabled: boolean;
+    brandName?: string;
+    brandLogo?: string;
+    brandColor?: string;
+    brandWebsite?: string;
+    footerText?: string;
+  };
+  userSubscription?: {
+    subscriptionPlan: string;
+    subscriptionStatus: string;
+  };
   dateFrom: string;
   dateTo: string;
   reportType: string;
@@ -137,6 +149,38 @@ interface ClientReportData {
 
 export class EnhancedPDFGenerator {
   
+  // Helper method to determine if white-label branding should be used
+  private shouldUseWhiteLabel(reportData: ClientReportData): boolean {
+    const isPaidUser = reportData.userSubscription?.subscriptionPlan && 
+                       reportData.userSubscription.subscriptionPlan !== 'free';
+    const hasCustomBranding = reportData.branding?.whiteLabelEnabled && 
+                              reportData.branding?.brandName;
+    return isPaidUser && hasCustomBranding;
+  }
+
+  // Helper method to get brand information (either custom or default)
+  private getBrandInfo(reportData: ClientReportData) {
+    if (this.shouldUseWhiteLabel(reportData)) {
+      return {
+        name: reportData.branding?.brandName || 'Your Brand',
+        logo: reportData.branding?.brandLogo || '🛡️',
+        color: reportData.branding?.brandColor || '#1e40af',
+        website: reportData.branding?.brandWebsite || '',
+        footerText: reportData.branding?.footerText || 'Powered by Your Brand',
+        subtitle: 'Professional WordPress Management'
+      };
+    }
+    
+    return {
+      name: 'AIO WEBCARE',
+      logo: '🛡️',
+      color: '#1e40af',
+      website: 'https://aiowebcare.com',
+      footerText: 'Powered by AIO Webcare - Comprehensive WordPress Management',
+      subtitle: 'Professional WordPress Management'
+    };
+  }
+
   private formatDate(dateString: string | Date | null | undefined): string {
     try {
       if (!dateString) return 'N/A';
@@ -639,6 +683,8 @@ export class EnhancedPDFGenerator {
   }
 
   private generateEnhancedCoverPage(reportData: ClientReportData): string {
+    const brandInfo = this.getBrandInfo(reportData);
+    
     return `
       <div class="page cover-page">
         <div class="cover-pattern">
@@ -650,10 +696,13 @@ export class EnhancedPDFGenerator {
         <div class="cover-content">
           <div class="brand-header">
             <div class="brand-logo">
-              <div class="logo-icon">🛡️</div>
+              ${brandInfo.logo.startsWith('http') ? 
+                `<img src="${brandInfo.logo}" alt="Logo" style="width: 60px; height: 60px; border-radius: 16px; object-fit: cover;" />` :
+                `<div class="logo-icon">${brandInfo.logo}</div>`
+              }
               <div>
-                <div class="brand-name">AIO WEBCARE</div>
-                <div class="brand-subtitle">Professional WordPress Management</div>
+                <div class="brand-name">${brandInfo.name}</div>
+                <div class="brand-subtitle">${brandInfo.subtitle}</div>
               </div>
             </div>
           </div>
@@ -704,7 +753,7 @@ export class EnhancedPDFGenerator {
               <p>This report demonstrates our commitment to maintaining the highest standards of website security, performance, and reliability for your business.</p>
               <div class="summary-footer">
                 <p><strong style="color: #bfdbfe;">Professional WordPress Maintenance Team</strong></p>
-                <p style="font-size: 14px; color: rgba(255, 255, 255, 0.7);">AIO Webcare - Comprehensive WordPress Management</p>
+                <p style="font-size: 14px; color: rgba(255, 255, 255, 0.7);">${brandInfo.footerText}</p>
               </div>
             </div>
           </div>
