@@ -4928,12 +4928,12 @@ debug.push('Fetching website by ID');
     const websiteResult = await db
       .select({
         id: websites.id,
-        whiteLabelEnabled: websites.whiteLabelEnabled,
-        brandLogo: websites.brandLogo,
-        brandName: websites.brandName,
-        brandColor: websites.brandColor,
-        brandWebsite: websites.brandWebsite,
-        brandingData: websites.brandingData,
+        whiteLabelEnabled: websites.white_label_enabled,
+        brandLogo: websites.brand_logo,
+        brandName: websites.brand_name,
+        brandColor: websites.brand_color,
+        brandWebsite: websites.brand_website,
+        brandingData: websites.branding_data,
       })
       .from(websites)
       .innerJoin(clients, eq(websites.clientId, clients.id))
