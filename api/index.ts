@@ -4934,6 +4934,7 @@ debug.push('Fetching website by ID');
         brandColor: websites.brandColor,
         brandWebsite: websites.brandWebsite,
         brandingData: websites.brandingData,
+        clientId: websites.clientId, 
       })
       .from(websites)
       .innerJoin(clients, eq(websites.clientId, clients.id)) // Use Drizzle schema field names
