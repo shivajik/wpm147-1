@@ -4891,7 +4891,7 @@ async function handleRequest(req: any, res: any) {
 
 
     // White-label branding GET endpoint
-  if (path.match(/^\/api\/websites\/\d+\/white-label$/) && req.method === 'GET') {
+  if (path.match(/^\/api\/websites\/\d+\/branding$/) && req.method === 'GET') {
     const user = authenticateToken(req);
     if (!user) {
       return res.status(401).json({ message: 'Unauthorized' });
@@ -4952,17 +4952,17 @@ async function handleRequest(req: any, res: any) {
         }
       }
 
-      const branding = website.whiteLabelEnabled ? {
-        brandLogo: website.brandLogo || defaultBranding.brandLogo,
-        brandName: website.brandName || defaultBranding.brandName,
-        brandColor: website.brandColor || defaultBranding.brandColor,
-        brandWebsite: website.brandWebsite || defaultBranding.brandWebsite,
-        brandingData: parsedWebsiteBrandingData,
-        whiteLabelEnabled: true,
-        canCustomize: defaultBranding.canCustomize
-      } : defaultBranding;
+      // Return branding data in the same format as local server
+      const response = {
+        whiteLabelEnabled: website.whiteLabelEnabled || false,
+        brandName: website.brandName,
+        brandLogo: website.brandLogo,
+        brandColor: website.brandColor,
+        brandWebsite: website.brandWebsite,
+        footerText: parsedWebsiteBrandingData?.footerText
+      };
 
-      return res.status(200).json(branding);
+      return res.status(200).json(response);
 
     } catch (error) {
       console.error("Error fetching white-label config:", error);
@@ -4970,8 +4970,8 @@ async function handleRequest(req: any, res: any) {
     }
   }
 
-    // White-label branding POST endpoint
-    if (path.match(/^\/api\/websites\/\d+\/white-label$/) && req.method === 'POST') {
+    // White-label branding PUT endpoint (to match local server)
+    if (path.match(/^\/api\/websites\/\d+\/branding$/) && req.method === 'PUT') {
       const user = authenticateToken(req);
       if (!user) {
         return res.status(401).json({ message: 'Unauthorized' });
@@ -5008,38 +5008,53 @@ async function handleRequest(req: any, res: any) {
 
         const userData = userResult[0];
         
-        // Check if user can customize branding (paid plan required)
-        if (!userData || userData.subscriptionPlan === 'free' || userData.subscriptionStatus !== 'active') {
+        // Check user subscription plan - only paid users can use white-label branding
+        const isPaidUser = userData.subscriptionPlan && userData.subscriptionPlan !== 'free';
+        
+        if (!isPaidUser) {
           return res.status(403).json({ 
-            message: "White-label branding customization requires a paid subscription plan.",
-            error: "SUBSCRIPTION_REQUIRED",
-            subscriptionPlan: userData?.subscriptionPlan || 'free',
-            subscriptionStatus: userData?.subscriptionStatus || 'inactive'
+            message: "White-label branding is only available for paid subscription plans. Please upgrade your plan to customize your branding.",
+            code: "UPGRADE_REQUIRED"
           });
         }
 
-        const { brandLogo, brandName, brandColor, brandWebsite, brandingData, whiteLabelEnabled } = req.body;
+        // Validate branding data using Zod (similar to local server)
+        const { z } = await import('zod');
+        const brandingSchema = z.object({
+          brandName: z.string().min(1, "Brand name is required").max(255),
+          brandLogo: z.string().url("Brand logo must be a valid URL").optional(),
+          brandColor: z.string().regex(/^#[0-9A-F]{6}$/i, "Brand color must be a valid hex color").optional(),
+          brandWebsite: z.string().url("Brand website must be a valid URL").optional(),
+          footerText: z.string().max(500, "Footer text cannot exceed 500 characters").optional(),
+          whiteLabelEnabled: z.boolean().default(true)
+        });
 
-        // Validate input data
-        if (brandColor && !brandColor.match(/^#[0-9A-F]{6}$/i)) {
-          return res.status(400).json({ message: "Brand color must be a valid hex color code (e.g., #3b82f6)" });
+        let brandingData;
+        try {
+          brandingData = brandingSchema.parse(req.body);
+        } catch (error) {
+          if (error instanceof z.ZodError) {
+            return res.status(400).json({ 
+              message: "Invalid branding data", 
+              errors: error.errors 
+            });
+          }
+          throw error;
         }
 
-        if (brandWebsite && !brandWebsite.match(/^https?:\/\/.+/)) {
-          return res.status(400).json({ message: "Brand website must be a valid URL" });
-        }
-
-        // Prepare update data
+        // Update website with branding information (matching local server logic)
         const updateData: any = {
-          whiteLabelEnabled: whiteLabelEnabled !== undefined ? whiteLabelEnabled : website.whiteLabelEnabled,
+          whiteLabelEnabled: brandingData.whiteLabelEnabled,
+          brandName: brandingData.brandName,
+          brandLogo: brandingData.brandLogo,
+          brandColor: brandingData.brandColor,
+          brandWebsite: brandingData.brandWebsite,
+          brandingData: {
+            footerText: brandingData.footerText,
+            lastUpdated: new Date().toISOString()
+          },
           updatedAt: new Date()
         };
-
-        if (brandLogo) updateData.brandLogo = brandLogo;
-        if (brandName) updateData.brandName = brandName;
-        if (brandColor) updateData.brandColor = brandColor;
-        if (brandWebsite) updateData.brandWebsite = brandWebsite;
-        if (brandingData) updateData.brandingData = JSON.stringify(brandingData);
 
         // Update website branding configuration
         await db.update(websites)
@@ -5054,33 +5069,17 @@ async function handleRequest(req: any, res: any) {
 
         const updatedWebsite = updatedResult[0];
 
-        // Parse branding data for response
-        let parsedBrandingData = null;
-        if (updatedWebsite.brandingData) {
-          try {
-            parsedBrandingData = typeof updatedWebsite.brandingData === 'string' 
-              ? JSON.parse(updatedWebsite.brandingData) 
-              : updatedWebsite.brandingData;
-          } catch (error) {
-            console.error("Error parsing brandingData:", error);
-            parsedBrandingData = null;
-          }
-        }
-
-        const branding = {
-          brandLogo: updatedWebsite.brandLogo || "https://aiowebcare.com/logo.png",
-          brandName: updatedWebsite.brandName || "AIOWebcare",
-          brandColor: updatedWebsite.brandColor || "#3b82f6",
-          brandWebsite: updatedWebsite.brandWebsite || "https://aiowebcare.com",
-          brandingData: parsedBrandingData,
-          whiteLabelEnabled: updatedWebsite.whiteLabelEnabled,
-          canCustomize: true
-        };
-
+        // Return response in same format as local server
         return res.status(200).json({
-          success: true,
-          message: "White-label branding updated successfully",
-          data: branding
+          message: "Branding updated successfully",
+          branding: {
+            whiteLabelEnabled: updatedWebsite.whiteLabelEnabled,
+            brandName: updatedWebsite.brandName,
+            brandLogo: updatedWebsite.brandLogo,
+            brandColor: updatedWebsite.brandColor,
+            brandWebsite: updatedWebsite.brandWebsite,
+            footerText: updatedWebsite.brandingData?.footerText
+          }
         });
 
       } catch (error) {
