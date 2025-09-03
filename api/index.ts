@@ -2445,6 +2445,41 @@ function generateDetailedReportHTML(reportData: any): string {
     }
   };
   
+  // Helper function to determine if white-label branding should be used
+  const shouldUseWhiteLabel = (reportData: any): boolean => {
+    const isPaidUser = reportData.userSubscription?.subscriptionPlan && 
+                       reportData.userSubscription.subscriptionPlan !== 'free';
+    const hasCustomBranding = reportData.branding?.whiteLabelEnabled === true && 
+                              !!reportData.branding?.brandName;
+    return !!isPaidUser && hasCustomBranding;
+  };
+  
+  // Helper function to get brand information (either custom or default)
+  const getBrandInfo = (reportData: any) => {
+    if (shouldUseWhiteLabel(reportData)) {
+      return {
+        name: reportData.branding?.brandName || 'Your Brand',
+        logo: reportData.branding?.brandLogo || '🛡️',
+        color: reportData.branding?.brandColor || '#1e40af',
+        website: reportData.branding?.brandWebsite || '',
+        footerText: reportData.branding?.footerText || 'Powered by Your Brand',
+        subtitle: 'Professional WordPress Management'
+      };
+    }
+    
+    return {
+      name: 'AIO WEBCARE',
+      logo: '🛡️',
+      color: '#1e40af',
+      website: 'https://aiowebcare.com',
+      footerText: 'Powered by AIO Webcare - Comprehensive WordPress Management',
+      subtitle: 'Professional WordPress Management'
+    };
+  };
+  
+  // Get branding information
+  const brandInfo = getBrandInfo(reportData);
+  
   // Security scan history HTML
   const securityScanHistory = (reportData.security?.scanHistory || []).slice(0, 10).map(scan => `
     <tr>
@@ -2494,7 +2529,47 @@ function generateDetailedReportHTML(reportData: any): string {
       <title>${title}</title>
       <style>
         body { font-family: Arial, sans-serif; margin: 0; padding: 20px; line-height: 1.6; }
-        .header { text-align: center; margin-bottom: 40px; padding: 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 12px; }
+        .header { 
+          text-align: center; 
+          margin-bottom: 40px; 
+          padding: 30px; 
+          background: linear-gradient(135deg, ${brandInfo.color} 0%, #764ba2 100%); 
+          color: white; 
+          border-radius: 12px; 
+        }
+        .brand-header {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 15px;
+          margin-bottom: 20px;
+        }
+        .brand-logo {
+          width: 50px;
+          height: 50px;
+          border-radius: 8px;
+          object-fit: cover;
+        }
+        .brand-logo-icon {
+          width: 50px;
+          height: 50px;
+          background: rgba(255, 255, 255, 0.2);
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 24px;
+        }
+        .brand-name {
+          font-size: 24px;
+          font-weight: bold;
+          color: white;
+        }
+        .brand-subtitle {
+          font-size: 14px;
+          opacity: 0.9;
+          color: white;
+        }
         .title { font-size: 28px; font-weight: bold; margin-bottom: 10px; }
         .subtitle { font-size: 16px; opacity: 0.9; }
         .section { margin-bottom: 40px; }
@@ -2505,7 +2580,7 @@ function generateDetailedReportHTML(reportData: any): string {
         .status-error { color: #dc2626; font-weight: 600; }
         .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 20px 0; }
         .metric-card { background: white; padding: 20px; border-radius: 8px; text-align: center; border: 1px solid #e5e7eb; }
-        .metric-value { font-size: 24px; font-weight: bold; color: #2563eb; }
+        .metric-value { font-size: 24px; font-weight: bold; color: ${brandInfo.color}; }
         .metric-label { font-size: 14px; color: #6b7280; margin-top: 5px; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; border-radius: 8px; overflow: hidden; }
         th, td { text-align: left; padding: 12px; border-bottom: 1px solid #e5e7eb; }
@@ -2513,12 +2588,34 @@ function generateDetailedReportHTML(reportData: any): string {
         tr:hover { background-color: #f9fafb; }
         .summary-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 20px 0; }
         .stat-item { text-align: center; padding: 15px; background: white; border-radius: 8px; border: 1px solid #e5e7eb; }
-        .stat-number { font-size: 20px; font-weight: bold; color: #059669; }
+        .stat-number { font-size: 20px; font-weight: bold; color: ${brandInfo.color}; }
         .stat-label { font-size: 12px; color: #6b7280; margin-top: 5px; }
+        .footer {
+          margin-top: 40px;
+          padding: 20px;
+          text-align: center;
+          border-top: 2px solid #e5e7eb;
+          color: #6b7280;
+          font-size: 14px;
+        }
+        .footer a {
+          color: ${brandInfo.color};
+          text-decoration: none;
+        }
       </style>
     </head>
     <body>
       <div class="header">
+        <div class="brand-header">
+          ${brandInfo.logo.startsWith('http') ? 
+            `<img src="${brandInfo.logo}" alt="Logo" class="brand-logo" />` :
+            `<div class="brand-logo-icon">${brandInfo.logo}</div>`
+          }
+          <div>
+            <div class="brand-name">${brandInfo.name}</div>
+            <div class="brand-subtitle">${brandInfo.subtitle}</div>
+          </div>
+        </div>
         <div class="title">${title}</div>
         <div class="subtitle">Report Period: ${dateFrom} - ${dateTo}</div>
       </div>
@@ -2842,10 +2939,11 @@ function generateDetailedReportHTML(reportData: any): string {
         </div>
       ` : ''}
       
-      <footer style="margin-top: 50px; text-align: center; color: #6b7280; font-size: 14px; border-top: 1px solid #e5e7eb; padding-top: 20px;">
-        <p><strong>Generated by AIO Webcare - WordPress Maintenance Dashboard</strong></p>
+      <div class="footer">
+        <p><strong>${brandInfo.footerText}</strong></p>
+        ${brandInfo.website ? `<p><a href="${brandInfo.website}" target="_blank">${brandInfo.website}</a></p>` : ''}
         <p>Report Generated: ${new Date().toLocaleDateString()} | Report ID: ${reportData.id}</p>
-      </footer>
+      </div>
     </body>
     </html>
   `;
