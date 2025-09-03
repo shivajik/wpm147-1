@@ -77,7 +77,6 @@ export default function AppSidebar() {
   const accountNavigation = [
     { name: "Account Settings", href: "/profile", icon: Settings, badge: null },
     { name: "Subscription", href: "/subscription", icon: Star, badge: null },
-    ...(isPaidUser ? [{ name: "White-Label Branding", href: "/branding-settings", icon: Crown, badge: null }] : []),
   ];
 
   return (

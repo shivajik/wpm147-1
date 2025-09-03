@@ -36,6 +36,7 @@ import {
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import EditWebsiteDialog from "@/components/websites/edit-website-dialog";
+import BrandingManagement from "@/components/websites/branding-management";
 
 interface UserSubscription {
   subscriptionPlan: string;
@@ -103,8 +104,8 @@ export function QuickActions({ websiteId, websiteName, websiteUrl }: QuickAction
 
   const handleWhiteLabelClick = () => {
     if (isPaidUser) {
-      // For paid users, navigate to global branding settings
-      setLocation('/branding-settings');
+      // For paid users, show branding dialog for this website
+      setShowBrandingDialog(true);
     } else {
       // For free users, show upgrade modal
       setShowUpgradeModal(true);
@@ -409,6 +410,31 @@ export function QuickActions({ websiteId, websiteName, websiteUrl }: QuickAction
             >
               <Star className="h-4 w-4 mr-2" />
               Upgrade Now
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Branding Management Dialog */}
+      <Dialog open={showBrandingDialog} onOpenChange={setShowBrandingDialog}>
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Crown className="h-5 w-5 text-yellow-500" />
+              White-Label Branding - {websiteName}
+            </DialogTitle>
+            <DialogDescription>
+              Customize your reports with your own branding for this website.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <BrandingManagement websiteId={websiteId} />
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowBrandingDialog(false)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>
