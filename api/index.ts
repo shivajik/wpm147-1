@@ -4920,19 +4920,21 @@ if (path.match(/^\/api\/websites\/\d+\/white-label$/) && req.method === 'GET') {
     debug.push('Fetching website from database');
     const websiteResult = await db.select({
       id: websites.id,
-      whiteLabelEnabled: websites.white_label_enabled, // CORRECTED
-      brandLogo: websites.brand_logo, // CORRECTED
-      brandName: websites.brand_name, // CORRECTED
-      brandColor: websites.brand_color, // CORRECTED
-      brandWebsite: websites.brand_website, // CORRECTED
-      brandingData: websites.branding_data // CORRECTED
+      whiteLabelEnabled: websites.white_label_enabled,
+      brandLogo: websites.brand_logo,
+      brandName: websites.brand_name,
+      brandColor: websites.brand_color,
+      brandWebsite: websites.brand_website,
+      brandingData: websites.branding_data
     })
       .from(websites)
       .innerJoin(clients, eq(websites.clientId, clients.id))
       .where(and(eq(websites.id, websiteId), eq(clients.userId, user.id)))
       .limit(1);
 
-    if (websiteResult.length === 0) {
+    debug.push(`Website result: ${JSON.stringify(websiteResult)}`); // ADDED FOR DEBUGGING
+
+    if (!websiteResult || websiteResult.length === 0) {
       debug.push('Website not found or user does not have access');
       return res.status(404).json({ 
         message: "Website not found",
@@ -4941,14 +4943,28 @@ if (path.match(/^\/api\/websites\/\d+\/white-label$/) && req.method === 'GET') {
     }
 
     const website = websiteResult[0];
+    
+    // Check if website object exists
+    if (!website) {
+      debug.push('Website object is null or undefined');
+      return res.status(404).json({ 
+        message: "Website not found",
+        debug: debug 
+      });
+    }
+    
     debug.push(`Website found: ${website.id}, whiteLabelEnabled: ${website.whiteLabelEnabled}`);
-    debug.push(`Website branding data: ${JSON.stringify({
-      brandLogo: website.brandLogo,
-      brandName: website.brandName,
-      brandColor: website.brandColor,
-      brandWebsite: website.brandWebsite,
+    
+    // Safely access website properties with fallbacks
+    const websiteData = {
+      brandLogo: website.brandLogo || null,
+      brandName: website.brandName || null,
+      brandColor: website.brandColor || null,
+      brandWebsite: website.brandWebsite || null,
       hasBrandingData: !!website.brandingData
-    })}`);
+    };
+    
+    debug.push(`Website branding data: ${JSON.stringify(websiteData)}`);
 
     // Get user's subscription info for branding permissions
     debug.push('Fetching user subscription data');
@@ -4957,7 +4973,7 @@ if (path.match(/^\/api\/websites\/\d+\/white-label$/) && req.method === 'GET') {
       .where(eq(users.id, user.id))
       .limit(1);
 
-    if (userResult.length === 0) {
+    if (!userResult || userResult.length === 0) {
       debug.push('User not found in database');
       return res.status(404).json({ 
         message: "User not found",
@@ -5012,6 +5028,7 @@ if (path.match(/^\/api\/websites\/\d+\/white-label$/) && req.method === 'GET') {
 
   } catch (error) {
     debug.push(`Unexpected error: ${error.message}`);
+    debug.push(`Error stack: ${error.stack}`); // ADDED FOR BETTER DEBUGGING
     console.error("Error fetching white-label config:", error);
     return res.status(500).json({ 
       message: "Failed to fetch white-label configuration",
