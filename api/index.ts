@@ -5018,21 +5018,26 @@ async function handleRequest(req: any, res: any) {
           });
         }
 
-        // Validate branding data using Zod (similar to local server)
+        // Validate branding data using Zod - accept the format frontend sends
         const { z } = await import('zod');
         const brandingSchema = z.object({
-          brandName: z.string().min(1, "Brand name is required").max(255),
+          brandName: z.string().min(1, "Brand name is required").max(255).optional(),
           brandLogo: z.string().url("Brand logo must be a valid URL").optional(),
           brandColor: z.string().regex(/^#[0-9A-F]{6}$/i, "Brand color must be a valid hex color").optional(),
           brandWebsite: z.string().url("Brand website must be a valid URL").optional(),
-          footerText: z.string().max(500, "Footer text cannot exceed 500 characters").optional(),
-          whiteLabelEnabled: z.boolean().default(true)
+          whiteLabelEnabled: z.boolean().default(false),
+          brandingData: z.object({
+            footerText: z.string().max(500, "Footer text cannot exceed 500 characters").optional()
+          }).optional()
         });
+
+        console.log('Received branding data:', JSON.stringify(req.body, null, 2));
 
         let brandingData;
         try {
           brandingData = brandingSchema.parse(req.body);
         } catch (error) {
+          console.error('Validation error:', error);
           if (error instanceof z.ZodError) {
             return res.status(400).json({ 
               message: "Invalid branding data", 
@@ -5042,7 +5047,7 @@ async function handleRequest(req: any, res: any) {
           throw error;
         }
 
-        // Update website with branding information (matching local server logic)
+        // Update website with branding information
         const updateData: any = {
           whiteLabelEnabled: brandingData.whiteLabelEnabled,
           brandName: brandingData.brandName,
@@ -5050,11 +5055,13 @@ async function handleRequest(req: any, res: any) {
           brandColor: brandingData.brandColor,
           brandWebsite: brandingData.brandWebsite,
           brandingData: {
-            footerText: brandingData.footerText,
+            footerText: brandingData.brandingData?.footerText,
             lastUpdated: new Date().toISOString()
           },
           updatedAt: new Date()
         };
+
+        console.log('Update data:', JSON.stringify(updateData, null, 2));
 
         // Update website branding configuration
         await db.update(websites)
@@ -5069,6 +5076,19 @@ async function handleRequest(req: any, res: any) {
 
         const updatedWebsite = updatedResult[0];
 
+        // Parse branding data for response
+        let parsedBrandingData = null;
+        if (updatedWebsite.brandingData) {
+          try {
+            parsedBrandingData = typeof updatedWebsite.brandingData === 'string' 
+              ? JSON.parse(updatedWebsite.brandingData) 
+              : updatedWebsite.brandingData;
+          } catch (error) {
+            console.error("Error parsing brandingData:", error);
+            parsedBrandingData = null;
+          }
+        }
+
         // Return response in same format as local server
         return res.status(200).json({
           message: "Branding updated successfully",
@@ -5078,7 +5098,7 @@ async function handleRequest(req: any, res: any) {
             brandLogo: updatedWebsite.brandLogo,
             brandColor: updatedWebsite.brandColor,
             brandWebsite: updatedWebsite.brandWebsite,
-            footerText: updatedWebsite.brandingData?.footerText
+            footerText: parsedBrandingData?.footerText
           }
         });
 
