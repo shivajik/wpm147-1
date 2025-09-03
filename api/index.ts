@@ -4916,16 +4916,16 @@ if (path.match(/^\/api\/websites\/\d+\/white-label$/) && req.method === 'GET') {
     }
     debug.push(`Website ID: ${websiteId}`);
 
-    // Get website and verify ownership - SELECT ALL BRANDING COLUMNS
+    // Get website and verify ownership - USE CORRECT COLUMN NAMES
     debug.push('Fetching website from database');
     const websiteResult = await db.select({
       id: websites.id,
-      whiteLabelEnabled: websites.whiteLabelEnabled,
-      brandLogo: websites.brandLogo,
-      brandName: websites.brandName,
-      brandColor: websites.brandColor,
-      brandWebsite: websites.brandWebsite,
-      brandingData: websites.brandingData
+      whiteLabelEnabled: websites.white_label_enabled, // CORRECTED
+      brandLogo: websites.brand_logo, // CORRECTED
+      brandName: websites.brand_name, // CORRECTED
+      brandColor: websites.brand_color, // CORRECTED
+      brandWebsite: websites.brand_website, // CORRECTED
+      brandingData: websites.branding_data // CORRECTED
     })
       .from(websites)
       .innerJoin(clients, eq(websites.clientId, clients.id))
@@ -5047,16 +5047,16 @@ if (path.match(/^\/api\/websites\/\d+\/white-label$/) && req.method === 'POST') 
     }
     debug.push(`Website ID: ${websiteId}`);
 
-    // Get website and verify ownership - SELECT ALL BRANDING COLUMNS
+    // Get website and verify ownership - USE CORRECT COLUMN NAMES
     debug.push('Fetching website from database');
     const websiteResult = await db.select({
       id: websites.id,
-      whiteLabelEnabled: websites.whiteLabelEnabled,
-      brandLogo: websites.brandLogo,
-      brandName: websites.brandName,
-      brandColor: websites.brandColor,
-      brandWebsite: websites.brandWebsite,
-      brandingData: websites.brandingData
+      whiteLabelEnabled: websites.white_label_enabled, // CORRECTED
+      brandLogo: websites.brand_logo, // CORRECTED
+      brandName: websites.brand_name, // CORRECTED
+      brandColor: websites.brand_color, // CORRECTED
+      brandWebsite: websites.brand_website, // CORRECTED
+      brandingData: websites.branding_data // CORRECTED
     })
       .from(websites)
       .innerJoin(clients, eq(websites.clientId, clients.id))
@@ -5132,17 +5132,17 @@ if (path.match(/^\/api\/websites\/\d+\/white-label$/) && req.method === 'POST') 
       });
     }
 
-    // Update website branding configuration
+    // Update website branding configuration - USE CORRECT COLUMN NAMES
     const updateData = {
-      whiteLabelEnabled: whiteLabelEnabled !== undefined ? whiteLabelEnabled : website.whiteLabelEnabled,
-      updatedAt: new Date()
+      white_label_enabled: whiteLabelEnabled !== undefined ? whiteLabelEnabled : website.whiteLabelEnabled, // CORRECTED
+      updated_at: new Date() // CORRECTED
     };
 
-    if (brandLogo !== undefined) updateData.brandLogo = brandLogo;
-    if (brandName !== undefined) updateData.brandName = brandName;
-    if (brandColor !== undefined) updateData.brandColor = brandColor;
-    if (brandWebsite !== undefined) updateData.brandWebsite = brandWebsite;
-    if (brandingData !== undefined) updateData.brandingData = brandingData;
+    if (brandLogo !== undefined) updateData.brand_logo = brandLogo; // CORRECTED
+    if (brandName !== undefined) updateData.brand_name = brandName; // CORRECTED
+    if (brandColor !== undefined) updateData.brand_color = brandColor; // CORRECTED
+    if (brandWebsite !== undefined) updateData.brand_website = brandWebsite; // CORRECTED
+    if (brandingData !== undefined) updateData.branding_data = brandingData; // CORRECTED
 
     debug.push(`Update data: ${JSON.stringify(updateData)}`);
 
@@ -5154,16 +5154,16 @@ if (path.match(/^\/api\/websites\/\d+\/white-label$/) && req.method === 'POST') 
 
     debug.push(`Update result: ${JSON.stringify(updateResult)}`);
 
-    // Fetch the updated website to return the current state - SELECT ALL BRANDING COLUMNS
+    // Fetch the updated website to return the current state - USE CORRECT COLUMN NAMES
     debug.push('Fetching updated website data');
     const updatedResult = await db.select({
       id: websites.id,
-      whiteLabelEnabled: websites.whiteLabelEnabled,
-      brandLogo: websites.brandLogo,
-      brandName: websites.brandName,
-      brandColor: websites.brandColor,
-      brandWebsite: websites.brandWebsite,
-      brandingData: websites.brandingData
+      whiteLabelEnabled: websites.white_label_enabled, // CORRECTED
+      brandLogo: websites.brand_logo, // CORRECTED
+      brandName: websites.brand_name, // CORRECTED
+      brandColor: websites.brand_color, // CORRECTED
+      brandWebsite: websites.brand_website, // CORRECTED
+      brandingData: websites.branding_data // CORRECTED
     })
       .from(websites)
       .where(eq(websites.id, websiteId))
