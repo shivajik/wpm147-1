@@ -4891,7 +4891,7 @@ async function handleRequest(req: any, res: any) {
 
 
     // White-label branding GET endpoint
-  if (path.match(/^\/api\/websites\/\d+\/branding$/) && req.method === 'GET') {
+  if (path.match(/^\/api\/websites\/\d+\/white-label$/) && req.method === 'GET') {
     const user = authenticateToken(req);
     if (!user) {
       return res.status(401).json({ message: 'Unauthorized' });
@@ -4970,8 +4970,8 @@ async function handleRequest(req: any, res: any) {
     }
   }
 
-    // White-label branding PUT endpoint (to match local server)
-    if (path.match(/^\/api\/websites\/\d+\/branding$/) && req.method === 'PUT') {
+    // White-label branding POST endpoint (to match frontend)
+    if (path.match(/^\/api\/websites\/\d+\/white-label$/) && req.method === 'POST') {
       const user = authenticateToken(req);
       if (!user) {
         return res.status(401).json({ message: 'Unauthorized' });
@@ -5083,8 +5083,14 @@ async function handleRequest(req: any, res: any) {
         });
 
       } catch (error) {
-        console.error("Error updating white-label config:", error);
-        return res.status(500).json({ message: "Failed to update white-label configuration" });
+        if (error instanceof z.ZodError) {
+          return res.status(400).json({ 
+            message: "Invalid branding data", 
+            errors: error.errors 
+          });
+        }
+        console.error("Error updating branding:", error);
+        return res.status(500).json({ message: "Failed to update branding" });
       }
     }
 
