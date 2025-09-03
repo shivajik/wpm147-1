@@ -4916,6 +4916,13 @@ if (path.match(/^\/api\/websites\/\d+\/white-label$/) && req.method === 'GET') {
     }
     debug.push(`Website ID: ${websiteId}`);
 
+debug.push('Fetching website by ID');
+    const websiteResult = await db.select()
+      .from(websites)
+      .where(eq(websites.id, websiteId));
+
+    debug.push(`Website result by id: ${JSON.stringify(websiteResult)}`);
+
     // Get website and verify ownership - USE CORRECT COLUMN NAMES
     debug.push('Fetching website from database');
     const websiteResult = await db.select({
@@ -4925,7 +4932,7 @@ if (path.match(/^\/api\/websites\/\d+\/white-label$/) && req.method === 'GET') {
       brandName: websites.brand_name,
       brandColor: websites.brand_color,
       brandWebsite: websites.brand_website,
-      brandingData: websites.branding_data
+      brandingData: sql`COALESCE(${websites.branding_data}, '{}'::jsonb)` // Handle null values
     })
       .from(websites)
       .innerJoin(clients, eq(websites.clientId, clients.id))
