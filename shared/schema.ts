@@ -11,7 +11,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 
 // Session storage table.
 // (IMPORTANT) This table is mandatory for Replit Auth, don't drop it.
@@ -118,7 +118,7 @@ export const websites = pgTable("websites", {
   brandName: varchar("brand_name", { length: 255 }), // Custom brand name
   brandColor: varchar("brand_color", { length: 7 }), // Hex color code
   brandWebsite: varchar("brand_website", { length: 500 }), // Custom brand website URL
-  brandingData: jsonb("branding_data"), // Additional branding configuration
+  brandingData: jsonb("branding_data").notNull().default(sql`'{}'::jsonb`), // Add notNull and default
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
   clientId: integer("client_id").notNull().references(() => clients.id),
