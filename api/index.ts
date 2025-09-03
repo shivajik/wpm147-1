@@ -4928,13 +4928,13 @@ debug.push('Fetching website by ID');
     const websiteResult = await db
       .select({
         id: websites.id,
-        whiteLabelEnabled: websites.whiteLabelEnabled, // Use Drizzle schema field name
-        brandLogo: websites.brandLogo,
-        brandName: websites.brandName,
-        brandColor: websites.brandColor,
-        brandWebsite: websites.brandWebsite,
-        brandingData: websites.brandingData,
-        clientId: websites.clientId, 
+        white_label_enabled: websites.white_label_enabled, // ✅ Use snake_case
+        brand_logo: websites.brand_logo,                   // ✅ Use snake_case
+        brand_name: websites.brand_name,                   // ✅ Use snake_case
+        brand_color: websites.brand_color,                 // ✅ Use snake_case
+        brand_website: websites.brand_website,             // ✅ Use snake_case
+        branding_data: websites.branding_data,             // ✅ Use snake_case
+        client_id: websites.client_id, 
       })
       .from(websites)
       .innerJoin(clients, eq(websites.clientId, clients.id)) // Use Drizzle schema field names
