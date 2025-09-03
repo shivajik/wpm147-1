@@ -4917,11 +4917,11 @@ if (path.match(/^\/api\/websites\/\d+\/white-label$/) && req.method === 'GET') {
     debug.push(`Website ID: ${websiteId}`);
 
 debug.push('Fetching website by ID');
-    const websiteResult = await db.select()
+    const websiteResult_id = await db.select()
       .from(websites)
       .where(eq(websites.id, websiteId));
 
-    debug.push(`Website result by id: ${JSON.stringify(websiteResult)}`);
+    debug.push(`Website result by id: ${JSON.stringify(websiteResult_id)}`);
 
     // Get website and verify ownership - USE CORRECT COLUMN NAMES
     debug.push('Fetching website from database');
