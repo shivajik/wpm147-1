@@ -20,6 +20,18 @@ interface BrandingData {
   footerText?: string;
 }
 
+interface WhiteLabelResponse {
+  whiteLabelEnabled: boolean;
+  brandName?: string;
+  brandLogo?: string;
+  brandColor?: string;
+  brandWebsite?: string;
+  brandingData?: {
+    footerText?: string;
+  };
+  canCustomize?: boolean;
+}
+
 interface UserSubscription {
   subscriptionPlan: string;
   subscriptionStatus: string;
@@ -49,25 +61,61 @@ export default function BrandingManagement({ websiteId }: BrandingManagementProp
   });
 
   // Get website branding data
-  const { data: brandingData, isLoading } = useQuery<BrandingData>({
-    queryKey: [`/api/websites/${websiteId}/branding`],
+  const { data: brandingResponse, isLoading } = useQuery<WhiteLabelResponse>({
+    queryKey: [`/api/websites/${websiteId}/white-label`],
     enabled: !!websiteId,
   });
+
+  // Transform the API response to match our UI data format
+  const brandingData: BrandingData | undefined = brandingResponse ? {
+    whiteLabelEnabled: brandingResponse.whiteLabelEnabled || false,
+    brandName: brandingResponse.brandName,
+    brandLogo: brandingResponse.brandLogo,
+    brandColor: brandingResponse.brandColor,
+    brandWebsite: brandingResponse.brandWebsite,
+    footerText: brandingResponse.brandingData?.footerText
+  } : undefined;
 
   // Update branding mutation
   const updateBrandingMutation = useMutation({
     mutationFn: async (data: BrandingData) => {
-      return await apiCall(`/api/websites/${websiteId}/branding`, {
-        method: "PUT",
-        body: JSON.stringify(data),
+      // Transform data to match white-label API format
+      const requestData = {
+        whiteLabelEnabled: data.whiteLabelEnabled,
+        brandName: data.brandName,
+        brandLogo: data.brandLogo,
+        brandColor: data.brandColor,
+        brandWebsite: data.brandWebsite,
+        brandingData: {
+          footerText: data.footerText
+        }
+      };
+      
+      const response = await apiCall(`/api/websites/${websiteId}/white-label`, {
+        method: "POST",
+        body: JSON.stringify(requestData),
       });
+      
+      // Transform response data back to UI format
+      if (response.data) {
+        return {
+          whiteLabelEnabled: response.data.whiteLabelEnabled,
+          brandName: response.data.brandName,
+          brandLogo: response.data.brandLogo,
+          brandColor: response.data.brandColor,
+          brandWebsite: response.data.brandWebsite,
+          footerText: response.data.brandingData?.footerText
+        };
+      }
+      
+      return response;
     },
     onSuccess: () => {
       toast({
         title: "Branding Updated",
         description: "Your white-label branding has been updated successfully.",
       });
-      queryClient.invalidateQueries({ queryKey: [`/api/websites/${websiteId}/branding`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/websites/${websiteId}/white-label`] });
       setIsEditing(false);
     },
     onError: (error: any) => {
