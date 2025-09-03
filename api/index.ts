@@ -4928,16 +4928,16 @@ debug.push('Fetching website by ID');
     const websiteResult = await db
       .select({
         id: websites.id,
-        whiteLabelEnabled: websites.white_label_enabled,
-        brandLogo: websites.brand_logo,
-        brandName: websites.brand_name,
-        brandColor: websites.brand_color,
-        brandWebsite: websites.brand_website,
-        brandingData: websites.branding_data,
+        whiteLabelEnabled: websites.whiteLabelEnabled, // Use Drizzle schema field name
+        brandLogo: websites.brandLogo,
+        brandName: websites.brandName,
+        brandColor: websites.brandColor,
+        brandWebsite: websites.brandWebsite,
+        brandingData: websites.brandingData,
       })
       .from(websites)
-      .innerJoin(clients, eq(websites.client_id, clients.id))   // FIXED
-      .where(and(eq(websites.id, websiteId), eq(clients.user_id, user.id))) // FIXED
+      .innerJoin(clients, eq(websites.clientId, clients.id)) // Use Drizzle schema field names
+      .where(and(eq(websites.id, websiteId), eq(clients.userId, user.id))) // Use Drizzle schema field names
       .limit(1);
 
     debug.push(`Website result: ${JSON.stringify(websiteResult)}`);
