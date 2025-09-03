@@ -113,15 +113,15 @@ export const websites = pgTable("websites", {
   screenshotUrl: varchar("screenshot_url", { length: 500 }), // External screenshot service URL
   thumbnailLastUpdated: timestamp("thumbnail_last_updated"), // Last time thumbnail was captured
   // White-label branding fields
-  whiteLabelEnabled: boolean("white_label_enabled").default(false), // Whether white-labeling is enabled
-  brandLogo: varchar("brand_logo", { length: 500 }), // Custom logo URL
-  brandName: varchar("brand_name", { length: 255 }), // Custom brand name
-  brandColor: varchar("brand_color", { length: 7 }), // Hex color code
-  brandWebsite: varchar("brand_website", { length: 500 }), // Custom brand website URL
-  brandingData: jsonb("branding_data").notNull().default(sql`'{}'::jsonb`), // Add notNull and default
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-  clientId: integer("client_id").notNull().references(() => clients.id),
+  white_label_enabled: boolean("white_label_enabled").default(false),
+  brand_logo: varchar("brand_logo", { length: 500 }),
+  brand_name: varchar("brand_name", { length: 255 }),
+  brand_color: varchar("brand_color", { length: 7 }),
+  brand_website: varchar("brand_website", { length: 500 }),
+  branding_data: jsonb("branding_data").notNull().default(sql`'{}'::jsonb`),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+  client_id: integer("client_id").notNull().references(() => clients.id),
 });
 
 export const tasks = pgTable("tasks", {
