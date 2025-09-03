@@ -4916,9 +4916,17 @@ if (path.match(/^\/api\/websites\/\d+\/white-label$/) && req.method === 'GET') {
     }
     debug.push(`Website ID: ${websiteId}`);
 
-    // Get website and verify ownership
+    // Get website and verify ownership - SELECT ALL BRANDING COLUMNS
     debug.push('Fetching website from database');
-    const websiteResult = await db.select()
+    const websiteResult = await db.select({
+      id: websites.id,
+      whiteLabelEnabled: websites.whiteLabelEnabled,
+      brandLogo: websites.brandLogo,
+      brandName: websites.brandName,
+      brandColor: websites.brandColor,
+      brandWebsite: websites.brandWebsite,
+      brandingData: websites.brandingData
+    })
       .from(websites)
       .innerJoin(clients, eq(websites.clientId, clients.id))
       .where(and(eq(websites.id, websiteId), eq(clients.userId, user.id)))
@@ -4932,7 +4940,7 @@ if (path.match(/^\/api\/websites\/\d+\/white-label$/) && req.method === 'GET') {
       });
     }
 
-    const website = websiteResult[0].websites;
+    const website = websiteResult[0];
     debug.push(`Website found: ${website.id}, whiteLabelEnabled: ${website.whiteLabelEnabled}`);
     debug.push(`Website branding data: ${JSON.stringify({
       brandLogo: website.brandLogo,
@@ -4975,9 +4983,7 @@ if (path.match(/^\/api\/websites\/\d+\/white-label$/) && req.method === 'GET') {
     let parsedWebsiteBrandingData = null;
     if (website.brandingData) {
       try {
-        parsedWebsiteBrandingData = typeof website.brandingData === 'string' 
-          ? JSON.parse(website.brandingData) 
-          : website.brandingData;
+        parsedWebsiteBrandingData = website.brandingData;
         debug.push('Successfully parsed brandingData');
       } catch (error) {
         debug.push(`Error parsing brandingData: ${error.message}`);
@@ -5041,9 +5047,17 @@ if (path.match(/^\/api\/websites\/\d+\/white-label$/) && req.method === 'POST') 
     }
     debug.push(`Website ID: ${websiteId}`);
 
-    // Get website and verify ownership
+    // Get website and verify ownership - SELECT ALL BRANDING COLUMNS
     debug.push('Fetching website from database');
-    const websiteResult = await db.select()
+    const websiteResult = await db.select({
+      id: websites.id,
+      whiteLabelEnabled: websites.whiteLabelEnabled,
+      brandLogo: websites.brandLogo,
+      brandName: websites.brandName,
+      brandColor: websites.brandColor,
+      brandWebsite: websites.brandWebsite,
+      brandingData: websites.brandingData
+    })
       .from(websites)
       .innerJoin(clients, eq(websites.clientId, clients.id))
       .where(and(eq(websites.id, websiteId), eq(clients.userId, user.id)))
@@ -5057,7 +5071,7 @@ if (path.match(/^\/api\/websites\/\d+\/white-label$/) && req.method === 'POST') 
       });
     }
 
-    const website = websiteResult[0].websites;
+    const website = websiteResult[0];
     debug.push(`Website found: ${website.id}`);
     debug.push(`Current website branding: ${JSON.stringify({
       whiteLabelEnabled: website.whiteLabelEnabled,
@@ -5128,7 +5142,7 @@ if (path.match(/^\/api\/websites\/\d+\/white-label$/) && req.method === 'POST') 
     if (brandName !== undefined) updateData.brandName = brandName;
     if (brandColor !== undefined) updateData.brandColor = brandColor;
     if (brandWebsite !== undefined) updateData.brandWebsite = brandWebsite;
-    if (brandingData !== undefined) updateData.brandingData = JSON.stringify(brandingData);
+    if (brandingData !== undefined) updateData.brandingData = brandingData;
 
     debug.push(`Update data: ${JSON.stringify(updateData)}`);
 
@@ -5140,9 +5154,17 @@ if (path.match(/^\/api\/websites\/\d+\/white-label$/) && req.method === 'POST') 
 
     debug.push(`Update result: ${JSON.stringify(updateResult)}`);
 
-    // Fetch the updated website to return the current state
+    // Fetch the updated website to return the current state - SELECT ALL BRANDING COLUMNS
     debug.push('Fetching updated website data');
-    const updatedResult = await db.select()
+    const updatedResult = await db.select({
+      id: websites.id,
+      whiteLabelEnabled: websites.whiteLabelEnabled,
+      brandLogo: websites.brandLogo,
+      brandName: websites.brandName,
+      brandColor: websites.brandColor,
+      brandWebsite: websites.brandWebsite,
+      brandingData: websites.brandingData
+    })
       .from(websites)
       .where(eq(websites.id, websiteId))
       .limit(1);
@@ -5166,18 +5188,7 @@ if (path.match(/^\/api\/websites\/\d+\/white-label$/) && req.method === 'POST') 
     })}`);
 
     // Parse branding data for response
-    let parsedBrandingData = null;
-    if (updatedWebsite.brandingData) {
-      try {
-        parsedBrandingData = typeof updatedWebsite.brandingData === 'string' 
-          ? JSON.parse(updatedWebsite.brandingData) 
-          : updatedWebsite.brandingData;
-        debug.push('Successfully parsed updated brandingData');
-      } catch (error) {
-        debug.push(`Error parsing updated brandingData: ${error.message}`);
-        parsedBrandingData = null;
-      }
-    }
+    let parsedBrandingData = updatedWebsite.brandingData;
 
     const branding = {
       brandLogo: updatedWebsite.brandLogo || "https://aiowebcare.com/logo.png",
