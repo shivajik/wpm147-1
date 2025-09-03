@@ -38,6 +38,18 @@ interface ClientReportData {
     ipAddress?: string;
     wordpressVersion?: string;
   };
+  branding?: {
+    whiteLabelEnabled: boolean;
+    brandName?: string;
+    brandLogo?: string;
+    brandColor?: string;
+    brandWebsite?: string;
+    footerText?: string;
+  };
+  userSubscription?: {
+    subscriptionPlan: string;
+    subscriptionStatus: string;
+  };
   dateFrom: string;
   dateTo: string;
   reportType: string;
@@ -167,6 +179,40 @@ interface EnhancedReportTemplateProps {
 }
 
 export function EnhancedReportTemplate({ reportData, isPrintMode = false }: EnhancedReportTemplateProps) {
+  // Helper method to determine if white-label branding should be used
+  const shouldUseWhiteLabel = (): boolean => {
+    const isPaidUser = reportData.userSubscription?.subscriptionPlan && 
+                       reportData.userSubscription.subscriptionPlan !== 'free';
+    const hasCustomBranding = reportData.branding?.whiteLabelEnabled === true && 
+                              !!reportData.branding?.brandName;
+    return !!isPaidUser && hasCustomBranding;
+  };
+
+  // Helper method to get brand information (either custom or default)
+  const getBrandInfo = () => {
+    if (shouldUseWhiteLabel()) {
+      return {
+        name: reportData.branding?.brandName || 'Your Brand',
+        logo: reportData.branding?.brandLogo || '🛡️',
+        color: reportData.branding?.brandColor || '#1e40af',
+        website: reportData.branding?.brandWebsite || '',
+        footerText: reportData.branding?.footerText || 'Powered by Your Brand',
+        subtitle: 'Professional WordPress Management'
+      };
+    }
+    
+    return {
+      name: 'AIO WEBCARE',
+      logo: '🛡️',
+      color: '#1e40af',
+      website: 'https://aiowebcare.com',
+      footerText: 'Powered by AIO Webcare - Comprehensive WordPress Management',
+      subtitle: 'Professional WordPress Management'
+    };
+  };
+
+  const brandInfo = getBrandInfo();
+
   // Check if there's any activity to show in the report
   const hasActivity = (
     (reportData.overview.updatesPerformed > 0) ||
@@ -357,7 +403,7 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
                 
                 <div className="mt-8 pt-6 border-t border-white/20">
                   <p className="font-semibold text-blue-200">Professional WordPress Maintenance Team</p>
-                  <p className="text-sm text-white/70 mt-1">AIO Webcare - Comprehensive WordPress Management</p>
+                  <p className="text-sm text-white/70 mt-1">{brandInfo.footerText}</p>
                 </div>
               </div>
             </div>
@@ -392,13 +438,17 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
           <div className="mb-12">
             <div className="inline-flex items-center gap-4 mb-6">
               <div className="p-4 bg-white/20 backdrop-blur-lg rounded-2xl border border-white/30 shadow-2xl">
-                <Shield className="w-12 h-12 text-white" />
+                {brandInfo.logo.startsWith('http') ? (
+                  <img src={brandInfo.logo} alt="Brand Logo" className="w-12 h-12 object-contain" />
+                ) : (
+                  <Shield className="w-12 h-12 text-white" />
+                )}
               </div>
               <div className="text-left">
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
-                  AIO WEBCARE
+                  {brandInfo.name}
                 </h1>
-                <p className="text-blue-200 text-sm font-medium">Professional WordPress Management</p>
+                <p className="text-blue-200 text-sm font-medium">{brandInfo.subtitle}</p>
               </div>
             </div>
           </div>
@@ -480,7 +530,7 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
               
               <div className="mt-8 pt-6 border-t border-white/20">
                 <p className="font-semibold text-blue-200">Professional WordPress Maintenance Team</p>
-                <p className="text-sm text-white/70 mt-1">AIO Webcare - Comprehensive WordPress Management</p>
+                <p className="text-sm text-white/70 mt-1">{brandInfo.footerText}</p>
               </div>
             </div>
           </div>

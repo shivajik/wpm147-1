@@ -20,6 +20,12 @@ interface BrandingData {
   footerText?: string;
 }
 
+interface UserSubscription {
+  subscriptionPlan: string;
+  subscriptionStatus: string;
+  subscriptionEndsAt?: string;
+}
+
 interface BrandingManagementProps {
   websiteId: number;
 }
@@ -38,12 +44,12 @@ export default function BrandingManagement({ websiteId }: BrandingManagementProp
   });
 
   // Check user subscription
-  const { data: subscription } = useQuery({
+  const { data: subscription } = useQuery<UserSubscription>({
     queryKey: ['/api/user/subscription'],
   });
 
   // Get website branding data
-  const { data: brandingData, isLoading } = useQuery({
+  const { data: brandingData, isLoading } = useQuery<BrandingData>({
     queryKey: [`/api/websites/${websiteId}/branding`],
     enabled: !!websiteId,
   });

@@ -5267,12 +5267,58 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
         console.error("Error fetching client/website data:", error);
       }
 
+      // Fetch user subscription data for white-label branding
+      let userSubscription = {
+        subscriptionPlan: 'free',
+        subscriptionStatus: 'active'
+      };
+      
+      let brandingData = {
+        whiteLabelEnabled: false,
+        brandName: undefined,
+        brandLogo: undefined,
+        brandColor: undefined,
+        brandWebsite: undefined,
+        footerText: undefined
+      };
+
+      try {
+        // Get user subscription data
+        const userProfile = await storage.getUserProfile(userId);
+        if (userProfile) {
+          userSubscription = {
+            subscriptionPlan: userProfile.subscriptionPlan || 'free',
+            subscriptionStatus: userProfile.subscriptionStatus || 'active'
+          };
+        }
+
+        // Get website branding data from the first website
+        const websiteIds = Array.isArray(report.websiteIds) ? report.websiteIds : [];
+        if (websiteIds.length > 0) {
+          const website = await storage.getWebsite(websiteIds[0], userId);
+          if (website) {
+            brandingData = {
+              whiteLabelEnabled: website.whiteLabelEnabled || false,
+              brandName: website.brandName,
+              brandLogo: website.brandLogo,
+              brandColor: website.brandColor,
+              brandWebsite: website.brandWebsite,
+              footerText: website.brandingData?.footerText
+            };
+          }
+        }
+      } catch (brandingError) {
+        console.error('Error fetching branding/subscription data:', brandingError);
+      }
+
       // Construct the complete ClientReportData structure
       const completeReportData = {
         id: report.id,
         title: report.title || 'Client Report',
         client: clientInfo,
         website: websiteInfo,
+        branding: brandingData,
+        userSubscription: userSubscription,
         dateFrom: report.dateFrom?.toISOString() || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
         dateTo: report.dateTo?.toISOString() || new Date().toISOString(),
         reportType: 'maintenance', // reportType not in schema yet
