@@ -4925,21 +4925,23 @@ debug.push('Fetching website by ID');
 
     // Get website and verify ownership - USE CORRECT COLUMN NAMES
     debug.push('Fetching website from database');
-    const websiteResult = await db.select({
-      id: websites.id,
-      whiteLabelEnabled: websites.white_label_enabled,
-      brandLogo: websites.brand_logo,
-      brandName: websites.brand_name,
-      brandColor: websites.brand_color,
-      brandWebsite: websites.brand_website,
-      brandingData: sql`COALESCE(${websites.branding_data}, '{}'::jsonb)` // Handle null values
-    })
+    const websiteResult = await db
+      .select({
+        id: websites.id,
+        whiteLabelEnabled: websites.whiteLabelEnabled,
+        brandLogo: websites.brandLogo,
+        brandName: websites.brandName,
+        brandColor: websites.brandColor,
+        brandWebsite: websites.brandWebsite,
+        brandingData: websites.brandingData,
+      })
       .from(websites)
       .innerJoin(clients, eq(websites.clientId, clients.id))
       .where(and(eq(websites.id, websiteId), eq(clients.userId, user.id)))
       .limit(1);
 
-    debug.push(`Website result: ${JSON.stringify(websiteResult)}`); // ADDED FOR DEBUGGING
+    debug.push(`Website result: ${JSON.stringify(websiteResult)}`);
+
 
     if (!websiteResult || websiteResult.length === 0) {
       debug.push('Website not found or user does not have access');
@@ -5073,20 +5075,20 @@ if (path.match(/^\/api\/websites\/\d+\/white-label$/) && req.method === 'POST') 
 
     // Get website and verify ownership - USE CORRECT COLUMN NAMES
     debug.push('Fetching website from database');
-    const websiteResult = await db.select({
-      id: websites.id,
-      whiteLabelEnabled: websites.white_label_enabled, // CORRECTED
-      brandLogo: websites.brand_logo, // CORRECTED
-      brandName: websites.brand_name, // CORRECTED
-      brandColor: websites.brand_color, // CORRECTED
-      brandWebsite: websites.brand_website, // CORRECTED
-      brandingData: websites.branding_data // CORRECTED
-    })
-      .from(websites)
-      .innerJoin(clients, eq(websites.clientId, clients.id))
-      .where(and(eq(websites.id, websiteId), eq(clients.userId, user.id)))
-      .limit(1);
-      
+const websiteResult = await db.select({
+  id: websites.id,
+  whiteLabelEnabled: websites.whiteLabelEnabled,
+  brandLogo: websites.brandLogo,
+  brandName: websites.brandName,
+  brandColor: websites.brandColor,
+  brandWebsite: websites.brandWebsite,
+  brandingData: websites.brandingData,
+})
+.from(websites)
+.innerJoin(clients, eq(websites.clientId, clients.id))
+.where(and(eq(websites.id, websiteId), eq(clients.userId, user.id)))
+.limit(1);
+
     if (websiteResult.length === 0) {
       debug.push('Website not found or user does not have access');
       return res.status(404).json({ 
