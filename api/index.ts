@@ -4937,8 +4937,8 @@ debug.push('Fetching website by ID');
         client_id: websites.client_id, 
       })
       .from(websites)
-      .innerJoin(clients, eq(websites.clientId, clients.id)) // Use Drizzle schema field names
-      .where(and(eq(websites.id, websiteId), eq(clients.userId, user.id))) // Use Drizzle schema field names
+      .innerJoin(clients, eq(websites.client_id, clients.id)) // ✅ Use snake_case
+      .where(and(eq(websites.id, websiteId), eq(clients.user_id, user.id)))  // Use Drizzle schema field names
       .limit(1);
 
     debug.push(`Website result: ${JSON.stringify(websiteResult)}`);
