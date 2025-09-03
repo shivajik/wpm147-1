@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiCall } from "@/lib/queryClient";
 import { 
@@ -29,9 +30,17 @@ import {
   TrendingUp,
   Award,
   Wrench,
-  MessageSquare
+  MessageSquare,
+  Crown,
+  Star
 } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
+import EditWebsiteDialog from "@/components/websites/edit-website-dialog";
+
+interface UserSubscription {
+  subscriptionPlan: string;
+  subscriptionStatus: string;
+}
 
 interface QuickActionsProps {
   websiteId: number;
@@ -43,6 +52,22 @@ export function QuickActions({ websiteId, websiteName, websiteUrl }: QuickAction
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isPerformingAction, setIsPerformingAction] = useState<string | null>(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [showBrandingDialog, setShowBrandingDialog] = useState(false);
+  const [, setLocation] = useLocation();
+
+  // Check user subscription status
+  const { data: subscription } = useQuery<UserSubscription>({
+    queryKey: ['/api/user/subscription'],
+  });
+
+  // Get website data for the branding dialog
+  const { data: website } = useQuery({
+    queryKey: [`/api/websites/${websiteId}`],
+    enabled: !!websiteId,
+  });
+
+  const isPaidUser = subscription?.subscriptionPlan && subscription.subscriptionPlan !== 'free';
 
   const performActionMutation = useMutation({
     mutationFn: async ({ action, endpoint }: { action: string; endpoint: string }) => {
@@ -74,6 +99,16 @@ export function QuickActions({ websiteId, websiteName, websiteUrl }: QuickAction
 
   const handleAction = (action: string, endpoint: string) => {
     performActionMutation.mutate({ action, endpoint });
+  };
+
+  const handleWhiteLabelClick = () => {
+    if (isPaidUser) {
+      // For paid users, navigate to global branding settings
+      setLocation('/branding-settings');
+    } else {
+      // For free users, show upgrade modal
+      setShowUpgradeModal(true);
+    }
   };
 
   const isLoading = performActionMutation.isPending;
@@ -208,7 +243,7 @@ export function QuickActions({ websiteId, websiteName, websiteUrl }: QuickAction
       description: 'Branding settings',
       color: 'text-amber-600',
       bgColor: 'bg-amber-50 hover:bg-amber-100',
-      onClick: () => handleAction('White Label Settings', `/api/websites/${websiteId}/white-label`),
+      onClick: handleWhiteLabelClick,
       isAction: true,
     },
   ];
@@ -333,6 +368,52 @@ export function QuickActions({ websiteId, websiteName, websiteUrl }: QuickAction
           </div>
         </div>
       </CardContent>
+
+      {/* Upgrade Modal for Free Users */}
+      <Dialog open={showUpgradeModal} onOpenChange={setShowUpgradeModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Crown className="h-5 w-5 text-yellow-500" />
+              Upgrade Required
+            </DialogTitle>
+            <DialogDescription>
+              White-label branding is a premium feature available with paid plans.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+              <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                Premium Features Include:
+              </h4>
+              <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+                <li>✓ Custom brand logo and colors</li>
+                <li>✓ Personalized footer text</li>
+                <li>✓ White-label client reports</li>
+                <li>✓ Remove AIO Webcare branding</li>
+              </ul>
+            </div>
+          </div>
+
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setShowUpgradeModal(false)}>
+              Maybe Later
+            </Button>
+            <Button 
+              onClick={() => {
+                setShowUpgradeModal(false);
+                setLocation('/subscription');
+              }}
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+            >
+              <Star className="h-4 w-4 mr-2" />
+              Upgrade Now
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </Card>
   );
 }
