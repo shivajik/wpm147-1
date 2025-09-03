@@ -4952,17 +4952,17 @@ async function handleRequest(req: any, res: any) {
         }
       }
 
-      // Return branding data in the same format as local server
-      const response = {
-        whiteLabelEnabled: website.whiteLabelEnabled || false,
-        brandName: website.brandName,
-        brandLogo: website.brandLogo,
-        brandColor: website.brandColor,
-        brandWebsite: website.brandWebsite,
-        footerText: parsedWebsiteBrandingData?.footerText
-      };
+      const branding = website.whiteLabelEnabled ? {
+        brandLogo: website.brandLogo || defaultBranding.brandLogo,
+        brandName: website.brandName || defaultBranding.brandName,
+        brandColor: website.brandColor || defaultBranding.brandColor,
+        brandWebsite: website.brandWebsite || defaultBranding.brandWebsite,
+        brandingData: parsedWebsiteBrandingData,
+        whiteLabelEnabled: true,
+        canCustomize: defaultBranding.canCustomize
+      } : defaultBranding;
 
-      return res.status(200).json(response);
+      return res.status(200).json(branding);
 
     } catch (error) {
       console.error("Error fetching white-label config:", error);
@@ -5008,60 +5008,38 @@ async function handleRequest(req: any, res: any) {
 
         const userData = userResult[0];
         
-        // Check user subscription plan - only paid users can use white-label branding
-        const isPaidUser = userData.subscriptionPlan && userData.subscriptionPlan !== 'free';
-        
-        if (!isPaidUser) {
+        // Check if user can customize branding (paid plan required) - match local server exactly
+        if (!userData || userData.subscriptionPlan === 'free' || userData.subscriptionStatus !== 'active') {
           return res.status(403).json({ 
-            message: "White-label branding is only available for paid subscription plans. Please upgrade your plan to customize your branding.",
-            code: "UPGRADE_REQUIRED"
+            message: "White-label branding customization requires a paid subscription plan.",
+            error: "SUBSCRIPTION_REQUIRED",
+            subscriptionPlan: userData?.subscriptionPlan || 'free',
+            subscriptionStatus: userData?.subscriptionStatus || 'inactive'
           });
         }
 
-        // Validate branding data using Zod - accept the format frontend sends
-        const { z } = await import('zod');
-        const brandingSchema = z.object({
-          brandName: z.string().min(1, "Brand name is required").max(255).optional(),
-          brandLogo: z.string().url("Brand logo must be a valid URL").optional(),
-          brandColor: z.string().regex(/^#[0-9A-F]{6}$/i, "Brand color must be a valid hex color").optional(),
-          brandWebsite: z.string().url("Brand website must be a valid URL").optional(),
-          whiteLabelEnabled: z.boolean().default(false),
-          brandingData: z.object({
-            footerText: z.string().max(500, "Footer text cannot exceed 500 characters").optional()
-          }).optional()
-        });
+        const { brandLogo, brandName, brandColor, brandWebsite, brandingData, whiteLabelEnabled } = req.body;
 
-        console.log('Received branding data:', JSON.stringify(req.body, null, 2));
-
-        let brandingData;
-        try {
-          brandingData = brandingSchema.parse(req.body);
-        } catch (error) {
-          console.error('Validation error:', error);
-          if (error instanceof z.ZodError) {
-            return res.status(400).json({ 
-              message: "Invalid branding data", 
-              errors: error.errors 
-            });
-          }
-          throw error;
+        // Validate input data - match local server exactly
+        if (brandColor && !brandColor.match(/^#[0-9A-F]{6}$/i)) {
+          return res.status(400).json({ message: "Brand color must be a valid hex color code (e.g., #3b82f6)" });
         }
 
-        // Update website with branding information
+        if (brandWebsite && !brandWebsite.match(/^https?:\/\/.+/)) {
+          return res.status(400).json({ message: "Brand website must be a valid URL" });
+        }
+
+        // Update website branding configuration - match local server exactly
         const updateData: any = {
-          whiteLabelEnabled: brandingData.whiteLabelEnabled,
-          brandName: brandingData.brandName,
-          brandLogo: brandingData.brandLogo,
-          brandColor: brandingData.brandColor,
-          brandWebsite: brandingData.brandWebsite,
-          brandingData: {
-            footerText: brandingData.brandingData?.footerText,
-            lastUpdated: new Date().toISOString()
-          },
+          whiteLabelEnabled: whiteLabelEnabled !== undefined ? whiteLabelEnabled : website.whiteLabelEnabled,
           updatedAt: new Date()
         };
 
-        console.log('Update data:', JSON.stringify(updateData, null, 2));
+        if (brandLogo) updateData.brandLogo = brandLogo;
+        if (brandName) updateData.brandName = brandName;
+        if (brandColor) updateData.brandColor = brandColor;
+        if (brandWebsite) updateData.brandWebsite = brandWebsite;
+        if (brandingData) updateData.brandingData = JSON.stringify(brandingData);
 
         // Update website branding configuration
         await db.update(websites)
@@ -5076,10 +5054,11 @@ async function handleRequest(req: any, res: any) {
 
         const updatedWebsite = updatedResult[0];
 
-        // Parse branding data for response
+        // Return the updated branding configuration - match local server exactly
         let parsedBrandingData = null;
         if (updatedWebsite.brandingData) {
           try {
+            // Handle both string and object cases
             parsedBrandingData = typeof updatedWebsite.brandingData === 'string' 
               ? JSON.parse(updatedWebsite.brandingData) 
               : updatedWebsite.brandingData;
@@ -5089,28 +5068,25 @@ async function handleRequest(req: any, res: any) {
           }
         }
 
-        // Return response in same format as local server
+        const branding = {
+          brandLogo: updatedWebsite.brandLogo || "https://aiowebcare.com/logo.png",
+          brandName: updatedWebsite.brandName || "AIOWebcare",
+          brandColor: updatedWebsite.brandColor || "#3b82f6",
+          brandWebsite: updatedWebsite.brandWebsite || "https://aiowebcare.com",
+          brandingData: parsedBrandingData,
+          whiteLabelEnabled: updatedWebsite.whiteLabelEnabled,
+          canCustomize: true
+        };
+
         return res.status(200).json({
-          message: "Branding updated successfully",
-          branding: {
-            whiteLabelEnabled: updatedWebsite.whiteLabelEnabled,
-            brandName: updatedWebsite.brandName,
-            brandLogo: updatedWebsite.brandLogo,
-            brandColor: updatedWebsite.brandColor,
-            brandWebsite: updatedWebsite.brandWebsite,
-            footerText: parsedBrandingData?.footerText
-          }
+          success: true,
+          message: "White-label branding updated successfully",
+          data: branding
         });
 
       } catch (error) {
-        if (error instanceof z.ZodError) {
-          return res.status(400).json({ 
-            message: "Invalid branding data", 
-            errors: error.errors 
-          });
-        }
-        console.error("Error updating branding:", error);
-        return res.status(500).json({ message: "Failed to update branding" });
+        console.error("Error updating white-label config:", error);
+        return res.status(500).json({ message: "Failed to update white-label configuration" });
       }
     }
 
