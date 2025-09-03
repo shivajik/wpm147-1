@@ -4891,204 +4891,323 @@ async function handleRequest(req: any, res: any) {
 
 
     // White-label branding GET endpoint
-  if (path.match(/^\/api\/websites\/\d+\/white-label$/) && req.method === 'GET') {
+if (path.match(/^\/api\/websites\/\d+\/white-label$/) && req.method === 'GET') {
+  const debug = [];
+  try {
+    debug.push('Starting GET white-label endpoint');
+    
     const user = authenticateToken(req);
     if (!user) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      debug.push('Authentication failed - no user found');
+      return res.status(401).json({ 
+        message: 'Unauthorized',
+        debug: debug 
+      });
     }
+    debug.push(`User authenticated: ${user.id}`);
 
     const websiteId = parseInt(path.split('/')[3]);
     if (isNaN(websiteId)) {
-      return res.status(400).json({ message: 'Invalid website ID' });
+      debug.push(`Invalid website ID: ${path.split('/')[3]}`);
+      return res.status(400).json({ 
+        message: 'Invalid website ID',
+        debug: debug 
+      });
+    }
+    debug.push(`Website ID: ${websiteId}`);
+
+    // Get website and verify ownership
+    debug.push('Fetching website from database');
+    const websiteResult = await db.select()
+      .from(websites)
+      .innerJoin(clients, eq(websites.clientId, clients.id))
+      .where(and(eq(websites.id, websiteId), eq(clients.userId, user.id)))
+      .limit(1);
+
+    if (websiteResult.length === 0) {
+      debug.push('Website not found or user does not have access');
+      return res.status(404).json({ 
+        message: "Website not found",
+        debug: debug 
+      });
     }
 
-    try {
-      // Get website and verify ownership
-      const websiteResult = await db.select()
-        .from(websites)
-        .innerJoin(clients, eq(websites.clientId, clients.id))
-        .where(and(eq(websites.id, websiteId), eq(clients.userId, user.id)))
-        .limit(1);
+    const website = websiteResult[0].websites;
+    debug.push(`Website found: ${website.id}, whiteLabelEnabled: ${website.whiteLabelEnabled}`);
+    debug.push(`Website branding data: ${JSON.stringify({
+      brandLogo: website.brandLogo,
+      brandName: website.brandName,
+      brandColor: website.brandColor,
+      brandWebsite: website.brandWebsite,
+      hasBrandingData: !!website.brandingData
+    })}`);
 
-      if (websiteResult.length === 0) {
-        return res.status(404).json({ message: "Website not found" });
-      }
+    // Get user's subscription info for branding permissions
+    debug.push('Fetching user subscription data');
+    const userResult = await db.select()
+      .from(users)
+      .where(eq(users.id, user.id))
+      .limit(1);
 
-      const website = websiteResult[0].websites;
-
-      // Get user's subscription info for branding permissions
-      const userResult = await db.select()
-        .from(users)
-        .where(eq(users.id, user.id))
-        .limit(1);
-
-      if (userResult.length === 0) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      const userData = userResult[0];
-
-      // Default AIOWebcare branding
-      const defaultBranding = {
-        brandLogo: "https://aiowebcare.com/logo.png", // Your default logo URL
-        brandName: "AIOWebcare",
-        brandColor: "#3b82f6", // Blue color
-        brandWebsite: "https://aiowebcare.com",
-        whiteLabelEnabled: false,
-        canCustomize: userData?.subscriptionPlan !== 'free' && userData?.subscriptionStatus === 'active'
-      };
-
-      // If white-labeling is enabled and user has custom branding, return it
-      let parsedWebsiteBrandingData = null;
-      if (website.brandingData) {
-        try {
-          // Handle both string and object cases
-          parsedWebsiteBrandingData = typeof website.brandingData === 'string' 
-            ? JSON.parse(website.brandingData) 
-            : website.brandingData;
-        } catch (error) {
-          console.error("Error parsing website brandingData:", error);
-          parsedWebsiteBrandingData = null;
-        }
-      }
-
-      const branding = website.whiteLabelEnabled ? {
-        brandLogo: website.brandLogo || defaultBranding.brandLogo,
-        brandName: website.brandName || defaultBranding.brandName,
-        brandColor: website.brandColor || defaultBranding.brandColor,
-        brandWebsite: website.brandWebsite || defaultBranding.brandWebsite,
-        brandingData: parsedWebsiteBrandingData,
-        whiteLabelEnabled: true,
-        canCustomize: defaultBranding.canCustomize
-      } : defaultBranding;
-
-      return res.status(200).json(branding);
-
-    } catch (error) {
-      console.error("Error fetching white-label config:", error);
-      return res.status(500).json({ message: "Failed to fetch white-label configuration" });
+    if (userResult.length === 0) {
+      debug.push('User not found in database');
+      return res.status(404).json({ 
+        message: "User not found",
+        debug: debug 
+      });
     }
-  }
 
-    // White-label branding POST endpoint (to match frontend)
-    if (path.match(/^\/api\/websites\/\d+\/white-label$/) && req.method === 'POST') {
-      const user = authenticateToken(req);
-      if (!user) {
-        return res.status(401).json({ message: 'Unauthorized' });
-      }
+    const userData = userResult[0];
+    debug.push(`User subscription: plan=${userData.subscriptionPlan}, status=${userData.subscriptionStatus}`);
+    
+    // Default AIOWebcare branding
+    const defaultBranding = {
+      brandLogo: "https://aiowebcare.com/logo.png",
+      brandName: "AIOWebcare",
+      brandColor: "#3b82f6",
+      brandWebsite: "https://aiowebcare.com",
+      whiteLabelEnabled: false,
+      canCustomize: userData?.subscriptionPlan !== 'free' && userData?.subscriptionStatus === 'active'
+    };
+    debug.push(`Default branding canCustomize: ${defaultBranding.canCustomize}`);
 
-      const websiteId = parseInt(path.split('/')[3]);
-      if (isNaN(websiteId)) {
-        return res.status(400).json({ message: 'Invalid website ID' });
-      }
-
+    // If white-labeling is enabled and user has custom branding, return it
+    let parsedWebsiteBrandingData = null;
+    if (website.brandingData) {
       try {
-        // Get website and verify ownership
-        const websiteResult = await db.select()
-          .from(websites)
-          .innerJoin(clients, eq(websites.clientId, clients.id))
-          .where(and(eq(websites.id, websiteId), eq(clients.userId, user.id)))
-          .limit(1);
-          
-        if (websiteResult.length === 0) {
-          return res.status(404).json({ message: "Website not found" });
-        }
-
-        const website = websiteResult[0].websites;
-
-        // Get user's subscription info to check permissions
-        const userResult = await db.select()
-          .from(users)
-          .where(eq(users.id, user.id))
-          .limit(1);
-          
-        if (userResult.length === 0) {
-          return res.status(404).json({ message: "User not found" });
-        }
-
-        const userData = userResult[0];
-        
-        // Check if user can customize branding (paid plan required) - match local server exactly
-        if (!userData || userData.subscriptionPlan === 'free' || userData.subscriptionStatus !== 'active') {
-          return res.status(403).json({ 
-            message: "White-label branding customization requires a paid subscription plan.",
-            error: "SUBSCRIPTION_REQUIRED",
-            subscriptionPlan: userData?.subscriptionPlan || 'free',
-            subscriptionStatus: userData?.subscriptionStatus || 'inactive'
-          });
-        }
-
-        const { brandLogo, brandName, brandColor, brandWebsite, brandingData, whiteLabelEnabled } = req.body;
-
-        // Validate input data - match local server exactly
-        if (brandColor && !brandColor.match(/^#[0-9A-F]{6}$/i)) {
-          return res.status(400).json({ message: "Brand color must be a valid hex color code (e.g., #3b82f6)" });
-        }
-
-        if (brandWebsite && !brandWebsite.match(/^https?:\/\/.+/)) {
-          return res.status(400).json({ message: "Brand website must be a valid URL" });
-        }
-
-        // Update website branding configuration - match local server exactly
-        const updateData: any = {
-          whiteLabelEnabled: whiteLabelEnabled !== undefined ? whiteLabelEnabled : website.whiteLabelEnabled,
-          updatedAt: new Date()
-        };
-
-        if (brandLogo) updateData.brandLogo = brandLogo;
-        if (brandName) updateData.brandName = brandName;
-        if (brandColor) updateData.brandColor = brandColor;
-        if (brandWebsite) updateData.brandWebsite = brandWebsite;
-        if (brandingData) updateData.brandingData = JSON.stringify(brandingData);
-
-        // Update website branding configuration
-        await db.update(websites)
-          .set(updateData)
-          .where(eq(websites.id, websiteId));
-
-        // Fetch the updated website to return the current state
-        const updatedResult = await db.select()
-          .from(websites)
-          .where(eq(websites.id, websiteId))
-          .limit(1);
-
-        const updatedWebsite = updatedResult[0];
-
-        // Return the updated branding configuration - match local server exactly
-        let parsedBrandingData = null;
-        if (updatedWebsite.brandingData) {
-          try {
-            // Handle both string and object cases
-            parsedBrandingData = typeof updatedWebsite.brandingData === 'string' 
-              ? JSON.parse(updatedWebsite.brandingData) 
-              : updatedWebsite.brandingData;
-          } catch (error) {
-            console.error("Error parsing brandingData:", error);
-            parsedBrandingData = null;
-          }
-        }
-
-        const branding = {
-          brandLogo: updatedWebsite.brandLogo || "https://aiowebcare.com/logo.png",
-          brandName: updatedWebsite.brandName || "AIOWebcare",
-          brandColor: updatedWebsite.brandColor || "#3b82f6",
-          brandWebsite: updatedWebsite.brandWebsite || "https://aiowebcare.com",
-          brandingData: parsedBrandingData,
-          whiteLabelEnabled: updatedWebsite.whiteLabelEnabled,
-          canCustomize: true
-        };
-
-        return res.status(200).json({
-          success: true,
-          message: "White-label branding updated successfully",
-          data: branding
-        });
-
+        parsedWebsiteBrandingData = typeof website.brandingData === 'string' 
+          ? JSON.parse(website.brandingData) 
+          : website.brandingData;
+        debug.push('Successfully parsed brandingData');
       } catch (error) {
-        console.error("Error updating white-label config:", error);
-        return res.status(500).json({ message: "Failed to update white-label configuration" });
+        debug.push(`Error parsing brandingData: ${error.message}`);
+        parsedWebsiteBrandingData = null;
+      }
+    } else {
+      debug.push('No brandingData found on website');
+    }
+
+    const branding = website.whiteLabelEnabled ? {
+      brandLogo: website.brandLogo || defaultBranding.brandLogo,
+      brandName: website.brandName || defaultBranding.brandName,
+      brandColor: website.brandColor || defaultBranding.brandColor,
+      brandWebsite: website.brandWebsite || defaultBranding.brandWebsite,
+      brandingData: parsedWebsiteBrandingData,
+      whiteLabelEnabled: true,
+      canCustomize: defaultBranding.canCustomize
+    } : defaultBranding;
+
+    debug.push(`Final branding response: ${JSON.stringify(branding)}`);
+    
+    return res.status(200).json({
+      ...branding,
+      _debug: debug
+    });
+
+  } catch (error) {
+    debug.push(`Unexpected error: ${error.message}`);
+    console.error("Error fetching white-label config:", error);
+    return res.status(500).json({ 
+      message: "Failed to fetch white-label configuration",
+      error: error.message,
+      debug: debug 
+    });
+  }
+}
+
+// White-label branding POST endpoint
+if (path.match(/^\/api\/websites\/\d+\/white-label$/) && req.method === 'POST') {
+  const debug = [];
+  try {
+    debug.push('Starting POST white-label endpoint');
+    
+    const user = authenticateToken(req);
+    if (!user) {
+      debug.push('Authentication failed - no user found');
+      return res.status(401).json({ 
+        message: 'Unauthorized',
+        debug: debug 
+      });
+    }
+    debug.push(`User authenticated: ${user.id}`);
+
+    const websiteId = parseInt(path.split('/')[3]);
+    if (isNaN(websiteId)) {
+      debug.push(`Invalid website ID: ${path.split('/')[3]}`);
+      return res.status(400).json({ 
+        message: 'Invalid website ID',
+        debug: debug 
+      });
+    }
+    debug.push(`Website ID: ${websiteId}`);
+
+    // Get website and verify ownership
+    debug.push('Fetching website from database');
+    const websiteResult = await db.select()
+      .from(websites)
+      .innerJoin(clients, eq(websites.clientId, clients.id))
+      .where(and(eq(websites.id, websiteId), eq(clients.userId, user.id)))
+      .limit(1);
+      
+    if (websiteResult.length === 0) {
+      debug.push('Website not found or user does not have access');
+      return res.status(404).json({ 
+        message: "Website not found",
+        debug: debug 
+      });
+    }
+
+    const website = websiteResult[0].websites;
+    debug.push(`Website found: ${website.id}`);
+    debug.push(`Current website branding: ${JSON.stringify({
+      whiteLabelEnabled: website.whiteLabelEnabled,
+      brandLogo: website.brandLogo,
+      brandName: website.brandName,
+      brandColor: website.brandColor,
+      brandWebsite: website.brandWebsite,
+      hasBrandingData: !!website.brandingData
+    })}`);
+
+    // Get user's subscription info to check permissions
+    debug.push('Fetching user subscription data');
+    const userResult = await db.select()
+      .from(users)
+      .where(eq(users.id, user.id))
+      .limit(1);
+      
+    if (userResult.length === 0) {
+      debug.push('User not found in database');
+      return res.status(404).json({ 
+        message: "User not found",
+        debug: debug 
+      });
+    }
+
+    const userData = userResult[0];
+    debug.push(`User subscription: plan=${userData.subscriptionPlan}, status=${userData.subscriptionStatus}`);
+    
+    // Check if user can customize branding (paid plan required)
+    if (!userData || userData.subscriptionPlan === 'free' || userData.subscriptionStatus !== 'active') {
+      debug.push('User does not have permission to customize branding');
+      return res.status(403).json({ 
+        message: "White-label branding customization requires a paid subscription plan.",
+        error: "SUBSCRIPTION_REQUIRED",
+        subscriptionPlan: userData?.subscriptionPlan || 'free',
+        subscriptionStatus: userData?.subscriptionStatus || 'inactive',
+        debug: debug
+      });
+    }
+
+    const { brandLogo, brandName, brandColor, brandWebsite, brandingData, whiteLabelEnabled } = req.body;
+    debug.push(`Request body: ${JSON.stringify(req.body)}`);
+
+    // Validate input data
+    if (brandColor && !brandColor.match(/^#[0-9A-F]{6}$/i)) {
+      debug.push(`Invalid brand color: ${brandColor}`);
+      return res.status(400).json({ 
+        message: "Brand color must be a valid hex color code (e.g., #3b82f6)",
+        debug: debug 
+      });
+    }
+
+    if (brandWebsite && !brandWebsite.match(/^https?:\/\/.+/)) {
+      debug.push(`Invalid brand website: ${brandWebsite}`);
+      return res.status(400).json({ 
+        message: "Brand website must be a valid URL",
+        debug: debug 
+      });
+    }
+
+    // Update website branding configuration
+    const updateData = {
+      whiteLabelEnabled: whiteLabelEnabled !== undefined ? whiteLabelEnabled : website.whiteLabelEnabled,
+      updatedAt: new Date()
+    };
+
+    if (brandLogo !== undefined) updateData.brandLogo = brandLogo;
+    if (brandName !== undefined) updateData.brandName = brandName;
+    if (brandColor !== undefined) updateData.brandColor = brandColor;
+    if (brandWebsite !== undefined) updateData.brandWebsite = brandWebsite;
+    if (brandingData !== undefined) updateData.brandingData = JSON.stringify(brandingData);
+
+    debug.push(`Update data: ${JSON.stringify(updateData)}`);
+
+    // Update website branding configuration
+    debug.push('Updating website in database');
+    const updateResult = await db.update(websites)
+      .set(updateData)
+      .where(eq(websites.id, websiteId));
+
+    debug.push(`Update result: ${JSON.stringify(updateResult)}`);
+
+    // Fetch the updated website to return the current state
+    debug.push('Fetching updated website data');
+    const updatedResult = await db.select()
+      .from(websites)
+      .where(eq(websites.id, websiteId))
+      .limit(1);
+
+    if (updatedResult.length === 0) {
+      debug.push('Failed to fetch updated website - not found');
+      return res.status(404).json({ 
+        message: "Website not found after update",
+        debug: debug 
+      });
+    }
+
+    const updatedWebsite = updatedResult[0];
+    debug.push(`Updated website: ${JSON.stringify({
+      whiteLabelEnabled: updatedWebsite.whiteLabelEnabled,
+      brandLogo: updatedWebsite.brandLogo,
+      brandName: updatedWebsite.brandName,
+      brandColor: updatedWebsite.brandColor,
+      brandWebsite: updatedWebsite.brandWebsite,
+      hasBrandingData: !!updatedWebsite.brandingData
+    })}`);
+
+    // Parse branding data for response
+    let parsedBrandingData = null;
+    if (updatedWebsite.brandingData) {
+      try {
+        parsedBrandingData = typeof updatedWebsite.brandingData === 'string' 
+          ? JSON.parse(updatedWebsite.brandingData) 
+          : updatedWebsite.brandingData;
+        debug.push('Successfully parsed updated brandingData');
+      } catch (error) {
+        debug.push(`Error parsing updated brandingData: ${error.message}`);
+        parsedBrandingData = null;
       }
     }
+
+    const branding = {
+      brandLogo: updatedWebsite.brandLogo || "https://aiowebcare.com/logo.png",
+      brandName: updatedWebsite.brandName || "AIOWebcare",
+      brandColor: updatedWebsite.brandColor || "#3b82f6",
+      brandWebsite: updatedWebsite.brandWebsite || "https://aiowebcare.com",
+      brandingData: parsedBrandingData,
+      whiteLabelEnabled: updatedWebsite.whiteLabelEnabled,
+      canCustomize: true
+    };
+
+    debug.push('White-label branding updated successfully');
+    
+    return res.status(200).json({
+      success: true,
+      message: "White-label branding updated successfully",
+      data: branding,
+      debug: debug
+    });
+
+  } catch (error) {
+    debug.push(`Unexpected error: ${error.message}`);
+    console.error("Error updating white-label config:", error);
+    return res.status(500).json({ 
+      message: "Failed to update white-label configuration",
+      error: error.message,
+      debug: debug 
+    });
+  }
+}
 
     // WordPress test connection endpoint - MUST come before generic website endpoint
     if (path.match(/^\/api\/websites\/\d+\/test-connection$/) && req.method === 'POST') {
