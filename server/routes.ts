@@ -777,12 +777,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       // If white-labeling is enabled and user has custom branding, return it
+      let parsedWebsiteBrandingData = null;
+      if (website.brandingData) {
+        try {
+          // Handle both string and object cases
+          parsedWebsiteBrandingData = typeof website.brandingData === 'string' 
+            ? JSON.parse(website.brandingData) 
+            : website.brandingData;
+        } catch (error) {
+          console.error("Error parsing website brandingData:", error);
+          parsedWebsiteBrandingData = null;
+        }
+      }
+
       const branding = website.whiteLabelEnabled ? {
         brandLogo: website.brandLogo || defaultBranding.brandLogo,
         brandName: website.brandName || defaultBranding.brandName,
         brandColor: website.brandColor || defaultBranding.brandColor,
         brandWebsite: website.brandWebsite || defaultBranding.brandWebsite,
-        brandingData: website.brandingData ? JSON.parse(website.brandingData as string) : null,
+        brandingData: parsedWebsiteBrandingData,
         whiteLabelEnabled: true,
         canCustomize: defaultBranding.canCustomize
       } : defaultBranding;
@@ -844,12 +857,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updatedWebsite = await storage.updateWebsite(websiteId, updateData, userId);
 
       // Return the updated branding configuration
+      let parsedBrandingData = null;
+      if (updatedWebsite.brandingData) {
+        try {
+          // Handle both string and object cases
+          parsedBrandingData = typeof updatedWebsite.brandingData === 'string' 
+            ? JSON.parse(updatedWebsite.brandingData) 
+            : updatedWebsite.brandingData;
+        } catch (error) {
+          console.error("Error parsing brandingData:", error);
+          parsedBrandingData = null;
+        }
+      }
+
       const branding = {
         brandLogo: updatedWebsite.brandLogo || "https://aiowebcare.com/logo.png",
         brandName: updatedWebsite.brandName || "AIOWebcare",
         brandColor: updatedWebsite.brandColor || "#3b82f6",
         brandWebsite: updatedWebsite.brandWebsite || "https://aiowebcare.com",
-        brandingData: updatedWebsite.brandingData ? JSON.parse(updatedWebsite.brandingData as string) : null,
+        brandingData: parsedBrandingData,
         whiteLabelEnabled: updatedWebsite.whiteLabelEnabled,
         canCustomize: true
       };
