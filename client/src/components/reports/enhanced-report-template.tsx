@@ -190,17 +190,23 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
 
   // Helper method to get brand information (either custom or default)
   const getBrandInfo = () => {
+    console.log('[REACT_TEMPLATE] getBrandInfo called with reportData.branding:', reportData.branding);
+    console.log('[REACT_TEMPLATE] shouldUseWhiteLabel result:', shouldUseWhiteLabel());
+    
     if (shouldUseWhiteLabel()) {
-      return {
+      const brandInfo = {
         name: reportData.branding?.brandName || 'Your Brand',
         logo: reportData.branding?.brandLogo || '🛡️',
         color: reportData.branding?.brandColor || '#1e40af',
         website: reportData.branding?.brandWebsite || '',
-        footerText: reportData.branding?.footerText || 'Powered by Your Brand',
+        footerText: reportData.branding?.footerText || reportData.branding?.brandingData?.footerText || 'Powered by Your Brand',
         subtitle: 'Professional WordPress Management'
       };
+      console.log('[REACT_TEMPLATE] Using custom brand info:', brandInfo);
+      return brandInfo;
     }
     
+    console.log('[REACT_TEMPLATE] Using default AIO WEBCARE branding');
     return {
       name: 'AIO WEBCARE',
       logo: '🛡️',

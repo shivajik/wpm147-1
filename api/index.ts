@@ -2468,7 +2468,7 @@ function generateDetailedReportHTML(reportData: any): string {
         logo: reportData.branding?.brandLogo || '🛡️',
         color: reportData.branding?.brandColor || '#1e40af',
         website: reportData.branding?.brandWebsite || '',
-        footerText: reportData.branding?.footerText || 'Powered by Your Brand',
+        footerText: reportData.branding?.footerText || reportData.branding?.brandingData?.footerText || 'Powered by Your Brand',
         subtitle: 'Professional WordPress Management'
       };
     }

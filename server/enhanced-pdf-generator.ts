@@ -160,17 +160,23 @@ export class EnhancedPDFGenerator {
 
   // Helper method to get brand information (either custom or default)
   private getBrandInfo(reportData: ClientReportData) {
+    console.log('[PDF_GENERATOR] getBrandInfo called with reportData.branding:', reportData.branding);
+    console.log('[PDF_GENERATOR] shouldUseWhiteLabel result:', this.shouldUseWhiteLabel(reportData));
+    
     if (this.shouldUseWhiteLabel(reportData)) {
-      return {
+      const brandInfo = {
         name: reportData.branding?.brandName || 'Your Brand',
         logo: reportData.branding?.brandLogo || '🛡️',
         color: reportData.branding?.brandColor || '#1e40af',
         website: reportData.branding?.brandWebsite || '',
-        footerText: reportData.branding?.footerText || 'Powered by Your Brand',
+        footerText: reportData.branding?.footerText || reportData.branding?.brandingData?.footerText || 'Powered by Your Brand',
         subtitle: 'Professional WordPress Management'
       };
+      console.log('[PDF_GENERATOR] Using custom brand info:', brandInfo);
+      return brandInfo;
     }
     
+    console.log('[PDF_GENERATOR] Using default AIO WEBCARE branding');
     return {
       name: 'AIO WEBCARE',
       logo: '🛡️',
