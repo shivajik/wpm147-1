@@ -1,6 +1,6 @@
 import { useParams, useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +17,20 @@ import AppLayout from '@/components/layout/app-layout';
 import { EnhancedReportTemplate } from '@/components/reports/enhanced-report-template';
 import type { ClientReport } from '@shared/schema';
 
+interface BrandingData {
+  footerText?: string;
+}
+
+interface WhiteLabelConfig {
+  brandLogo?: string;
+  brandName?: string;
+  brandColor?: string;
+  brandWebsite?: string;
+  brandingData?: BrandingData;
+  whiteLabelEnabled: boolean;
+  canCustomize: boolean;
+}
+
 interface ClientReportData {
   id: number;
   title: string;
@@ -27,6 +41,7 @@ interface ClientReportData {
     contactPerson?: string;
   };
   website: {
+    id: number;
     name: string;
     url: string;
     ipAddress?: string;
@@ -181,14 +196,56 @@ export default function ViewReport() {
     retry: 1
   });
 
-  // Debug logging
-  console.log('Debug info:', { 
-    reportId, 
-    report: !!report, 
-    reportData: !!reportData, 
-    isLoadingData, 
-    dataError 
+  // Fetch branding data if reportData is available and has website ID
+  const { data: brandingData, isLoading: isLoadingBranding } = useQuery<WhiteLabelConfig>({
+    queryKey: [`/api/websites/${reportData?.website?.id}/white-label`],
+    enabled: !!reportData?.website?.id,
+    retry: 1
   });
+
+  // Debug logging - Comprehensive console logs
+  useEffect(() => {
+    console.log('=== DEBUG: REPORT INFORMATION ===');
+    console.log('Report ID:', reportId);
+    console.log('Report basic data loaded:', !!report);
+    console.log('Report data loaded:', !!reportData);
+    console.log('Branding data loaded:', !!brandingData);
+    console.log('Loading states:', { isLoading, isLoadingData, isLoadingBranding });
+    console.log('Error states:', { error, dataError });
+    
+    if (report) {
+      console.log('=== REPORT BASIC STRUCTURE ===');
+      console.log('Report title:', report.title);
+      console.log('Report status:', report.status);
+      console.log('Client name:', report.clientName);
+      console.log('Website name:', report.websiteName);
+      console.log('Date range:', report.dateFrom, 'to', report.dateTo);
+      console.log('Created at:', report.createdAt);
+      console.log('Full report object:', report);
+    }
+    
+    if (reportData) {
+      console.log('=== REPORT DATA STRUCTURE ===');
+      console.log('Report data ID:', reportData.id);
+      console.log('Report data title:', reportData.title);
+      console.log('Client info:', reportData.client);
+      console.log('Website info:', reportData.website);
+      console.log('Website ID for branding:', reportData.website?.id);
+      console.log('Overview data:', reportData.overview);
+      console.log('Full report data object:', reportData);
+    }
+    
+    if (brandingData) {
+      console.log('=== BRANDING DATA STRUCTURE ===');
+      console.log('Brand name:', brandingData.brandName);
+      console.log('Brand logo:', brandingData.brandLogo);
+      console.log('Brand color:', brandingData.brandColor);
+      console.log('White label enabled:', brandingData.whiteLabelEnabled);
+      console.log('Can customize:', brandingData.canCustomize);
+      console.log('Branding data:', brandingData.brandingData);
+      console.log('Full branding object:', brandingData);
+    }
+  }, [report, reportData, brandingData, reportId, isLoading, isLoadingData, isLoadingBranding, error, dataError]);
 
   const handleDownloadPDF = () => {
     const token = localStorage.getItem('auth_token');
@@ -226,7 +283,7 @@ export default function ViewReport() {
 
   // Fallback data structure with empty/null values - no fake data
   const getMockReportData = (): ClientReportData => {
-    return {
+    const mockData = {
       id: parseInt(reportId || '1'),
       title: report?.title || 'Website Care Report',
       client: {
@@ -235,6 +292,7 @@ export default function ViewReport() {
         contactPerson: report?.clientName || 'Client'
       },
       website: {
+        id: report?.websiteId || 0,
         name: report?.websiteName || 'Website',
         url: '',
         ipAddress: '',
@@ -315,18 +373,41 @@ export default function ViewReport() {
         firstPageKeywords: 0,
         visibility: 0,
         topCompetitors: []
-      }
+      },
+      branding: brandingData || undefined
     };
+    
+    console.log('=== MOCK REPORT DATA STRUCTURE ===');
+    console.log('Generated mock data for fallback:', mockData);
+    
+    return mockData;
   };
 
-  // Show loading if either query is loading
-  if (isLoading || isLoadingData) {
+  // Combine report data with branding data
+  const getEnhancedReportData = (): ClientReportData => {
+    if (!reportData) {
+      return getMockReportData();
+    }
+
+    const enhancedData = {
+      ...reportData,
+      branding: brandingData || undefined
+    };
+
+    console.log('=== ENHANCED REPORT DATA ===');
+    console.log('Combined report data with branding:', enhancedData);
+    
+    return enhancedData;
+  };
+
+  // Show loading if any query is loading
+  if (isLoading || isLoadingData || isLoadingBranding) {
     return (
       <AppLayout title="Loading Report..." defaultOpen={false}>
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-            <p className="text-muted-foreground">Loading report...</p>
+            <p className="text-muted-foreground">Loading report and branding...</p>
           </div>
         </div>
       </AppLayout>
@@ -350,8 +431,6 @@ export default function ViewReport() {
       </AppLayout>
     );
   }
-
-  // Note: Remove the blocking check for reportData to allow fallback to mock data
 
   return (
     <AppLayout title={`Report: ${report.title}`} defaultOpen={false}>
@@ -412,7 +491,7 @@ export default function ViewReport() {
         {/* Report Content */}
         <div className="bg-white rounded-lg shadow-sm border p-8">
           <EnhancedReportTemplate 
-            reportData={reportData || getMockReportData()} 
+            reportData={getEnhancedReportData()} 
             isPrintMode={isPrintMode}
           />
         </div>
