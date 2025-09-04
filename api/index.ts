@@ -5190,12 +5190,12 @@ const websiteResult = await db.select({
     debug.push('Fetching updated website data');
     const updatedResult = await db.select({
       id: websites.id,
-      whiteLabelEnabled: websites.white_label_enabled, // CORRECTED
-      brandLogo: websites.brand_logo, // CORRECTED
-      brandName: websites.brand_name, // CORRECTED
-      brandColor: websites.brand_color, // CORRECTED
-      brandWebsite: websites.brand_website, // CORRECTED
-      brandingData: websites.branding_data // CORRECTED
+      whiteLabelEnabled: websites.whiteLabelEnabled,
+      brandLogo: websites.brandLogo,
+      brandName: websites.brandName,
+      brandColor: websites.brandColor,
+      brandWebsite: websites.brandWebsite,
+      brandingData: websites.brandingData
     })
       .from(websites)
       .where(eq(websites.id, websiteId))
