@@ -5167,14 +5167,14 @@ const websiteResult = await db.select({
 
     // Update website branding configuration - USE CORRECT COLUMN NAMES
     const updateData: any = {
-      [websites.whiteLabelEnabled]: whiteLabelEnabled !== undefined ? whiteLabelEnabled : website.whiteLabelEnabled,
-      [websites.updatedAt]: new Date(),
+      [websites.white_label_enabled]: whiteLabelEnabled !== undefined ? whiteLabelEnabled : website.whiteLabelEnabled,
+      [websites.updated_at]: new Date(),
     }; 
-    if (brandLogo !== undefined) updateData[websites.brandLogo] = brandLogo;
-    if (brandName !== undefined) updateData[websites.brandName] = brandName;
-    if (brandColor !== undefined) updateData[websites.brandColor] = brandColor;
-    if (brandWebsite !== undefined) updateData[websites.brandWebsite] = brandWebsite;
-    if (brandingData !== undefined) updateData[websites.brandingData] = brandingData;
+    if (brandLogo !== undefined) updateData[websites.brand_logo] = brandLogo;
+    if (brandName !== undefined) updateData[websites.brand_name] = brandName;
+    if (brandColor !== undefined) updateData[websites.brand_color] = brandColor;
+    if (brandWebsite !== undefined) updateData[websites.brand_website] = brandWebsite;
+    if (brandingData !== undefined) updateData[websites.branding_data] = JSON.stringify(brandingData);
 
     debug.push(`Update data (drizzle format): ${JSON.stringify(updateData)}`);
 
