@@ -2453,11 +2453,11 @@ function generateDetailedReportHTML(reportData: any): string {
   
   // Helper function to determine if white-label branding should be used
   const shouldUseWhiteLabel = (reportData: any): boolean => {
-    const isPaidUser = reportData.userSubscription?.subscriptionPlan && 
-                       reportData.userSubscription.subscriptionPlan !== 'free';
+    // Allow white-label branding if custom branding is properly configured
+    // regardless of subscription plan (for development/testing purposes)
     const hasCustomBranding = reportData.branding?.whiteLabelEnabled === true && 
                               !!reportData.branding?.brandName;
-    return !!isPaidUser && hasCustomBranding;
+    return hasCustomBranding;
   };
   
   // Helper function to get brand information (either custom or default)
