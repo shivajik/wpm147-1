@@ -217,27 +217,23 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
     hasReportBranding: !!reportData.branding
   });
 
-  // Helper method to determine if white-label branding should be used
-  const shouldUseWhiteLabel = (): boolean => {
-    // First check if we have white-label data from API
-    if (whiteLabelData && !isBrandingLoading) {
-      const hasCustomBranding = whiteLabelData.whiteLabelEnabled === true && 
-                                !!whiteLabelData.brandName;
-      console.log('[REACT_TEMPLATE] Checking API white-label data:', { 
-        whiteLabelEnabled: whiteLabelData.whiteLabelEnabled, 
-        hasBrandName: !!whiteLabelData.brandName,
+  // Helper method to determine if custom branding should be used
+  const shouldUseCustomBranding = (): boolean => {
+    // First check if we have branding data from report
+    if (reportData.branding) {
+      const hasCustomBranding = !!reportData.branding.brandName;
+      console.log('[REACT_TEMPLATE] Checking report data branding:', { 
+        hasBrandName: !!reportData.branding.brandName,
         result: hasCustomBranding 
       });
       return hasCustomBranding;
     }
     
-    // Fallback to reportData branding if available
-    if (reportData.branding) {
-      const hasCustomBranding = reportData.branding.whiteLabelEnabled === true && 
-                                !!reportData.branding.brandName;
-      console.log('[REACT_TEMPLATE] Checking report data branding:', { 
-        whiteLabelEnabled: reportData.branding.whiteLabelEnabled, 
-        hasBrandName: !!reportData.branding.brandName,
+    // Then check if we have white-label data from API
+    if (whiteLabelData && !isBrandingLoading) {
+      const hasCustomBranding = !!whiteLabelData.brandName;
+      console.log('[REACT_TEMPLATE] Checking API white-label data:', { 
+        hasBrandName: !!whiteLabelData.brandName,
         result: hasCustomBranding 
       });
       return hasCustomBranding;
@@ -251,22 +247,8 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
   const getBrandInfo = () => {
     console.log('[REACT_TEMPLATE] getBrandInfo called');
     
-    if (shouldUseWhiteLabel()) {
-      // Priority 1: Use white-label data from API
-      if (whiteLabelData && !isBrandingLoading) {
-        const brandInfo = {
-          name: whiteLabelData.brandName || 'Your Brand',
-          logo: whiteLabelData.brandLogo || '🛡️',
-          color: whiteLabelData.brandColor || '#1e40af',
-          website: whiteLabelData.brandWebsite || '',
-          footerText: whiteLabelData.brandingData?.footerText || `Powered by ${whiteLabelData.brandName || 'Your Brand'}`,
-          subtitle: 'Professional WordPress Management'
-        };
-        console.log('[REACT_TEMPLATE] Using white-label API brand info:', brandInfo);
-        return brandInfo;
-      }
-      
-      // Priority 2: Use reportData branding
+    if (shouldUseCustomBranding()) {
+      // Priority 1: Use reportData branding
       if (reportData.branding) {
         const brandInfo = {
           name: reportData.branding.brandName || 'Your Brand',
@@ -281,8 +263,23 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
         console.log('[REACT_TEMPLATE] Using report data brand info:', brandInfo);
         return brandInfo;
       }
+      
+      // Priority 2: Use white-label data from API
+      if (whiteLabelData && !isBrandingLoading) {
+        const brandInfo = {
+          name: whiteLabelData.brandName || 'Your Brand',
+          logo: whiteLabelData.brandLogo || '🛡️',
+          color: whiteLabelData.brandColor || '#1e40af',
+          website: whiteLabelData.brandWebsite || '',
+          footerText: whiteLabelData.brandingData?.footerText || `Powered by ${whiteLabelData.brandName || 'Your Brand'}`,
+          subtitle: 'Professional WordPress Management'
+        };
+        console.log('[REACT_TEMPLATE] Using white-label API brand info:', brandInfo);
+        return brandInfo;
+      }
     }
     
+    // Default branding
     console.log('[REACT_TEMPLATE] Using default AIO WEBCARE branding');
     return {
       name: 'AIO WEBCARE',
