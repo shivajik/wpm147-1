@@ -2478,12 +2478,36 @@ function generateDetailedReportHTML(reportData: any): string {
   };
   
   // Helper function to get brand information (either custom or default)
-  const getBrandInfo = (reportData: any) => {
-    // Check both possible locations for branding data
-    const branding = reportData.branding || (reportData.reportData && reportData.reportData.branding);
-    
-    if (shouldUseWhiteLabel(reportData)) {
-      console.log('DEBUG: Using custom branding:', branding);
+  // In your React component
+  const getBrandInfo = (reportData) => {
+    console.log('[REACT_TEMPLATE] getBrandInfo called with full data:', reportData);
+
+    // Check multiple possible locations for branding data
+    const branding = 
+      reportData?.branding || 
+      reportData?.reportData?.branding ||
+      reportData?.data?.branding ||
+      reportData?.reportData?.data?.branding;
+
+    console.log('[REACT_TEMPLATE] Found branding data:', branding);
+    console.log('[REACT_TEMPLATE] Branding location:', {
+      root: !!reportData?.branding,
+      reportData: !!reportData?.reportData?.branding,
+      data: !!reportData?.data?.branding,
+      reportDataData: !!reportData?.reportData?.data?.branding
+    });
+
+    const shouldUseWhiteLabel = () => {
+      const result = branding?.whiteLabelEnabled === true && !!branding?.brandName;
+      console.log('[REACT_TEMPLATE] shouldUseWhiteLabel result:', result, {
+        whiteLabelEnabled: branding?.whiteLabelEnabled,
+        hasBrandName: !!branding?.brandName
+      });
+      return result;
+    };
+
+    if (shouldUseWhiteLabel()) {
+      console.log('[REACT_TEMPLATE] Using custom branding:', branding);
       return {
         name: branding?.brandName || 'Your Brand',
         logo: branding?.brandLogo || '🛡️',
@@ -2494,7 +2518,7 @@ function generateDetailedReportHTML(reportData: any): string {
       };
     }
     
-    console.log('DEBUG: Using default branding');
+    console.log('[REACT_TEMPLATE] Using default AIO WEBCARE branding');
     return {
       name: 'AIO WEBCARE',
       logo: '🛡️',
