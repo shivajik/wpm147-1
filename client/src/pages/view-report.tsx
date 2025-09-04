@@ -20,6 +20,7 @@ import type { ClientReport } from '@shared/schema';
 interface ClientReportData {
   id: number;
   title: string;
+  websiteIds?: number[];
   client?: {
     name?: string;
     email?: string;
