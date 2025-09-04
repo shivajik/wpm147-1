@@ -8111,7 +8111,10 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
           firstPageKeywords: 0,
           visibility: 0,
           topCompetitors: limitArray(reportData.seo?.topCompetitors, 10)
-        }
+        },
+        // Add branding data from completeReportData
+        branding: completeReportData.branding,
+        userSubscription: completeReportData.userSubscription
       };
 
       // Use the enhanced PDF generator for professional reports
