@@ -113,12 +113,12 @@ export const websites = pgTable("websites", {
   screenshotUrl: varchar("screenshot_url", { length: 500 }), // External screenshot service URL
   thumbnailLastUpdated: timestamp("thumbnail_last_updated"), // Last time thumbnail was captured
   // White-label branding fields
-  white_label_enabled: boolean("white_label_enabled").default(false),
-  brand_logo: varchar("brand_logo", { length: 500 }),
-  brand_name: varchar("brand_name", { length: 255 }),
-  brand_color: varchar("brand_color", { length: 7 }),
-  brand_website: varchar("brand_website", { length: 500 }),
-  branding_data: jsonb("branding_data").notNull().default(sql`'{}'::jsonb`),
+  whiteLabelEnabled: boolean("white_label_enabled").default(false),
+  brandLogo: varchar("brand_logo", { length: 500 }).default('🛡️'),
+  brandName: varchar("brand_name", { length: 255 }).default('AIO WEBCARE'),
+  brandColor: varchar("brand_color", { length: 7 }).default('#1e40af'),
+  brandWebsite: varchar("brand_website", { length: 500 }).default('https://aiowebcare.com'),
+  brandingData: jsonb("branding_data").default(sql`'{"footerText":"Powered by AIO Webcare - Comprehensive WordPress Management"}'::jsonb`),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),
   client_id: integer("client_id").notNull().references(() => clients.id),
