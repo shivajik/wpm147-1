@@ -5166,18 +5166,17 @@ const websiteResult = await db.select({
     }
 
     // Update website branding configuration - USE CORRECT COLUMN NAMES
-    const updateData = {
-      white_label_enabled: whiteLabelEnabled !== undefined ? whiteLabelEnabled : website.whiteLabelEnabled, // CORRECTED
-      updated_at: new Date() // CORRECTED
-    };
+    const updateData: any = {
+      [websites.whiteLabelEnabled]: whiteLabelEnabled !== undefined ? whiteLabelEnabled : website.whiteLabelEnabled,
+      [websites.updatedAt]: new Date(),
+    }; 
+    if (brandLogo !== undefined) updateData[websites.brandLogo] = brandLogo;
+    if (brandName !== undefined) updateData[websites.brandName] = brandName;
+    if (brandColor !== undefined) updateData[websites.brandColor] = brandColor;
+    if (brandWebsite !== undefined) updateData[websites.brandWebsite] = brandWebsite;
+    if (brandingData !== undefined) updateData[websites.brandingData] = brandingData;
 
-    if (brandLogo !== undefined) updateData.brand_logo = brandLogo; // CORRECTED
-    if (brandName !== undefined) updateData.brand_name = brandName; // CORRECTED
-    if (brandColor !== undefined) updateData.brand_color = brandColor; // CORRECTED
-    if (brandWebsite !== undefined) updateData.brand_website = brandWebsite; // CORRECTED
-    if (brandingData !== undefined) updateData.branding_data = brandingData; // CORRECTED
-
-    debug.push(`Update data: ${JSON.stringify(updateData)}`);
+    debug.push(`Update data (drizzle format): ${JSON.stringify(updateData)}`);
 
     // Update website branding configuration
     debug.push('Updating website in database');
