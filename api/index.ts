@@ -2438,6 +2438,15 @@ async deactivatePlugin(plugin: string): Promise<{
 
 // Detailed HTML report generation for serverless function
 function generateDetailedReportHTML(reportData: any): string {
+  // Add debug logging
+  console.log('DEBUG: Report data structure:', JSON.stringify({
+    hasBranding: !!reportData.branding,
+    hasReportDataBranding: !!(reportData.reportData && reportData.reportData.branding),
+    brandingKeys: reportData.branding ? Object.keys(reportData.branding) : [],
+    reportDataBrandingKeys: reportData.reportData && reportData.reportData.branding ? 
+      Object.keys(reportData.reportData.branding) : []
+  }, null, 2));
+
   const title = reportData.title || 'Client Report';
   const dateFrom = reportData.dateFrom ? new Date(reportData.dateFrom).toLocaleDateString() : 'N/A';
   const dateTo = reportData.dateTo ? new Date(reportData.dateTo).toLocaleDateString() : 'N/A';
@@ -2453,25 +2462,39 @@ function generateDetailedReportHTML(reportData: any): string {
   
   // Helper function to determine if white-label branding should be used
   const shouldUseWhiteLabel = (reportData: any): boolean => {
-    // Use the direct properties from your API response
-    const hasCustomBranding = reportData.whiteLabelEnabled === true && 
-                              !!reportData.brandName;
+    // Check both possible locations for branding data
+    const branding = reportData.branding || (reportData.reportData && reportData.reportData.branding);
+    
+    // Debug logging
+    console.log('DEBUG: White label check - branding:', branding);
+    console.log('DEBUG: White label enabled:', branding?.whiteLabelEnabled);
+    console.log('DEBUG: Has brand name:', !!branding?.brandName);
+    
+    const hasCustomBranding = branding?.whiteLabelEnabled === true && 
+                              !!branding?.brandName;
+    
+    console.log('DEBUG: Should use white label:', hasCustomBranding);
     return hasCustomBranding;
   };
   
   // Helper function to get brand information (either custom or default)
   const getBrandInfo = (reportData: any) => {
+    // Check both possible locations for branding data
+    const branding = reportData.branding || (reportData.reportData && reportData.reportData.branding);
+    
     if (shouldUseWhiteLabel(reportData)) {
+      console.log('DEBUG: Using custom branding:', branding);
       return {
-        name: reportData.brandName || 'Your Brand',
-        logo: reportData.brandLogo || '🛡️',
-        color: reportData.brandColor || '#1e40af',
-        website: reportData.brandWebsite || '',
-        footerText: reportData.brandingData?.footerText || 'Powered by Your Brand',
+        name: branding?.brandName || 'Your Brand',
+        logo: branding?.brandLogo || '🛡️',
+        color: branding?.brandColor || '#1e40af',
+        website: branding?.brandWebsite || '',
+        footerText: branding?.footerText || branding?.brandingData?.footerText || 'Powered by Your Brand',
         subtitle: 'Professional WordPress Management'
       };
     }
     
+    console.log('DEBUG: Using default branding');
     return {
       name: 'AIO WEBCARE',
       logo: '🛡️',
@@ -2484,6 +2507,7 @@ function generateDetailedReportHTML(reportData: any): string {
   
   // Get branding information
   const brandInfo = getBrandInfo(reportData);
+  console.log('DEBUG: Final brand info:', brandInfo);
   
   // Security scan history HTML
   const securityScanHistory = (reportData.security?.scanHistory || []).slice(0, 10).map(scan => `
@@ -10684,9 +10708,9 @@ if (maintenanceData._debugLogs && maintenanceData._debugLogs.length > 0) {
     if (path.match(/^\/api\/client-reports\/\d+\/pdf$/) && req.method === 'GET') {
       const reportId = parseInt(path.split('/')[3]);
       const token = url.searchParams.get('token');
-      
+
       let user: { id: number; email: string } | null = null;
-      
+
       // Check token from query string or Authorization header
       if (token) {
         try {
@@ -10697,37 +10721,77 @@ if (maintenanceData._debugLogs && maintenanceData._debugLogs.length > 0) {
       } else {
         user = authenticateToken(req);
       }
-
+    
       if (!user) {
         return res.status(401).json({ message: 'Authentication required' });
       }
-
+    
       try {
         const report = await db
           .select()
           .from(clientReports)
           .where(and(eq(clientReports.id, reportId), eq(clientReports.userId, user.id)))
           .limit(1);
-
+    
         if (report.length === 0) {
           return res.status(404).json({ message: 'Client report not found' });
         }
-
+      
         // Check if PDF generation is requested
         const generatePdf = req.query?.pdf === 'true' || req.headers?.accept?.includes('application/pdf');
-        
+
         // Get the full report data with maintenance information
         const reportRecord = report[0];
         const reportData = reportRecord.reportData as any || {};
-        
+
+        // DEBUG: Log the original report data structure
+        console.log('Original report data structure:', JSON.stringify({
+          hasReportData: !!reportRecord.reportData,
+          reportDataKeys: reportRecord.reportData ? Object.keys(reportRecord.reportData) : [],
+          websiteIds: reportRecord.websiteIds
+        }, null, 2));
+      
         // Fetch additional data for the report (security scans, performance, etc.)
-        let enhancedReportData = reportRecord;
-        
+        let enhancedReportData = { ...reportRecord };
+
         try {
           // Get website information for the report
           const websiteIds = Array.isArray(reportRecord.websiteIds) ? reportRecord.websiteIds : [];
-          
+
           if (websiteIds.length > 0) {
+            // DEBUG: Log website IDs
+            console.log('Processing website IDs:', websiteIds);
+
+            // FETCH WHITE-LABEL BRANDING DATA - THIS IS THE KEY FIX!
+            let whiteLabelData = null;
+            try {
+              const websiteData = await db
+                .select()
+                .from(websites)
+                .where(eq(websites.id, websiteIds[0]));
+
+              if (websiteData.length > 0) {
+                const website = websiteData[0];
+                whiteLabelData = {
+                  brandLogo: website.brand_logo,
+                  brandName: website.brand_name,
+                  brandColor: website.brand_color,
+                  brandWebsite: website.brand_website,
+                  brandingData: typeof website.branding_data === 'string' 
+                    ? JSON.parse(website.branding_data) 
+                    : website.branding_data,
+                  whiteLabelEnabled: website.white_label_enabled,
+                  canCustomize: true
+                };
+
+                // DEBUG: Log the fetched white-label data
+                console.log('Fetched website data:', JSON.stringify(website));
+                console.log('Fetched white-label data:', JSON.stringify(whiteLabelData, null, 2));
+              }
+            } catch (brandingError) {
+              console.error('Error fetching white-label branding:', brandingError);
+            }
+          
             // Fetch security scan history
             const securityScans = await db
               .select()
@@ -10735,7 +10799,7 @@ if (maintenanceData._debugLogs && maintenanceData._debugLogs.length > 0) {
               .where(eq(securityScanHistory.websiteId, websiteIds[0]))
               .orderBy(desc(securityScanHistory.scanStartedAt))
               .limit(10);
-              
+
             // Fetch performance scan history (using SEO reports as proxy for now)
             const performanceScans = await db
               .select()
@@ -10743,7 +10807,7 @@ if (maintenanceData._debugLogs && maintenanceData._debugLogs.length > 0) {
               .where(eq(seoReports.websiteId, websiteIds[0]))
               .orderBy(desc(seoReports.generatedAt))
               .limit(10);
-              
+
             // Fetch update logs
             const websiteUpdateLogs = await db
               .select()
@@ -10751,10 +10815,12 @@ if (maintenanceData._debugLogs && maintenanceData._debugLogs.length > 0) {
               .where(eq(updateLogs.websiteId, websiteIds[0]))
               .orderBy(desc(updateLogs.createdAt))
               .limit(20);
-            
+
             // Build comprehensive report data structure
             enhancedReportData = {
               ...reportRecord,
+              // Include white-label data at the top level (not nested under reportData)
+              ...whiteLabelData, // This spreads the white-label properties directly
               reportData: {
                 ...(reportRecord.reportData as any || {}),
                 // Only include security section if real scans exist
@@ -10821,20 +10887,34 @@ if (maintenanceData._debugLogs && maintenanceData._debugLogs.length > 0) {
               }
                 }
             };
+
+            // DEBUG: Log the final enhanced data structure
+            console.log('Enhanced report data structure:', JSON.stringify({
+              hasWhiteLabelData: !!whiteLabelData,
+              whiteLabelKeys: whiteLabelData ? Object.keys(whiteLabelData) : [],
+              reportDataKeys: enhancedReportData.reportData ? Object.keys(enhancedReportData.reportData) : []
+            }, null, 2));
           }
         } catch (dataError) {
           console.error('Error fetching enhanced report data:', dataError);
           // Continue with basic report data
         }
-        
+
         if (generatePdf) {
           try {
+            // DEBUG: Log before PDF generation
+            console.log('Starting PDF generation with data structure:', {
+              hasWhiteLabel: !!enhancedReportData.whiteLabelEnabled,
+              brandName: enhancedReportData.brandName,
+              brandLogo: enhancedReportData.brandLogo
+            });
+
             // Import PDF generation library
             const htmlPdf = require('html-pdf-node');
-            
+
             // Generate the detailed report HTML
             const reportHtml = generateDetailedReportHTML(enhancedReportData);
-
+          
             const options = {
               format: 'A4',
               margin: {
@@ -10846,9 +10926,9 @@ if (maintenanceData._debugLogs && maintenanceData._debugLogs.length > 0) {
               printBackground: true,
               preferCSSPageSize: true
             };
-
+          
             const pdfBuffer = await htmlPdf.generatePdf({ content: reportHtml }, options);
-            
+
             res.setHeader('Content-Type', 'application/pdf');
             res.setHeader('Content-Disposition', `inline; filename="report-${reportId}.pdf"`);
             return res.send(pdfBuffer);
