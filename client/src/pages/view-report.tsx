@@ -389,12 +389,38 @@ export default function ViewReport() {
       return getMockReportData();
     }
 
+    // Extract branding data from the report data if available
+    let extractedBranding: any = undefined;
+    if (report?.reportData && typeof report.reportData === 'object' && 'websites' in report.reportData) {
+      const websites = (report.reportData as any).websites;
+      if (Array.isArray(websites) && websites.length > 0) {
+        const websiteData = websites[0];
+        if (websiteData?.brandName || websiteData?.brandLogo || websiteData?.brandColor) {
+          extractedBranding = {
+            whiteLabelEnabled: Boolean(websiteData.white_label_enabled),
+            brandName: websiteData.brandName,
+            brandLogo: websiteData.brandLogo,
+            brandColor: websiteData.brandColor,
+            brandWebsite: websiteData.brandWebsite,
+            brandingData: websiteData.brandingData,
+            footerText: websiteData.brandingData?.footerText
+          };
+        }
+      }
+    }
+
+    // Use extracted branding as primary, fallback to fetched branding data
+    const finalBranding = extractedBranding || brandingData || undefined;
+
     const enhancedData = {
       ...reportData,
-      branding: brandingData || undefined
+      branding: finalBranding
     };
 
     console.log('=== ENHANCED REPORT DATA ===');
+    console.log('Extracted branding from report:', extractedBranding);
+    console.log('Fetched branding data:', brandingData);
+    console.log('Final branding used:', finalBranding);
     console.log('Combined report data with branding:', enhancedData);
     
     return enhancedData;
