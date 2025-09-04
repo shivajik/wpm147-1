@@ -193,61 +193,94 @@ interface EnhancedReportTemplateProps {
 }
 
 export function EnhancedReportTemplate({ reportData, isPrintMode = false }: EnhancedReportTemplateProps) {
-  // Fetch branding data directly from white-label API
-  const websiteId = reportData.websiteIds && reportData.websiteIds.length > 0 ? reportData.websiteIds[0] : null;
+  // Extract website ID from report data - check different possible locations
+  const websiteId = reportData.website?.id || 
+                   reportData.websiteId || 
+                   (reportData.websiteIds && reportData.websiteIds.length > 0 ? reportData.websiteIds[0] : null);
   
-  const { data: whiteLabelData, isLoading: isBrandingLoading } = useQuery<WhiteLabelResponse>({
+  console.log('[REACT_TEMPLATE] Extracted website ID:', websiteId);
+  console.log('[REACT_TEMPLATE] Report data website object:', reportData.website);
+  console.log('[REACT_TEMPLATE] Report data branding:', reportData.branding);
+
+  // Fetch branding data from white-label API if website ID is available
+  const { data: whiteLabelData, isLoading: isBrandingLoading, error: brandingError } = useQuery<WhiteLabelResponse>({
     queryKey: [`/api/websites/${websiteId}/white-label`],
-    enabled: !!websiteId,
+    enabled: !!websiteId && !reportData.branding, // Only fetch if website ID exists and no branding in report data
     retry: 1,
   });
+
+  console.log('[REACT_TEMPLATE] White label API response:', {
+    whiteLabelData,
+    isBrandingLoading,
+    brandingError,
+    hasWebsiteId: !!websiteId,
+    hasReportBranding: !!reportData.branding
+  });
+
   // Helper method to determine if white-label branding should be used
   const shouldUseWhiteLabel = (): boolean => {
-    // Use white-label data fetched from API if available
+    // First check if we have white-label data from API
     if (whiteLabelData && !isBrandingLoading) {
       const hasCustomBranding = whiteLabelData.whiteLabelEnabled === true && 
                                 !!whiteLabelData.brandName;
+      console.log('[REACT_TEMPLATE] Checking API white-label data:', { 
+        whiteLabelEnabled: whiteLabelData.whiteLabelEnabled, 
+        hasBrandName: !!whiteLabelData.brandName,
+        result: hasCustomBranding 
+      });
       return hasCustomBranding;
     }
     
-    // Fallback to reportData branding if API data not available
-    const hasCustomBranding = reportData.branding?.whiteLabelEnabled === true && 
-                              !!reportData.branding?.brandName;
-    return hasCustomBranding;
+    // Fallback to reportData branding if available
+    if (reportData.branding) {
+      const hasCustomBranding = reportData.branding.whiteLabelEnabled === true && 
+                                !!reportData.branding.brandName;
+      console.log('[REACT_TEMPLATE] Checking report data branding:', { 
+        whiteLabelEnabled: reportData.branding.whiteLabelEnabled, 
+        hasBrandName: !!reportData.branding.brandName,
+        result: hasCustomBranding 
+      });
+      return hasCustomBranding;
+    }
+    
+    console.log('[REACT_TEMPLATE] No branding data available, using default');
+    return false;
   };
 
   // Helper method to get brand information (either custom or default)
   const getBrandInfo = () => {
-    console.log('[REACT_TEMPLATE] getBrandInfo called with whiteLabelData:', whiteLabelData);
-    console.log('[REACT_TEMPLATE] getBrandInfo called with reportData.branding:', reportData.branding);
-    console.log('[REACT_TEMPLATE] shouldUseWhiteLabel result:', shouldUseWhiteLabel());
+    console.log('[REACT_TEMPLATE] getBrandInfo called');
     
     if (shouldUseWhiteLabel()) {
-      // Use white-label data from API if available
+      // Priority 1: Use white-label data from API
       if (whiteLabelData && !isBrandingLoading) {
         const brandInfo = {
           name: whiteLabelData.brandName || 'Your Brand',
           logo: whiteLabelData.brandLogo || '🛡️',
           color: whiteLabelData.brandColor || '#1e40af',
           website: whiteLabelData.brandWebsite || '',
-          footerText: whiteLabelData.brandingData?.footerText || 'Powered by Your Brand',
+          footerText: whiteLabelData.brandingData?.footerText || `Powered by ${whiteLabelData.brandName || 'Your Brand'}`,
           subtitle: 'Professional WordPress Management'
         };
         console.log('[REACT_TEMPLATE] Using white-label API brand info:', brandInfo);
         return brandInfo;
       }
       
-      // Fallback to reportData branding
-      const brandInfo = {
-        name: reportData.branding?.brandName || 'Your Brand',
-        logo: reportData.branding?.brandLogo || '🛡️',
-        color: reportData.branding?.brandColor || '#1e40af',
-        website: reportData.branding?.brandWebsite || '',
-        footerText: reportData.branding?.footerText || reportData.branding?.brandingData?.footerText || 'Powered by Your Brand',
-        subtitle: 'Professional WordPress Management'
-      };
-      console.log('[REACT_TEMPLATE] Using fallback custom brand info:', brandInfo);
-      return brandInfo;
+      // Priority 2: Use reportData branding
+      if (reportData.branding) {
+        const brandInfo = {
+          name: reportData.branding.brandName || 'Your Brand',
+          logo: reportData.branding.brandLogo || '🛡️',
+          color: reportData.branding.brandColor || '#1e40af',
+          website: reportData.branding.brandWebsite || '',
+          footerText: reportData.branding.brandingData?.footerText || 
+                     reportData.branding.footerText || 
+                     `Powered by ${reportData.branding.brandName || 'Your Brand'}`,
+          subtitle: 'Professional WordPress Management'
+        };
+        console.log('[REACT_TEMPLATE] Using report data brand info:', brandInfo);
+        return brandInfo;
+      }
     }
     
     console.log('[REACT_TEMPLATE] Using default AIO WEBCARE branding');
