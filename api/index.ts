@@ -2479,55 +2479,142 @@ function generateDetailedReportHTML(reportData: any): string {
   
   // Helper function to get brand information (either custom or default)
   // In your React component
-  const getBrandInfo = (reportData) => {
-    console.log('[REACT_TEMPLATE] getBrandInfo called with full data:', reportData);
+const getBrandInfo = (reportData) => {
+  console.log('=== BRANDING DEBUG START ===');
+  
+  // Log the complete structure of reportData (limited depth to avoid huge logs)
+  console.log('📊 FULL reportData structure:', JSON.stringify({
+    rootKeys: Object.keys(reportData || {}),
+    hasReportData: !!reportData?.reportData,
+    hasData: !!reportData?.data,
+    hasBranding: !!reportData?.branding,
+    reportDataKeys: reportData?.reportData ? Object.keys(reportData.reportData) : 'N/A',
+    dataKeys: reportData?.data ? Object.keys(reportData.data) : 'N/A'
+  }, null, 2));
 
-    // Check multiple possible locations for branding data
-    const branding = 
-      reportData?.branding || 
-      reportData?.reportData?.branding ||
-      reportData?.data?.branding ||
-      reportData?.reportData?.data?.branding;
+  // Check ALL possible locations for branding data with detailed logging
+  const potentialBrandingSources = {
+    'reportData.branding': reportData?.reportData?.branding,
+    'reportData.data.branding': reportData?.reportData?.data?.branding,
+    'data.branding': reportData?.data?.branding,
+    'root.branding': reportData?.branding,
+    'reportData.brandingData': reportData?.reportData?.brandingData,
+    'data.brandingData': reportData?.data?.brandingData,
+    'root.brandingData': reportData?.brandingData
+  };
 
-    console.log('[REACT_TEMPLATE] Found branding data:', branding);
-    console.log('[REACT_TEMPLATE] Branding location:', {
-      root: !!reportData?.branding,
-      reportData: !!reportData?.reportData?.branding,
-      data: !!reportData?.data?.branding,
-      reportDataData: !!reportData?.reportData?.data?.branding
+  console.log('🔍 Checking all potential branding locations:');
+  let foundBranding = null;
+  let foundLocation = 'NOT_FOUND';
+
+  for (const [location, branding] of Object.entries(potentialBrandingSources)) {
+    if (branding && typeof branding === 'object') {
+      console.log(`📍 Found at ${location}:`, JSON.stringify(branding, null, 2));
+      foundBranding = branding;
+      foundLocation = location;
+      break;
+    } else if (branding) {
+      console.log(`❓ ${location} exists but is not object:`, typeof branding, branding);
+    } else {
+      console.log(`➖ ${location}: null/undefined`);
+    }
+  }
+
+  console.log('🎯 Selected branding source:', foundLocation);
+  console.log('📦 Branding data content:', foundBranding);
+
+  // If we found branding data, analyze its structure
+  if (foundBranding) {
+    console.log('🔬 Branding data analysis:', {
+      hasBrandName: !!foundBranding.brandName,
+      brandNameValue: foundBranding.brandName,
+      hasBrandLogo: !!foundBranding.brandLogo,
+      brandLogoValue: foundBranding.brandLogo,
+      hasBrandColor: !!foundBranding.brandColor,
+      brandColorValue: foundBranding.brandColor,
+      hasBrandWebsite: !!foundBranding.brandWebsite,
+      brandWebsiteValue: foundBranding.brandWebsite,
+      hasWhiteLabelEnabled: foundBranding.whiteLabelEnabled !== undefined,
+      whiteLabelEnabledValue: foundBranding.whiteLabelEnabled,
+      hasBrandingData: !!foundBranding.brandingData,
+      brandingDataKeys: foundBranding.brandingData ? Object.keys(foundBranding.brandingData) : [],
+      hasFooterText: !!(foundBranding.footerText || (foundBranding.brandingData && foundBranding.brandingData.footerText)),
+      footerTextValue: foundBranding.footerText || (foundBranding.brandingData && foundBranding.brandingData.footerText),
+      allKeys: Object.keys(foundBranding)
     });
 
-    const shouldUseWhiteLabel = () => {
-      const result = branding?.whiteLabelEnabled === true && !!branding?.brandName;
-      console.log('[REACT_TEMPLATE] shouldUseWhiteLabel result:', result, {
-        whiteLabelEnabled: branding?.whiteLabelEnabled,
-        hasBrandName: !!branding?.brandName
-      });
-      return result;
+    // Check if it matches your expected format
+    const expectedBranding = {
+      brandLogo: "https://res.cloudinary.com/dnda0breb/image/upload/v1745653149/e1njseamelbyk2lyrzk7.png",
+      brandName: "varun _prod3",
+      brandColor: "#3b82f6",
+      brandWebsite: "https://aiowebcare.com",
+      brandingData: {
+        footerText: "footer of varun"
+      },
+      whiteLabelEnabled: true,
+      canCustomize: true
     };
 
-    if (shouldUseWhiteLabel()) {
-      console.log('[REACT_TEMPLATE] Using custom branding:', branding);
-      return {
-        name: branding?.brandName || 'Your Brand',
-        logo: branding?.brandLogo || '🛡️',
-        color: branding?.brandColor || '#1e40af',
-        website: branding?.brandWebsite || '',
-        footerText: branding?.footerText || branding?.brandingData?.footerText || 'Powered by Your Brand',
-        subtitle: 'Professional WordPress Management'
-      };
+    console.log('✅ Expected vs Actual comparison:');
+    for (const [key, expectedValue] of Object.entries(expectedBranding)) {
+      const actualValue = foundBranding[key];
+      const matches = JSON.stringify(actualValue) === JSON.stringify(expectedValue);
+      console.log(`   ${key}: ${matches ? '✅' : '❌'} Expected: ${JSON.stringify(expectedValue)}, Actual: ${JSON.stringify(actualValue)}`);
     }
+  }
+
+  const shouldUseWhiteLabel = () => {
+    if (!foundBranding) {
+      console.log('🚫 No branding data found - cannot use white label');
+      return false;
+    }
+
+    const hasWhiteLabel = foundBranding.whiteLabelEnabled === true;
+    const hasBrandName = !!foundBranding.brandName;
     
-    console.log('[REACT_TEMPLATE] Using default AIO WEBCARE branding');
-    return {
-      name: 'AIO WEBCARE',
-      logo: '🛡️',
-      color: '#1e40af',
-      website: 'https://aiowebcare.com',
-      footerText: 'Powered by AIO Webcare - Comprehensive WordPress Management',
+    console.log('🎚️ White label eligibility check:', {
+      whiteLabelEnabled: foundBranding.whiteLabelEnabled,
+      hasBrandName: hasBrandName,
+      brandName: foundBranding.brandName,
+      eligible: hasWhiteLabel && hasBrandName
+    });
+
+    return hasWhiteLabel && hasBrandName;
+  };
+
+  if (shouldUseWhiteLabel()) {
+    console.log('🎨 USING CUSTOM BRANDING');
+    const brandInfo = {
+      name: foundBranding?.brandName,
+      logo: foundBranding?.brandLogo || '🛡️',
+      color: foundBranding?.brandColor || '#1e40af',
+      website: foundBranding?.brandWebsite || '',
+      footerText: foundBranding?.footerText || (foundBranding?.brandingData && foundBranding?.brandingData.footerText) || `Powered by ${foundBranding?.brandName}`,
       subtitle: 'Professional WordPress Management'
     };
+    
+    console.log('✨ Final brand info:', brandInfo);
+    console.log('=== BRANDING DEBUG END ===');
+    
+    return brandInfo;
+  }
+
+  console.log('⚙️ FALLING BACK TO DEFAULT BRANDING');
+  const defaultBrandInfo = {
+    name: 'AIO WEBCARE',
+    logo: '🛡️',
+    color: '#1e40af',
+    website: 'https://aiowebcare.com',
+    footerText: 'Powered by AIO Webcare - Comprehensive WordPress Management',
+    subtitle: 'Professional WordPress Management'
   };
+  
+  console.log('✨ Final default brand info:', defaultBrandInfo);
+  console.log('=== BRANDING DEBUG END ===');
+  
+  return defaultBrandInfo;
+};
   
   // Get branding information
   const brandInfo = getBrandInfo(reportData);
