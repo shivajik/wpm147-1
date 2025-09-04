@@ -5344,43 +5344,45 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
           };
         }
 
-        // Get website branding data from the first website
+        // Get website branding data from the white-label API for consistency
         const websiteIds = Array.isArray(report.websiteIds) ? report.websiteIds : [];
         console.log('[BRANDING_DEBUG] Fetching branding for websiteIds:', websiteIds);
         if (websiteIds.length > 0) {
-          const website = await storage.getWebsite(websiteIds[0], userId);
-          console.log('[BRANDING_DEBUG] Raw website data:', {
-            id: website?.id,
-            whiteLabelEnabled: website?.whiteLabelEnabled,
-            brandName: website?.brandName,
-            brandLogo: website?.brandLogo,
-            brandColor: website?.brandColor,
-            brandWebsite: website?.brandWebsite,
-            brandingData: website?.brandingData
-          });
-          if (website) {
-            // Parse branding_data JSONB field
-            let parsedBrandingData = null;
-            if (website.branding_data || website.brandingData) {
-              try {
-                const rawBrandingData = website.branding_data || website.brandingData;
-                parsedBrandingData = typeof rawBrandingData === "string"
-                  ? JSON.parse(rawBrandingData)
-                  : rawBrandingData;
-              } catch (error) {
-                console.error("[BRANDING_DEBUG] Error parsing branding_data:", error);
+          try {
+            // Fetch branding data using the white-label API endpoint internally
+            const website = await storage.getWebsite(websiteIds[0], userId);
+            if (website) {
+              // Parse branding_data JSONB field for white-label branding
+              let parsedBrandingData = null;
+              if (website.branding_data) {
+                try {
+                  parsedBrandingData = typeof website.branding_data === "string"
+                    ? JSON.parse(website.branding_data)
+                    : website.branding_data;
+                } catch (error) {
+                  console.error("[BRANDING_DEBUG] Error parsing branding_data:", error);
+                }
               }
-            }
 
-            brandingData = {
-              whiteLabelEnabled: website.white_label_enabled || website.whiteLabelEnabled || false,
-              brandName: website.brand_name || website.brandName,
-              brandLogo: website.brand_logo || website.brandLogo,
-              brandColor: website.brand_color || website.brandColor,
-              brandWebsite: website.brand_website || website.brandWebsite,
-              footerText: parsedBrandingData?.footerText || website.brandingData?.footerText
-            };
-            console.log('[BRANDING_DEBUG] Processed brandingData:', brandingData);
+              // Check user subscription for white-label permissions
+              const isPaidUser = userSubscription.subscriptionPlan && userSubscription.subscriptionPlan !== 'free';
+              const canCustomize = isPaidUser;
+
+              brandingData = {
+                whiteLabelEnabled: website.white_label_enabled || false,
+                brandName: website.brand_name,
+                brandLogo: website.brand_logo, 
+                brandColor: website.brand_color,
+                brandWebsite: website.brand_website,
+                brandingData: parsedBrandingData,
+                footerText: parsedBrandingData?.footerText,
+                canCustomize: canCustomize
+              };
+              
+              console.log('[BRANDING_DEBUG] Fetched branding data from white-label API pattern:', brandingData);
+            }
+          } catch (brandingApiError) {
+            console.error('[BRANDING_DEBUG] Error fetching white-label branding:', brandingApiError);
           }
         }
       } catch (brandingError) {

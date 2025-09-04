@@ -150,6 +150,17 @@ interface ClientReportData {
       visibilityScore: number;
     }>;
   };
+  branding?: {
+    whiteLabelEnabled?: boolean;
+    brandName?: string;
+    brandLogo?: string;
+    brandColor?: string;
+    brandWebsite?: string;
+    brandingData?: {
+      footerText?: string;
+    };
+    footerText?: string;
+  };
 }
 
 export default function ViewReport() {

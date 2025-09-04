@@ -10422,6 +10422,74 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
           console.error(`[PRODUCTION-STEP4] Error fetching real maintenance overview:`, error);
         }
 
+        // Fetch branding data using white-label API pattern for consistency
+        let brandingData = {
+          whiteLabelEnabled: false,
+          brandName: undefined,
+          brandLogo: undefined,
+          brandColor: undefined,
+          brandWebsite: undefined,
+          brandingData: undefined,
+          footerText: undefined,
+          canCustomize: false
+        };
+
+        try {
+          const websiteIds = Array.isArray(reportRecord.websiteIds) ? reportRecord.websiteIds : [];
+          console.log(`[PRODUCTION-STEP4] Fetching branding for websiteIds:`, websiteIds);
+          
+          if (websiteIds.length > 0) {
+            // Get website branding data from database (equivalent to white-label API)
+            const websiteResult = await db
+              .select()
+              .from(websites)
+              .where(and(eq(websites.id, websiteIds[0])))
+              .limit(1);
+            
+            if (websiteResult.length > 0) {
+              const website = websiteResult[0];
+              
+              // Parse branding_data JSONB field for white-label branding
+              let parsedBrandingData = null;
+              if (website.branding_data) {
+                try {
+                  parsedBrandingData = typeof website.branding_data === "string"
+                    ? JSON.parse(website.branding_data)
+                    : website.branding_data;
+                } catch (error) {
+                  console.error("[PRODUCTION-STEP4] Error parsing branding_data:", error);
+                }
+              }
+
+              // Get user subscription for white-label permissions
+              const userProfile = await db
+                .select()
+                .from(users)
+                .where(eq(users.id, user.id))
+                .limit(1);
+              
+              const isPaidUser = userProfile.length > 0 && 
+                userProfile[0].subscriptionPlan && 
+                userProfile[0].subscriptionPlan !== 'free';
+              
+              brandingData = {
+                whiteLabelEnabled: website.white_label_enabled || false,
+                brandName: website.brand_name,
+                brandLogo: website.brand_logo,
+                brandColor: website.brand_color,
+                brandWebsite: website.brand_website,
+                brandingData: parsedBrandingData,
+                footerText: parsedBrandingData?.footerText,
+                canCustomize: isPaidUser
+              };
+              
+              console.log(`[PRODUCTION-STEP4] Fetched branding data:`, brandingData);
+            }
+          }
+        } catch (brandingError) {
+          console.error(`[PRODUCTION-STEP4] Error fetching branding data:`, brandingError);
+        }
+
         // Build the complete report data structure with REAL data from ActivityLogger approach
         const completeReportData = {
           id: reportRecord.id,
@@ -10437,6 +10505,7 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
             ipAddress: realIpAddress,
             wordpressVersion: realWordPressVersion
           },
+          branding: brandingData,
           dateFrom: reportRecord.dateFrom ? new Date(reportRecord.dateFrom).toISOString() : new Date().toISOString(),
           dateTo: reportRecord.dateTo ? new Date(reportRecord.dateTo).toISOString() : new Date().toISOString(),
           // Use REAL data from ActivityLogger approach (same as localhost)
