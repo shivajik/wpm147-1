@@ -769,8 +769,8 @@ export const insertClientSchema = createInsertSchema(clients).omit({
 
 export const insertWebsiteSchema = createInsertSchema(websites).omit({
   id: true,
-  createdAt: true,
-  updatedAt: true,
+  created_at: true,
+  updated_at: true,
 });
 
 export const insertTaskSchema = createInsertSchema(tasks).omit({
