@@ -2453,10 +2453,9 @@ function generateDetailedReportHTML(reportData: any): string {
   
   // Helper function to determine if white-label branding should be used
   const shouldUseWhiteLabel = (reportData: any): boolean => {
-    // Allow white-label branding if custom branding is properly configured
-    // regardless of subscription plan (for development/testing purposes)
-    const hasCustomBranding = reportData.branding?.whiteLabelEnabled === true && 
-                              !!reportData.branding?.brandName;
+    // Use the direct properties from your API response
+    const hasCustomBranding = reportData.whiteLabelEnabled === true && 
+                              !!reportData.brandName;
     return hasCustomBranding;
   };
   
@@ -2464,11 +2463,11 @@ function generateDetailedReportHTML(reportData: any): string {
   const getBrandInfo = (reportData: any) => {
     if (shouldUseWhiteLabel(reportData)) {
       return {
-        name: reportData.branding?.brandName || 'Your Brand',
-        logo: reportData.branding?.brandLogo || '🛡️',
-        color: reportData.branding?.brandColor || '#1e40af',
-        website: reportData.branding?.brandWebsite || '',
-        footerText: reportData.branding?.footerText || reportData.branding?.brandingData?.footerText || 'Powered by Your Brand',
+        name: reportData.brandName || 'Your Brand',
+        logo: reportData.brandLogo || '🛡️',
+        color: reportData.brandColor || '#1e40af',
+        website: reportData.brandWebsite || '',
+        footerText: reportData.brandingData?.footerText || 'Powered by Your Brand',
         subtitle: 'Professional WordPress Management'
       };
     }
