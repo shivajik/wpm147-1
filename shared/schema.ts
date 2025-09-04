@@ -121,7 +121,7 @@ export const websites = pgTable("websites", {
   branding_data: jsonb("branding_data").notNull().default(sql`'{"footerText":"Powered by AIO Webcare - Comprehensive WordPress Management"}'::jsonb`),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),
-  client_id: integer("client_id").notNull().references(() => clients.id),
+  clientId: integer("client_id").notNull().references(() => clients.id),
 });
 
 export const tasks = pgTable("tasks", {
