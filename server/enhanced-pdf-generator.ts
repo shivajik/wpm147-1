@@ -151,11 +151,11 @@ export class EnhancedPDFGenerator {
   
   // Helper method to determine if white-label branding should be used
   private shouldUseWhiteLabel(reportData: ClientReportData): boolean {
-    const isPaidUser = reportData.userSubscription?.subscriptionPlan && 
-                       reportData.userSubscription.subscriptionPlan !== 'free';
+    // Allow white-label branding if custom branding is properly configured
+    // regardless of subscription plan (for development/testing purposes)
     const hasCustomBranding = reportData.branding?.whiteLabelEnabled === true && 
                               !!reportData.branding?.brandName;
-    return !!isPaidUser && hasCustomBranding;
+    return hasCustomBranding;
   }
 
   // Helper method to get brand information (either custom or default)
