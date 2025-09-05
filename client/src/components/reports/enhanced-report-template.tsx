@@ -21,7 +21,8 @@ import {
   Clock,
   Download,
   RefreshCw,
-  Wrench
+  Wrench,
+  FileText
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -1236,6 +1237,162 @@ export function EnhancedReportTemplate({ reportData, isPrintMode = false }: Enha
           </CardContent>
         </Card>
       )}
+
+{reportData.seo && (
+  <Card className="mb-8 border-0 shadow-2xl bg-gradient-to-br from-white via-indigo-50 to-purple-100 overflow-hidden">
+    <CardHeader className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/90 via-purple-600/90 to-pink-600/90 backdrop-blur-sm"></div>
+      <div className="relative z-10">
+        <CardTitle className="text-2xl font-bold flex items-center gap-4 mb-2">
+          <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm border border-white/30 shadow-lg">
+            <Search className="w-6 h-6 text-white" />
+          </div>
+          <span className="bg-gradient-to-r from-white to-indigo-100 bg-clip-text text-transparent">
+            SEO Performance
+          </span>
+        </CardTitle>
+        <div className="text-indigo-100 text-sm font-medium pl-16">
+          Overall Score: {reportData.seo.overallScore || 0}/100
+          <br />
+          Scan completed: {reportData.seo.generatedAt ? new Date(reportData.seo.generatedAt).toLocaleDateString() : 'Unknown date'}
+        </div>
+      </div>
+      <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
+      <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-12 -translate-x-12"></div>
+    </CardHeader>
+    <CardContent>
+      {/* SEO Metrics Overview */}
+      <div className="mb-6">
+        <h4 className="text-lg font-semibold mb-3">SEO METRICS OVERVIEW</h4>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center mb-4">
+          <div className="p-3 bg-blue-50 rounded">
+            <div className="text-sm text-gray-600">Technical SEO</div>
+            <div className="text-xl font-bold text-blue-600">{reportData.seo.metrics?.technicalSeo || 0}/100</div>
+          </div>
+          <div className="p-3 bg-green-50 rounded">
+            <div className="text-sm text-gray-600">Content Quality</div>
+            <div className="text-xl font-bold text-green-600">{reportData.seo.metrics?.contentQuality || 0}/100</div>
+          </div>
+          <div className="p-3 bg-purple-50 rounded">
+            <div className="text-sm text-gray-600">User Experience</div>
+            <div className="text-xl font-bold text-purple-600">{reportData.seo.metrics?.userExperience || 0}/100</div>
+          </div>
+          <div className="p-3 bg-orange-50 rounded">
+            <div className="text-sm text-gray-600">Backlinks</div>
+            <div className="text-xl font-bold text-orange-600">{reportData.seo.metrics?.backlinks || 0}/100</div>
+          </div>
+          <div className="p-3 bg-indigo-50 rounded">
+            <div className="text-sm text-gray-600">On-Page SEO</div>
+            <div className="text-xl font-bold text-indigo-600">{reportData.seo.metrics?.onPageSeo || 0}/100</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Issues Summary */}
+      <div className="mb-6">
+        <h4 className="text-lg font-semibold mb-3">ISSUES SUMMARY</h4>
+        <div className="grid grid-cols-3 gap-4 text-center">
+          <div className="p-3 bg-red-50 rounded">
+            <div className="text-sm text-gray-600">Critical Issues</div>
+            <div className="text-xl font-bold text-red-600">{reportData.seo.issues?.critical || 0}</div>
+          </div>
+          <div className="p-3 bg-yellow-50 rounded">
+            <div className="text-sm text-gray-600">Warnings</div>
+            <div className="text-xl font-bold text-yellow-600">{reportData.seo.issues?.warnings || 0}</div>
+          </div>
+          <div className="p-3 bg-blue-50 rounded">
+            <div className="text-sm text-gray-600">Suggestions</div>
+            <div className="text-xl font-bold text-blue-600">{reportData.seo.issues?.suggestions || 0}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Technical Findings */}
+      {reportData.seo.technicalFindings && (
+        <div className="mb-6">
+          <h4 className="text-lg font-semibold mb-3">TECHNICAL FINDINGS</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 bg-gray-50 rounded">
+              <h5 className="font-medium mb-2">PageSpeed Scores</h5>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <span className="text-sm text-gray-600">Desktop: </span>
+                  <span className="font-medium">{reportData.seo.technicalFindings.pagespeed?.desktop || 0}/100</span>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-600">Mobile: </span>
+                  <span className="font-medium">{reportData.seo.technicalFindings.pagespeed?.mobile || 0}/100</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-4 bg-gray-50 rounded">
+              <h5 className="font-medium mb-2">Security</h5>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">SSL Enabled: </span>
+                <Badge variant={reportData.seo.technicalFindings.sslEnabled ? "default" : "destructive"}>
+                  {reportData.seo.technicalFindings.sslEnabled ? "Yes" : "No"}
+                </Badge>
+              </div>
+            </div>
+            
+            <div className="p-4 bg-gray-50 rounded">
+              <h5 className="font-medium mb-2">Meta Tags</h5>
+              <div className="space-y-1 text-sm">
+                <div>Missing Title: {reportData.seo.technicalFindings.metaTags?.missingTitle || 0}</div>
+                <div>Missing Description: {reportData.seo.technicalFindings.metaTags?.missingDescription || 0}</div>
+                <div>Duplicate Title: {reportData.seo.technicalFindings.metaTags?.duplicateTitle || 0}</div>
+              </div>
+            </div>
+            
+            <div className="p-4 bg-gray-50 rounded">
+              <h5 className="font-medium mb-2">Heading Structure</h5>
+              <div className="space-y-1 text-sm">
+                <div>Missing H1: {reportData.seo.technicalFindings.headingStructure?.missingH1 || 0}</div>
+                <div>Improper Hierarchy: {reportData.seo.technicalFindings.headingStructure?.improperHierarchy || 0}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Recommendations */}
+      {reportData.seo.recommendations && reportData.seo.recommendations.length > 0 && (
+        <div>
+          <h4 className="text-lg font-semibold mb-3">TOP RECOMMENDATIONS</h4>
+          <div className="space-y-2">
+            {reportData.seo.recommendations.slice(0, 5).map((recommendation, index) => (
+              <div key={index} className="flex items-start gap-3 p-3 bg-blue-50 rounded">
+                <div className="mt-1 flex-shrink-0">
+                  <FileText className="w-4 h-4 text-blue-600" />
+                </div>
+                <div className="text-sm text-gray-700">{recommendation}</div>
+              </div>
+            ))}
+          </div>
+          {reportData.seo.recommendations.length > 5 && (
+            <div className="mt-2 text-sm text-gray-500">
+              + {reportData.seo.recommendations.length - 5} more recommendations
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Scan Information */}
+      <div className="mt-6 pt-4 border-t border-gray-200">
+        <div className="text-sm text-gray-500">
+          Scan duration: {reportData.seo.scanDuration ? `${(reportData.seo.scanDuration / 1000).toFixed(1)} seconds` : 'Unknown'}
+          {reportData.seo.scanStatus && (
+            <> • Status: <Badge variant={reportData.seo.scanStatus === 'completed' ? 'default' : 'secondary'}>
+              {reportData.seo.scanStatus}
+            </Badge></>
+          )}
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+)}
+
 
       {/* SEO Section - Only render if SEO data exists */}
       {reportData.seo && reportData.seo.keywords?.length > 0 && (
