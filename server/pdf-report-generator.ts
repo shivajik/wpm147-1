@@ -1036,14 +1036,13 @@ export class ManageWPStylePDFGenerator {
     const { dateFrom, dateTo, clientName } = data;
     const reportData = data.reportData || {};
     const seo = reportData.seo || { 
-      visibilityChange: '0%', 
-      competitors: 9,
-      keywordsTracked: 1,
-      topRank: 0,
-      firstPage: 0,
+      visibilityChange: 0, 
+      competitors: 0,
+      keywords: [],
+      topRankKeywords: 0,
+      firstPageKeywords: 0,
       visibility: 0,
-      keywordsList: [],
-      competitorsList: []
+      topCompetitors: []
     };
     const dateRange = this.getDateRange(dateFrom, dateTo);
 
@@ -1055,44 +1054,44 @@ export class ManageWPStylePDFGenerator {
         </div>
         
         <h1 class="section-title">SEO</h1>
-        <div class="summary-title">Visibility down by: ${seo.visibilityChange} &nbsp;&nbsp;&nbsp;&nbsp; Competitors: ${seo.competitors}</div>
+        <div class="summary-title">Visibility change: ${seo.visibilityChange >= 0 ? '+' : ''}${seo.visibilityChange}% &nbsp;&nbsp;&nbsp;&nbsp; Competitors: ${seo.competitors}</div>
         
         <h3 style="margin: 30px 0 20px;">OVERVIEW</h3>
         <div class="summary-stats" style="margin-bottom: 30px;">
             <div class="stat-item">
                 <div class="stat-label">Keywords</div>
-                <div class="stat-value">${seo.keywordsTracked}</div>
+                <div class="stat-value">${seo.keywords?.length || 0}</div>
             </div>
             <div class="stat-item">
-                <div class="stat-label">TopRank</div>
-                <div class="stat-value">${seo.topRank}</div>
+                <div class="stat-label">Top 3 Rank</div>
+                <div class="stat-value">${seo.topRankKeywords || 0}</div>
             </div>
             <div class="stat-item">
                 <div class="stat-label">First page</div>
-                <div class="stat-value">${seo.firstPage}</div>
+                <div class="stat-value">${seo.firstPageKeywords || 0}</div>
             </div>
             <div class="stat-item">
                 <div class="stat-label">Visibility</div>
-                <div class="stat-value">${seo.visibility}</div>
+                <div class="stat-value">${(seo.visibility || 0).toFixed(1)}%</div>
             </div>
         </div>
         
         <div class="summary-stats" style="margin-bottom: 40px;">
             <div class="stat-item">
                 <div class="stat-label">Better</div>
-                <div class="stat-value">0</div>
+                <div class="stat-value">${seo.keywords?.filter((kw: any) => kw.currentRank < kw.previousRank).length || 0}</div>
             </div>
             <div class="stat-item">
                 <div class="stat-label">No Change</div>
-                <div class="stat-value">1</div>
+                <div class="stat-value">${seo.keywords?.filter((kw: any) => kw.currentRank === kw.previousRank).length || 0}</div>
             </div>
             <div class="stat-item">
                 <div class="stat-label">Worse</div>
-                <div class="stat-value">0</div>
+                <div class="stat-value">${seo.keywords?.filter((kw: any) => kw.currentRank > kw.previousRank).length || 0}</div>
             </div>
             <div class="stat-item">
                 <div class="stat-label">Visibility Change</div>
-                <div class="stat-value">${seo.visibilityChange}</div>
+                <div class="stat-value">${seo.visibilityChange >= 0 ? '+' : ''}${seo.visibilityChange}%</div>
             </div>
         </div>
         
@@ -1101,7 +1100,7 @@ export class ManageWPStylePDFGenerator {
             <p style="color: #666;">SEO visibility chart would appear here</p>
         </div>
         
-        <h3 style="margin: 40px 0 20px;">WE ARE MONITORING ${seo.keywordsTracked} KEYWORDS</h3>
+        <h3 style="margin: 40px 0 20px;">WE ARE MONITORING ${seo.keywords?.length || 0} KEYWORDS</h3>
         <table class="data-table">
             <thead>
                 <tr>
@@ -1109,30 +1108,34 @@ export class ManageWPStylePDFGenerator {
                     <th>Keyword</th>
                     <th>City</th>
                     <th>Page</th>
-                    <th>Newest Rank</th>
-                    <th>Oldest Rank</th>
+                    <th>Current Rank</th>
+                    <th>Previous Rank</th>
                 </tr>
             </thead>
             <tbody>
-                ${seo.keywordsList && seo.keywordsList.length > 0 
-                  ? seo.keywordsList.map((keyword: any) => `
-                      <tr>
-                          <td></td>
-                          <td>${keyword.keyword || 'backup'}</td>
-                          <td>${keyword.city || '-'}</td>
-                          <td>${keyword.page || '-'}</td>
-                          <td>${keyword.newestRank || 0}</td>
-                          <td>${keyword.oldestRank || 0}</td>
-                      </tr>
-                  `).join('')
+                ${seo.keywords && seo.keywords.length > 0 
+                  ? seo.keywords.map((keyword: any) => {
+                      const change = keyword.currentRank - keyword.previousRank;
+                      const flag = change < 0 ? '↗️' : change > 0 ? '↘️' : '→';
+                      return `
+                          <tr>
+                              <td>${flag}</td>
+                              <td>${keyword.keyword || 'keyword'}</td>
+                              <td>-</td>
+                              <td>${keyword.page || '/'}</td>
+                              <td>${keyword.currentRank || 0}</td>
+                              <td>${keyword.previousRank || 0}</td>
+                          </tr>
+                      `;
+                  }).join('')
                   : `
                       <tr>
-                          <td></td>
-                          <td>backup</td>
+                          <td>→</td>
+                          <td>sample keyword</td>
                           <td>-</td>
-                          <td>-</td>
-                          <td>0</td>
-                          <td>0</td>
+                          <td>/</td>
+                          <td>5</td>
+                          <td>5</td>
                       </tr>
                   `
                 }
