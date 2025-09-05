@@ -5814,8 +5814,7 @@ const websiteResult = await db.select({
           return res.status(400).json({ message: 'WP Remote Manager API key is required' });
         }
 
-        const wrmClient = new WPRemoteManagerClient({ url: websiteData.url, apiKey: websiteData.wrmApiKey });
-
+        const wrmClient = new WPRemoteManagerClient(websiteData.url, websiteData.wrmApiKey);
         console.log(`[Plugin Activation] Activating plugin: ${pluginPath} for website ${websiteId}`);
 
         // Activate the plugin using WRM API
@@ -5897,7 +5896,7 @@ const websiteResult = await db.select({
           return res.status(400).json({ message: 'WP Remote Manager API key is required' });
         }
 
-        const wrmClient = new WPRemoteManagerClient({ url: websiteData.url, apiKey: websiteData.wrmApiKey });
+        const wrmClient = new WPRemoteManagerClient( websiteData.url, websiteData.wrmApiKey );
 
         console.log(`[Plugin Deactivation] Deactivating plugin: ${pluginPath} for website ${websiteId}`);
         
@@ -5955,7 +5954,7 @@ const websiteResult = await db.select({
           return res.status(400).json({ message: 'WP Remote Manager API key is required' });
         }
 
-        const wrmClient = new WPRemoteManagerClient({ url: websiteData.url, apiKey: websiteData.wrmApiKey });
+        const wrmClient = new WPRemoteManagerClient(websiteData.url, websiteData.wrmApiKey);
 
         console.log(`[Theme Activation] Activating theme: ${themeId} for website ${websiteId}`);
         
@@ -6108,7 +6107,7 @@ const websiteResult = await db.select({
           return res.status(400).json({ message: 'WP Remote Manager API key is required' });
         }
 
-        const wrmClient = new WPRemoteManagerClient({ url: websiteData.url, apiKey: websiteData.wrmApiKey });
+        const wrmClient = new WPRemoteManagerClient(websiteData.url, websiteData.wrmApiKey );
 
         console.log(`[Plugin Activation] Activating plugin: ${plugin} for website ${websiteId}`);
         
@@ -6164,7 +6163,7 @@ const websiteResult = await db.select({
           return res.status(400).json({ message: 'WP Remote Manager API key is required' });
         }
 
-        const wrmClient = new WPRemoteManagerClient({ url: websiteData.url, apiKey: websiteData.wrmApiKey });
+        const wrmClient = new WPRemoteManagerClient(websiteData.url, websiteData.wrmApiKey );
 
         console.log(`[Plugin Deactivation] Deactivating plugin: ${plugin} for website ${websiteId}`);
         
@@ -8302,7 +8301,7 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
           
           try {
             // Test the new API key connection
-            const wrmClient = new WPRemoteManagerClient(url: updatedWebsite.url, apiKey: updates.wrmApiKey);
+            const wrmClient = new WPRemoteManagerClient(updatedWebsite.url, updates.wrmApiKey);
 
             console.log(`[API-KEY-UPDATE] Testing connection with new API key...`);
             
