@@ -481,7 +481,7 @@ export default function WebsiteComments() {
                 </SelectContent>
               </Select>
 
-              <div className="flex gap-2">
+              {/* <div className="flex gap-2">
                 <Button
                   variant="outline"
                   size="sm"
@@ -505,7 +505,7 @@ export default function WebsiteComments() {
                   <Trash2 className="w-4 h-4 mr-2" />
                   Remove Spam & Trashed Comments
                 </Button>
-              </div>
+              </div> */}
             </div>
 
             {/* Comments List */}
@@ -563,10 +563,10 @@ export default function WebsiteComments() {
                         className="flex items-start gap-3 p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                         data-testid={`comment-${comment.id}`}
                       >
-                        <div className="w-5 h-5 mt-1 flex items-center justify-center">
+                        {/* <div className="w-5 h-5 mt-1 flex items-center justify-center">
                           {getStatusBadge(comment).props.children[1]}
                         </div>
-                        
+                         */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2 mb-2">
                             <div className="flex items-center gap-2 min-w-0">
