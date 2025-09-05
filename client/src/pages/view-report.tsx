@@ -227,7 +227,7 @@ export default function ViewReport() {
   });
 
   // Fetch SEO data from the real endpoint
-  const { data: seoData, isLoading: isLoadingSEO } = useQuery<{success: boolean; report: SEOReportData}>({
+  const { data: seoData, isLoading: isLoadingSEO } = useQuery<SEOReportData[]>({
     queryKey: [`/api/websites/${websiteId}/seo-reports`],
     enabled: !!websiteId,
     retry: 1
@@ -255,22 +255,25 @@ export default function ViewReport() {
     }
     
     // Log SEO data from both sources for debugging
-    if (seoData) {
-      console.log('=== SEPARATE SEO ENDPOINT DATA ===');
-      console.log('SEO endpoint response:', seoData);
-      console.log('SEO report:', seoData.report);
-      console.log('Overall score:', seoData.report?.overallScore);
-      console.log('Technical findings:', seoData.report?.technicalFindings);
-    }
+ if (seoData && Array.isArray(seoData)) {
+    console.log('=== SEPARATE SEO ENDPOINT DATA ===');
+    console.log('SEO endpoint response (array):', seoData);
     
-    if (reportData?.seo) {
-      console.log('=== SEO DATA FROM REPORT DATA ===');
-      console.log('SEO from reportData:', reportData.seo);
-      console.log('Overall score from reportData:', reportData.seo.overallScore);
-      console.log('Technical findings from reportData:', reportData.seo.technicalFindings);
-      console.log('SEO metrics from reportData:', reportData.seo.metrics);
-      console.log('SEO issues from reportData:', reportData.seo.issues);
-    }
+    // Get the most recent report (assuming they're sorted by date, newest first)
+    const latestSeoReport = seoData.length > 0 ? seoData[0] : null;
+    console.log('Latest SEO report:', latestSeoReport);
+    console.log('Overall score:', latestSeoReport?.overallScore);
+    console.log('Technical findings:', latestSeoReport?.technicalFindings);
+    
+    // Log all reports for debugging
+    seoData.forEach((report, index) => {
+      console.log(`SEO Report ${index + 1}:`, report);
+    });
+  } else if (seoData) {
+    // Handle case where seoData is not an array (fallback)
+    console.log('=== SEPARATE SEO ENDPOINT DATA ===');
+    console.log('SEO endpoint response (object):', seoData);
+  }
     
     if (reportData) {
       console.log('=== REPORT DATA STRUCTURE ===');
@@ -293,7 +296,7 @@ export default function ViewReport() {
       console.log('Branding data:', brandingData.brandingData);
       console.log('Full branding object:', brandingData);
     }
-  }, [report, reportData, brandingData, reportId, isLoading, isLoadingData, isLoadingBranding, error, dataError]);
+  }, [report, reportData, brandingData, seoData, reportId, isLoading, isLoadingData, isLoadingBranding, error, dataError]);
 
   const handleDownloadPDF = () => {
     const token = localStorage.getItem('auth_token');
@@ -502,21 +505,29 @@ export default function ViewReport() {
       footerText: brandingData.brandingData?.footerText
     } : undefined);
 
-    const enhancedData = {
-      ...reportData,
-      branding: finalBranding,
-      // Prioritize reportData.seo since it's already embedded in the main report
-      seo: reportData.seo || seoData?.report
-    };
+  // Get the latest SEO report from the array (if available)
+  const latestSeoReport = Array.isArray(seoData) && seoData.length > 0 
+    ? seoData[0] 
+    : null;
 
-    console.log('=== ENHANCED REPORT DATA ===');
-    console.log('Extracted branding from report:', extractedBranding);
-    console.log('Fetched branding data:', brandingData);
-    console.log('Final branding used:', finalBranding);
-    console.log('Combined report data with branding:', enhancedData);
-    
-    return enhancedData;
+  const enhancedData = {
+    ...reportData,
+    branding: finalBranding,
+    // Prioritize reportData.seo since it's already embedded in the main report,
+    // otherwise use the latest SEO report from the separate endpoint
+    seo: reportData.seo || latestSeoReport
   };
+
+  console.log('=== ENHANCED REPORT DATA ===');
+  console.log('Extracted branding from report:', extractedBranding);
+  console.log('Fetched branding data:', brandingData);
+  console.log('Final branding used:', finalBranding);
+  console.log('SEO data from separate endpoint:', seoData);
+  console.log('Latest SEO report used:', latestSeoReport);
+  console.log('Combined report data with branding and SEO:', enhancedData);
+  
+  return enhancedData;
+};
 
   // Show loading if any query is loading
   if (isLoading || isLoadingData || isLoadingBranding || isLoadingSEO) {
