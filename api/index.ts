@@ -3353,11 +3353,67 @@ async function fetchMaintenanceDataFromLogs(websiteIds: number[], userId: number
           }));
         }
 
-        // Process SEO data
+        // Process SEO data with comprehensive integration
         if (websiteSeoReports.length > 0) {
+          addDebugLog(`[MAINTENANCE_DATA] Found ${websiteSeoReports.length} real SEO reports for website ${websiteId}`);
           const latestSeoReport = websiteSeoReports[0];
+          
+          // Only add SEO section if real data exists
+          if (!maintenanceData.seo) {
+            maintenanceData.seo = {
+              visibilityChange: 0,
+              competitors: 0,
+              keywords: [] as any[],
+              topRankKeywords: 0,
+              firstPageKeywords: 0,
+              visibility: 0,
+              topCompetitors: [] as any[]
+            };
+          }
+          
+          // Set overview SEO score from the report
           maintenanceData.overview.seoScore = latestSeoReport.overallScore || 92;
-          maintenanceData.overview.performanceScore = latestSeoReport.userExperienceScore || performanceScanResults[0]?.performanceScore || 85;
+          maintenanceData.overview.performanceScore = latestSeoReport.userExperienceScore || performanceScanResults[0]?.pagespeedScore || 85;
+          
+          // Extract SEO metrics from the report data
+          const reportData = latestSeoReport.reportData as any;
+          if (reportData) {
+            // Process keywords data if available
+            if (reportData.keywords && Array.isArray(reportData.keywords)) {
+              maintenanceData.seo.keywords = reportData.keywords.map((kw: any) => ({
+                keyword: kw.keyword || kw.term || '',
+                currentRank: kw.rank || kw.currentRank || 0,
+                previousRank: kw.previousRank || kw.rank || 0,
+                page: kw.page || kw.url || ''
+              }));
+              
+              // Calculate keyword statistics
+              maintenanceData.overview.keywordsTracked = reportData.keywords.length;
+              maintenanceData.seo.topRankKeywords = reportData.keywords.filter((kw: any) => (kw.rank || kw.currentRank || 999) <= 3).length;
+              maintenanceData.seo.firstPageKeywords = reportData.keywords.filter((kw: any) => (kw.rank || kw.currentRank || 999) <= 10).length;
+            }
+            
+            // Set visibility score and change
+            if (reportData.visibility !== undefined) {
+              maintenanceData.seo.visibility = reportData.visibility;
+            }
+            if (reportData.visibilityChange !== undefined) {
+              maintenanceData.seo.visibilityChange = reportData.visibilityChange;
+            }
+            
+            // Process competitors data if available
+            if (reportData.competitors && Array.isArray(reportData.competitors)) {
+              maintenanceData.seo.competitors = reportData.competitors.length;
+              maintenanceData.seo.topCompetitors = reportData.competitors.slice(0, 5).map((comp: any) => ({
+                domain: comp.domain || comp.name || 'Unknown',
+                visibilityScore: comp.visibility || comp.score || 0
+              }));
+            }
+          }
+          
+          addDebugLog(`[MAINTENANCE_DATA] Added SEO data with ${maintenanceData.seo.keywords.length} keywords, score: ${maintenanceData.overview.seoScore}`);
+        } else {
+          addDebugLog(`[MAINTENANCE_DATA] No SEO reports found for website ${websiteId} - excluding SEO section`);
         }
 
         // Fetch real WordPress data for backup and uptime information

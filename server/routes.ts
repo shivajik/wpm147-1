@@ -5929,6 +5929,75 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
             console.warn(`[MAINTENANCE_DATA] Security scans not available for website ${websiteId}:`, securityError instanceof Error ? securityError.message : 'Unknown error');
           }
 
+          // Fetch stored SEO reports (with error handling)
+          try {
+            const seoReports = await storage.getSeoReports(websiteId, userId);
+            if (seoReports.length > 0) {
+              console.log(`[MAINTENANCE_DATA] Found ${seoReports.length} real SEO reports for website ${websiteId}`);
+              const latestSeoReport = seoReports[0]; // Most recent report
+              
+              // Only add SEO section if real data exists
+              if (!maintenanceData.seo) {
+                maintenanceData.seo = {
+                  visibilityChange: 0,
+                  competitors: 0,
+                  keywords: [] as any[],
+                  topRankKeywords: 0,
+                  firstPageKeywords: 0,
+                  visibility: 0,
+                  topCompetitors: [] as any[]
+                };
+              }
+              
+              // Extract SEO metrics from the latest report
+              const reportData = latestSeoReport.reportData as any;
+              if (reportData) {
+                // Set overview SEO score from the report
+                if (reportData.overallScore) {
+                  maintenanceData.overview.seoScore = reportData.overallScore;
+                }
+                
+                // Process keywords data if available
+                if (reportData.keywords && Array.isArray(reportData.keywords)) {
+                  maintenanceData.seo.keywords = reportData.keywords.map((kw: any) => ({
+                    keyword: kw.keyword || kw.term || '',
+                    currentRank: kw.rank || kw.currentRank || 0,
+                    previousRank: kw.previousRank || kw.rank || 0,
+                    page: kw.page || kw.url || ''
+                  }));
+                  
+                  // Calculate keyword statistics
+                  maintenanceData.overview.keywordsTracked = reportData.keywords.length;
+                  maintenanceData.seo.topRankKeywords = reportData.keywords.filter((kw: any) => (kw.rank || kw.currentRank || 999) <= 3).length;
+                  maintenanceData.seo.firstPageKeywords = reportData.keywords.filter((kw: any) => (kw.rank || kw.currentRank || 999) <= 10).length;
+                }
+                
+                // Set visibility score and change
+                if (reportData.visibility !== undefined) {
+                  maintenanceData.seo.visibility = reportData.visibility;
+                }
+                if (reportData.visibilityChange !== undefined) {
+                  maintenanceData.seo.visibilityChange = reportData.visibilityChange;
+                }
+                
+                // Process competitors data if available
+                if (reportData.competitors && Array.isArray(reportData.competitors)) {
+                  maintenanceData.seo.competitors = reportData.competitors.length;
+                  maintenanceData.seo.topCompetitors = reportData.competitors.slice(0, 5).map((comp: any) => ({
+                    domain: comp.domain || comp.name || 'Unknown',
+                    visibilityScore: comp.visibility || comp.score || 0
+                  }));
+                }
+              }
+              
+              console.log(`[MAINTENANCE_DATA] Added SEO data with ${maintenanceData.seo.keywords.length} keywords, score: ${maintenanceData.overview.seoScore}`);
+            } else {
+              console.log(`[MAINTENANCE_DATA] No SEO reports found for website ${websiteId} - excluding SEO section`);
+            }
+          } catch (seoError) {
+            console.warn(`[MAINTENANCE_DATA] SEO reports not available for website ${websiteId}:`, seoError instanceof Error ? seoError.message : 'Unknown error');
+          }
+
           // Only count actual backup logs, no estimates
           const backupLogs = updateLogs.filter(log => 
             log.updateType === 'backup' || 
