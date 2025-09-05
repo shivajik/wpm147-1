@@ -129,7 +129,7 @@ export default function EditWebsiteDialog({ website, trigger }: EditWebsiteDialo
         <DialogHeader>
           <DialogTitle>Website Settings</DialogTitle>
         </DialogHeader>
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden flex flex-col">
           <Tabs defaultValue="general" className="h-full flex flex-col">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="general" className="flex items-center gap-2">
@@ -142,9 +142,9 @@ export default function EditWebsiteDialog({ website, trigger }: EditWebsiteDialo
               </TabsTrigger>
             </TabsList>
             
-            <TabsContent value="general" className="flex-1 overflow-y-auto">
+            <TabsContent value="general" className="flex-1 overflow-y-auto max-h-[calc(85vh-150px)]">
               <Form {...form}>
-                <form id="edit-website-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <form id="edit-website-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-1">
             <FormField
               control={form.control}
               name="name"
@@ -252,7 +252,6 @@ export default function EditWebsiteDialog({ website, trigger }: EditWebsiteDialo
               </div>
             </div>
 
-                </form>
                 <div className="flex justify-end space-x-2 pt-4 border-t mt-4">
                   <Button
                     type="button"
@@ -269,10 +268,11 @@ export default function EditWebsiteDialog({ website, trigger }: EditWebsiteDialo
                     {updateWebsiteMutation.isPending ? "Saving..." : "Save Changes"}
                   </Button>
                 </div>
+                </form>
               </Form>
             </TabsContent>
             
-            <TabsContent value="branding" className="flex-1 overflow-y-auto">
+            <TabsContent value="branding" className="flex-1 overflow-y-auto max-h-[calc(85vh-150px)]">
               <BrandingManagement websiteId={website.id} />
             </TabsContent>
           </Tabs>
