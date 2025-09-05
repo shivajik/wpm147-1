@@ -7266,10 +7266,7 @@ if (path.startsWith('/api/websites/') && path.includes('/maintenance-reports/') 
       // Try to get real data if website is connected
       if (website.wrmApiKey && website.connectionStatus === 'connected') {
         try {
-          const wrmClient = new WPRemoteManagerClient({
-            url: website.url,
-            apiKey: website.wrmApiKey
-          });
+          const wrmClient = new WPRemoteManagerClient( website.url, website.wrmApiKey );
 
           // Get updates data
           const updates = await wrmClient.getUpdates();
