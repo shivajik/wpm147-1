@@ -8251,6 +8251,165 @@ if (path.startsWith('/api/websites/') && path.endsWith('/plugins/update') && req
       }
     }
 
+
+    // Update website endpoint (PUT)
+    if (path.match(/^\/api\/websites\/\d+$/) && req.method === 'PUT') {
+      const user = authenticateToken(req);
+      if (!user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const websiteId = parseInt(path.split('/')[3]);
+      if (isNaN(websiteId)) {
+        return res.status(400).json({ message: 'Invalid website ID' });
+      }
+
+      try {
+        const updates = req.body;
+        
+        // Get current website to check if AIOWebcare API key is being updated
+        const currentWebsiteResult = await db.select()
+          .from(websites)
+          .innerJoin(clients, eq(websites.clientId, clients.id))
+          .where(and(eq(websites.id, websiteId), eq(clients.userId, user.id)))
+          .limit(1);
+          
+        if (currentWebsiteResult.length === 0) {
+          return res.status(404).json({ message: "Website not found" });
+        }
+
+        const currentWebsite = currentWebsiteResult[0].websites;
+        const isWrmApiKeyUpdated = updates.wrmApiKey && updates.wrmApiKey !== currentWebsite.wrmApiKey;
+        
+        // Update the website
+        const updatedResults = await db.update(websites)
+          .set({
+            ...updates,
+            updatedAt: new Date()
+          })
+          .where(eq(websites.id, websiteId))
+          .returning();
+          
+        if (updatedResults.length === 0) {
+          return res.status(404).json({ message: "Website not found" });
+        }
+
+        const updatedWebsite = updatedResults[0];
+        
+        // If AIOWebcare API key was updated, automatically reconnect and refresh data
+        if (isWrmApiKeyUpdated && updates.wrmApiKey) {
+          console.log(`[API-KEY-UPDATE] AIOWebcare API key updated for website ${websiteId}, initiating automatic reconnection...`);
+          
+          try {
+            // Test the new API key connection
+            const wrmClient = new WPRemoteManagerClient(url: updatedWebsite.url, apiKey: updates.wrmApiKey);
+
+            console.log(`[API-KEY-UPDATE] Testing connection with new API key...`);
+            
+            // Try to fetch basic status to validate the connection
+            let connectionStatus = 'disconnected';
+            let healthStatus = 'unknown';
+            let wpData = null;
+            
+            try {
+              // Test connection with a simple status call
+              const statusData = await wrmClient.getStatus();
+              console.log(`[API-KEY-UPDATE] Status check successful, fetching complete WordPress data...`);
+              
+              // If status works, fetch complete WordPress data
+              const [status, health, updates, plugins, themes, users] = await Promise.allSettled([
+                wrmClient.getStatus(),
+                wrmClient.getHealth(),
+                wrmClient.getUpdates(),
+                wrmClient.getPlugins(),
+                wrmClient.getThemes(),
+                wrmClient.getUsers()
+              ]);
+              
+              // Process the results
+              wpData = {
+                systemInfo: status.status === 'fulfilled' ? status.value : null,
+                healthData: health.status === 'fulfilled' ? health.value : null,
+                updateData: updates.status === 'fulfilled' ? updates.value : null,
+                pluginData: plugins.status === 'fulfilled' ? plugins.value : [],
+                themeData: themes.status === 'fulfilled' ? themes.value : [],
+                userData: users.status === 'fulfilled' ? users.value : []
+              };
+              
+              connectionStatus = 'connected';
+              healthStatus = health.status === 'fulfilled' && health.value?.overall_score ? 
+                (health.value.overall_score >= 80 ? 'good' : health.value.overall_score >= 60 ? 'warning' : 'critical') : 
+                'good';
+              
+              console.log(`[API-KEY-UPDATE] Data sync completed successfully`);
+              
+            } catch (connectionError: any) {
+              console.log(`[API-KEY-UPDATE] Connection test failed:`, connectionError.message);
+              connectionStatus = 'disconnected';
+              healthStatus = 'critical';
+            }
+            
+            // Update website with new connection status and data
+            await db.update(websites)
+              .set({
+                connectionStatus,
+                healthStatus,
+                wpData: wpData ? JSON.stringify(wpData) : null,
+                lastSync: new Date()
+              })
+              .where(eq(websites.id, websiteId));
+            
+            console.log(`[API-KEY-UPDATE] Website ${websiteId} updated with connection status: ${connectionStatus}`);
+            
+          } catch (reconnectionError) {
+            console.error(`[API-KEY-UPDATE] Failed to reconnect website ${websiteId}:`, reconnectionError);
+            
+            let connectionStatus = 'error';
+            let healthStatus = 'critical';
+            
+            // Provide more specific status based on the error type
+            if (reconnectionError instanceof Error) {
+              if (reconnectionError.message.includes('No route was found matching the URL') || 
+                  reconnectionError.message.includes('plugin endpoints not found')) {
+                connectionStatus = 'plugin_missing';
+                healthStatus = 'plugin_required';
+              } else if (reconnectionError.message.includes('Invalid or incorrect AIOWebcare API key')) {
+                connectionStatus = 'auth_failed';
+                healthStatus = 'auth_error';
+              }
+            }
+            
+            // Update with failed connection status but keep the new API key
+            await db.update(websites)
+              .set({
+                connectionStatus,
+                healthStatus,
+                lastSync: new Date()
+              })
+              .where(eq(websites.id, websiteId));
+          }
+        }
+        
+        // Fetch the final updated website to return to client
+        const finalWebsiteResult = await db.select()
+          .from(websites)
+          .innerJoin(clients, eq(websites.clientId, clients.id))
+          .where(and(eq(websites.id, websiteId), eq(clients.userId, user.id)))
+          .limit(1);
+          
+        if (finalWebsiteResult.length === 0) {
+          return res.status(404).json({ message: "Website not found" });
+        }
+        
+        return res.status(200).json(finalWebsiteResult[0].websites);
+        
+      } catch (error) {
+        console.error("Error updating website:", error);
+        return res.status(500).json({ message: "Failed to update website" });
+      }
+    }
+
+
     // Get wordpress data endpoint
     if (path.startsWith('/api/websites/') && path.endsWith('/wordpress-data') && req.method === 'GET') {
       const user = authenticateToken(req);
