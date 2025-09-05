@@ -146,10 +146,11 @@ export default function AddWebsiteDialog({ open, onOpenChange }: AddWebsiteDialo
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden px-4 sm:px-6">
+        {/* Main content area */}
+        <div className="flex-1 overflow-hidden flex flex-col">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col h-full">
-              <div className="flex-1 overflow-y-auto space-y-4 sm:space-y-6 pr-1 sm:pr-2 pb-4 scrollbar-thin dialog-scroll">
+              <div className="flex-shrink-0 px-4 sm:px-6 pt-2 pb-3">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-3 h-auto p-1">
                 <TabsTrigger value="basic" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 py-2">
@@ -167,8 +168,14 @@ export default function AddWebsiteDialog({ open, onOpenChange }: AddWebsiteDialo
                   Settings
                 </TabsTrigger>
               </TabsList>
+            </Tabs>
+          </div>
 
-              <TabsContent value="basic" className="space-y-3 sm:space-y-4 mt-4">
+          {/* Scrollable tab content area */}
+          <div className="flex-1 overflow-y-auto px-4 sm:px-6">
+            <Tabs value={activeTab} className="w-full h-full">
+              {/* Basic Info Tab - Shorter content, no scrolling needed */}
+              <TabsContent value="basic" className="space-y-4 sm:space-y-6 mt-0 h-full">
                 <FormField
                   control={form.control}
                   name="name"
@@ -244,7 +251,9 @@ export default function AddWebsiteDialog({ open, onOpenChange }: AddWebsiteDialo
                 />
               </TabsContent>
 
-              <TabsContent value="credentials" className="space-y-3 sm:space-y-4 mt-4">
+            {/* Connection Tab - Long content with scrolling */}
+            <TabsContent value="credentials" className="mt-0 h-full">
+              <div className="overflow-y-auto max-h-[calc(100vh-250px)] sm:max-h-[calc(100vh-280px)] space-y-4 sm:space-y-6 pr-1 sm:pr-2 pb-4">
                 <div className="space-y-3 sm:space-y-4">
                   <div className="border rounded-lg p-3 sm:p-4">
                     <h4 className="font-medium mb-2 sm:mb-3 text-sm sm:text-base">WordPress Admin Credentials</h4>
@@ -337,11 +346,12 @@ export default function AddWebsiteDialog({ open, onOpenChange }: AddWebsiteDialo
                     <p className="text-xs sm:text-sm text-green-800 dark:text-green-200">
                       <strong>Alternative:</strong> Use WordPress Application Passwords for basic monitoring. Create them in <strong>Users → Profile → Application Passwords</strong> section.
                     </p>
+                    </div>
                   </div>
                 </div>
               </TabsContent>
 
-              <TabsContent value="settings" className="space-y-3 sm:space-y-4 mt-4">
+              <TabsContent value="settings" className="space-y-4 sm:space-y-6 mt-0 h-full">
                 <FormField
                   control={form.control}
                   name="wpVersion"
@@ -391,10 +401,6 @@ export default function AddWebsiteDialog({ open, onOpenChange }: AddWebsiteDialo
                 />
               </TabsContent>
             </Tabs>
-
-              </div>
-            </form>
-          </Form>
         </div>
         
         {/* Fixed footer buttons outside of scrollable area */}
@@ -418,6 +424,9 @@ export default function AddWebsiteDialog({ open, onOpenChange }: AddWebsiteDialo
               {createWebsiteMutation.isPending ? "Adding Website..." : "Add Website"}
             </Button>
           </div>
+        </div>
+      </form>
+    </Form>
         </div>
       </DialogContent>
     </Dialog>
