@@ -6265,6 +6265,26 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
       const websites = reportData.websites || [];
       const hasMaintenanceActivity = reportData.hasMaintenanceActivity || false;
       
+      // Extract and properly structure SEO data for PDF generator
+      const seo = reportData.seo || {};
+      const structuredSeoData = {
+        keywordsTracked: seo.keywords?.length || 0,
+        visibility: seo.visibility || 0,
+        visibilityChange: seo.visibilityChange || 0,
+        competitors: seo.competitors || 0,
+        topRankKeywords: seo.topRankKeywords || 0,
+        firstPageKeywords: seo.firstPageKeywords || 0,
+        keywords: seo.keywords || [],
+        topCompetitors: seo.topCompetitors || []
+      };
+      
+      console.log(`[CLIENT_PDF] SEO data extracted:`, {
+        keywordsCount: structuredSeoData.keywords.length,
+        seoScore: overview.seoScore,
+        visibility: structuredSeoData.visibility,
+        competitors: structuredSeoData.competitors
+      });
+      
       // Get client and website information
       let clientName = 'Valued Client';
       let websiteName = 'Your Website';
@@ -6289,14 +6309,17 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
         console.error(`[PDF] Error fetching client/website data:`, error);
       }
 
-      // Use the professional ManageWP-style PDF generator
+      // Use the professional ManageWP-style PDF generator with structured data
       const pdfGenerator = new ManageWPStylePDFGenerator();
       const reportHtml = pdfGenerator.generateReportHTML({
         id: report.id,
         title: report.title,
         dateFrom: report.dateFrom,
         dateTo: report.dateTo,
-        reportData: reportData,
+        reportData: {
+          ...reportData,
+          seo: structuredSeoData  // Use the properly structured SEO data
+        },
         clientName,
         websiteName,
         websiteUrl,
