@@ -4685,8 +4685,9 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
       }
 
       // Fetch real report history from database
-      console.log(`[SEO] Fetching report history for website: ${websiteId}`);
+      console.log(`[SEO_REAL_DATA] 📊 Fetching REAL SEO report history for website: ${websiteId}`);
       const reports = await storage.getSeoReports(websiteId, userId);
+      console.log(`[SEO_REAL_DATA] 🔍 Raw reports from database:`, reports ? JSON.stringify(reports.slice(0, 2), null, 2) : 'null');
       
       // Ensure reports is an array and format for frontend
       const reportsArray = Array.isArray(reports) ? reports : [];
@@ -5442,54 +5443,79 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
 
       // Enhance SEO data if missing or incomplete
       if (!completeReportData.seo || !completeReportData.seo.keywords || completeReportData.seo.keywords.length === 0) {
-        console.log(`[DATA_ENHANCEMENT] SEO data is missing or incomplete, attempting to fetch from database`);
+        console.log(`[DATA_ENHANCEMENT] SEO data is missing or incomplete, attempting to fetch REAL data from database`);
         
         try {
           const websiteIds = Array.isArray(report.websiteIds) ? report.websiteIds : [];
           if (websiteIds.length > 0) {
             const seoReports = await storage.getSeoReports(websiteIds[0], userId);
             if (seoReports && seoReports.length > 0) {
-              console.log(`[DATA_ENHANCEMENT] Found ${seoReports.length} SEO reports`);
+              console.log(`[DATA_ENHANCEMENT] Found ${seoReports.length} REAL SEO reports`);
               const latestSeoReport = seoReports[0];
               
-              // Create sample keyword data based on SEO analysis
-              const sampleKeywords = [
-                { keyword: 'main keyword', currentRank: 5, previousRank: 8, page: '/' },
-                { keyword: 'secondary keyword', currentRank: 12, previousRank: 15, page: '/services' },
-                { keyword: 'brand term', currentRank: 2, previousRank: 3, page: '/' },
-                { keyword: 'product term', currentRank: 18, previousRank: 22, page: '/products' }
-              ];
+              // Log the actual data structure for debugging
+              console.log(`[SEO_REAL_DATA] Latest SEO report structure:`, JSON.stringify(latestSeoReport, null, 2));
               
-              const sampleCompetitors = [
-                { domain: 'competitor1.com', visibilityScore: 85.5 },
-                { domain: 'competitor2.com', visibilityScore: 78.2 },
-                { domain: 'competitor3.com', visibilityScore: 72.8 },
-                { domain: 'competitor4.com', visibilityScore: 68.1 }
-              ];
+              // Extract REAL data from the actual SEO report
+              const reportData = latestSeoReport.reportData || {};
+              console.log(`[SEO_REAL_DATA] Report data structure:`, JSON.stringify(reportData, null, 2));
               
-              // Enhance the SEO data structure
+              // Extract real keywords data if available
+              let realKeywords = [];
+              if (reportData.keywords && Array.isArray(reportData.keywords)) {
+                realKeywords = reportData.keywords.slice(0, 50); // Limit to top 50 keywords
+                console.log(`[SEO_REAL_DATA] Found ${realKeywords.length} real keywords`);
+              } else {
+                console.log(`[SEO_REAL_DATA] No real keywords found in reportData`);
+              }
+              
+              // Extract real competitors data if available
+              let realCompetitors = [];
+              if (reportData.competitors && Array.isArray(reportData.competitors)) {
+                realCompetitors = reportData.competitors.slice(0, 10).map(comp => ({
+                  domain: comp.domain || comp.name || 'Unknown Competitor',
+                  visibilityScore: comp.visibilityScore || comp.score || comp.visibility || 0
+                }));
+                console.log(`[SEO_REAL_DATA] Found ${realCompetitors.length} real competitors`);
+              } else {
+                console.log(`[SEO_REAL_DATA] No real competitors found in reportData`);
+              }
+              
+              // Calculate real visibility change from historical data
+              let realVisibilityChange = 0;
+              if (seoReports.length > 1) {
+                const currentScore = seoReports[0].overallScore || 0;
+                const previousScore = seoReports[1].overallScore || 0;
+                realVisibilityChange = currentScore - previousScore;
+                console.log(`[SEO_REAL_DATA] Real visibility change: ${realVisibilityChange} (${currentScore} - ${previousScore})`);
+              }
+              
+              // Use REAL data instead of fake sample data
               completeReportData.seo = {
-                visibilityChange: Math.floor(Math.random() * 20) - 10,
-                competitors: sampleCompetitors.length,
-                keywords: sampleKeywords,
-                topRankKeywords: sampleKeywords.filter(kw => kw.currentRank <= 3).length,
-                firstPageKeywords: sampleKeywords.filter(kw => kw.currentRank <= 10).length,
+                visibilityChange: realVisibilityChange,
+                competitors: realCompetitors.length,
+                keywords: realKeywords,
+                topRankKeywords: realKeywords.filter(kw => (kw.currentRank || kw.rank || kw.position || 999) <= 3).length,
+                firstPageKeywords: realKeywords.filter(kw => (kw.currentRank || kw.rank || kw.position || 999) <= 10).length,
                 visibility: Math.max(0, Math.min(100, latestSeoReport.overallScore || 0)),
-                topCompetitors: sampleCompetitors
+                topCompetitors: realCompetitors
               };
               
-              // Update overview with SEO data
+              // Update overview with REAL SEO data
               if (!completeReportData.overview) {
                 completeReportData.overview = {};
               }
-              completeReportData.overview.seoScore = latestSeoReport.overallScore || 92;
-              completeReportData.overview.keywordsTracked = sampleKeywords.length;
+              completeReportData.overview.seoScore = latestSeoReport.overallScore || 0;
+              completeReportData.overview.keywordsTracked = realKeywords.length;
               
-              console.log(`[DATA_ENHANCEMENT] Enhanced SEO data with ${sampleKeywords.length} keywords, score: ${latestSeoReport.overallScore}`);
+              console.log(`[DATA_ENHANCEMENT] Enhanced SEO data with REAL data: ${realKeywords.length} keywords, ${realCompetitors.length} competitors, score: ${latestSeoReport.overallScore}, visibility change: ${realVisibilityChange}`);
+            } else {
+              console.log(`[SEO_REAL_DATA] No SEO reports found in database`);
             }
           }
         } catch (seoError) {
-          console.log(`[DATA_ENHANCEMENT] Could not fetch SEO data:`, seoError instanceof Error ? seoError.message : 'Unknown error');
+          console.log(`[DATA_ENHANCEMENT] Could not fetch REAL SEO data:`, seoError instanceof Error ? seoError.message : 'Unknown error');
+          console.error(`[SEO_REAL_DATA] SEO fetch error:`, seoError);
         }
       }
 
