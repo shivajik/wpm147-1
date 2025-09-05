@@ -254,11 +254,22 @@ export default function ViewReport() {
       console.log('Full report object:', report);
     }
     
+    // Log SEO data from both sources for debugging
     if (seoData) {
-      console.log('=== SEO DATA STRUCTURE ===');
+      console.log('=== SEPARATE SEO ENDPOINT DATA ===');
+      console.log('SEO endpoint response:', seoData);
       console.log('SEO report:', seoData.report);
       console.log('Overall score:', seoData.report?.overallScore);
       console.log('Technical findings:', seoData.report?.technicalFindings);
+    }
+    
+    if (reportData?.seo) {
+      console.log('=== SEO DATA FROM REPORT DATA ===');
+      console.log('SEO from reportData:', reportData.seo);
+      console.log('Overall score from reportData:', reportData.seo.overallScore);
+      console.log('Technical findings from reportData:', reportData.seo.technicalFindings);
+      console.log('SEO metrics from reportData:', reportData.seo.metrics);
+      console.log('SEO issues from reportData:', reportData.seo.issues);
     }
     
     if (reportData) {
@@ -345,7 +356,7 @@ export default function ViewReport() {
         analyticsChange: 0,
         securityStatus: 'safe' as const,
         performanceScore: 0,
-        seoScore: seoData?.report?.overallScore || 0,
+        seoScore: 0, // Will be populated from reportData.seo if available
         keywordsTracked: 0
       },
       customWork: [],
@@ -402,7 +413,7 @@ export default function ViewReport() {
         },
         history: []
       },
-      seo: seoData?.report || {
+      seo: {
         id: 0,
         websiteId: websiteId || 0,
         generatedAt: new Date().toISOString(),
@@ -494,7 +505,8 @@ export default function ViewReport() {
     const enhancedData = {
       ...reportData,
       branding: finalBranding,
-      seo: seoData?.report || reportData.seo
+      // Prioritize reportData.seo since it's already embedded in the main report
+      seo: reportData.seo || seoData?.report
     };
 
     console.log('=== ENHANCED REPORT DATA ===');

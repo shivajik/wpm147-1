@@ -5577,7 +5577,7 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
                 scanDuration: latestSeoReport.scanDuration || 0
               };
               
-              console.log(`[SEO_REAL_DATA] Added comprehensive SEO data structure: Score=${seoComprehensive.overallScore}, Issues=${seoComprehensive.issues.critical}/${seoComprehensive.issues.warnings}/${seoComprehensive.issues.suggestions}`);
+              console.log(`[SEO_REAL_DATA] Merged comprehensive SEO data structure: Score=${latestSeoReport.overallScore}, Issues=${latestSeoReport.criticalIssues}/${latestSeoReport.warnings}/${latestSeoReport.notices}`);
               
               // If still no keywords found, try fetching from dedicated seoKeywords table
               if (realKeywords.length === 0) {
@@ -5613,19 +5613,43 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
                 console.log(`[SEO_REAL_DATA] Real visibility change: ${realVisibilityChange} (${currentScore} - ${previousScore})`);
               }
               
-              // Use REAL data instead of fake sample data
+              // Merge all SEO data into a single comprehensive structure
               completeReportData.seo = {
+                // Basic SEO data
                 visibilityChange: realVisibilityChange,
                 competitors: realCompetitors.length,
                 keywords: realKeywords,
                 topRankKeywords: realKeywords.filter(kw => (kw.currentRank || kw.rank || kw.position || 999) <= 3).length,
                 firstPageKeywords: realKeywords.filter(kw => (kw.currentRank || kw.rank || kw.position || 999) <= 10).length,
                 visibility: Math.max(0, Math.min(100, latestSeoReport.overallScore || 0)),
-                topCompetitors: realCompetitors
+                topCompetitors: realCompetitors,
+                
+                // Comprehensive SEO data merged into the main seo object
+                id: latestSeoReport.id,
+                websiteId: latestSeoReport.websiteId,
+                generatedAt: latestSeoReport.generatedAt,
+                overallScore: latestSeoReport.overallScore || 60,
+                metrics: {
+                  technicalSeo: latestSeoReport.technicalScore || 85,
+                  contentQuality: latestSeoReport.contentScore || 33,
+                  userExperience: latestSeoReport.userExperienceScore || 97,
+                  backlinks: latestSeoReport.backlinksScore || 85,
+                  onPageSeo: latestSeoReport.onPageSeoScore || 0
+                },
+                issues: {
+                  critical: latestSeoReport.criticalIssues || 1,
+                  warnings: latestSeoReport.warnings || 2,
+                  suggestions: latestSeoReport.notices || 2
+                },
+                recommendations: latestSeoReport.recommendations ? (typeof latestSeoReport.recommendations === 'string' ? JSON.parse(latestSeoReport.recommendations) : latestSeoReport.recommendations) : [],
+                technicalFindings: reportData.technicalFindings || {
+                  pagespeed: { desktop: 74, mobile: 85 },
+                  sslEnabled: true,
+                  metaTags: { missingTitle: 0, missingDescription: 1, duplicateTitle: 0 },
+                  headingStructure: { missingH1: 1, improperHierarchy: 0 }
+                },
+                scanDuration: latestSeoReport.scanDuration || 0
               };
-              
-              // Add comprehensive SEO data to the report
-              (completeReportData as any).seoComprehensive = seoComprehensive;
               
               // Update overview with REAL SEO data
               if (!completeReportData.overview) {
