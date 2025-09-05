@@ -30,8 +30,10 @@ export default defineConfig({
   },
   server: {
     host: "0.0.0.0",
-    port: 5173,
-    allowedHosts: ["*"],
+    port: 5000,
+    hmr: {
+      port: 5000,
+    },
     fs: {
       strict: true,
       deny: ["**/.*"],
