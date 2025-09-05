@@ -434,7 +434,7 @@ export class DatabaseStorage implements IStorage {
   async updateWebsite(id: number, website: Partial<InsertWebsite>, userId: number): Promise<Website> {
     const [updatedWebsite] = await db
       .update(websites)
-      .set({ ...website, updatedAt: new Date() })
+      .set({ ...website, updated_at: new Date() })
       .from(clients)
       .where(and(
         eq(websites.id, id),
@@ -1402,7 +1402,7 @@ export class DatabaseStorage implements IStorage {
         gaServiceAccountKey: gaConfig.gaServiceAccountKey,
         gaConfigured: gaConfig.gaConfigured,
         gaLastSync: gaConfig.gaConfigured ? new Date() : null,
-        updatedAt: new Date() 
+        updated_at: new Date() 
       })
       .where(and(
         eq(websites.id, websiteId),
