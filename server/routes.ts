@@ -6374,6 +6374,120 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
     }
   });
 
+  // Report Templates API endpoints
+  
+  // Get all report templates for user
+  app.get("/api/report-templates", authenticateToken, async (req, res) => {
+    try {
+      const userId = (req as AuthRequest).user!.id;
+      const templates = await storage.getReportTemplates(userId);
+      res.json(templates);
+    } catch (error) {
+      console.error("Error fetching report templates:", error);
+      res.status(500).json({ 
+        message: "Failed to fetch report templates",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Get report template by ID
+  app.get("/api/report-templates/:id", authenticateToken, async (req, res) => {
+    try {
+      const userId = (req as AuthRequest).user!.id;
+      const templateId = parseInt(req.params.id);
+      const template = await storage.getReportTemplate(templateId, userId);
+      
+      if (!template) {
+        return res.status(404).json({ message: "Report template not found" });
+      }
+      
+      res.json(template);
+    } catch (error) {
+      console.error("Error fetching report template:", error);
+      res.status(500).json({ 
+        message: "Failed to fetch report template",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Create new report template
+  app.post("/api/report-templates", authenticateToken, async (req, res) => {
+    try {
+      const userId = (req as AuthRequest).user!.id;
+      const templateData = {
+        ...req.body,
+        userId,
+        updatedAt: new Date()
+      };
+      
+      const template = await storage.createReportTemplate(templateData);
+      res.status(201).json(template);
+    } catch (error) {
+      console.error("Error creating report template:", error);
+      res.status(500).json({ 
+        message: "Failed to create report template",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Update report template
+  app.put("/api/report-templates/:id", authenticateToken, async (req, res) => {
+    try {
+      const userId = (req as AuthRequest).user!.id;
+      const templateId = parseInt(req.params.id);
+      const templateData = {
+        ...req.body,
+        updatedAt: new Date()
+      };
+      
+      const template = await storage.updateReportTemplate(templateId, templateData, userId);
+      res.json(template);
+    } catch (error) {
+      console.error("Error updating report template:", error);
+      res.status(500).json({ 
+        message: "Failed to update report template",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Delete report template
+  app.delete("/api/report-templates/:id", authenticateToken, async (req, res) => {
+    try {
+      const userId = (req as AuthRequest).user!.id;
+      const templateId = parseInt(req.params.id);
+      
+      await storage.deleteReportTemplate(templateId, userId);
+      res.json({ message: "Report template deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting report template:", error);
+      res.status(500).json({ 
+        message: "Failed to delete report template",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Set default report template
+  app.post("/api/report-templates/:id/set-default", authenticateToken, async (req, res) => {
+    try {
+      const userId = (req as AuthRequest).user!.id;
+      const templateId = parseInt(req.params.id);
+      
+      await storage.setDefaultReportTemplate(templateId, userId);
+      res.json({ message: "Default template set successfully" });
+    } catch (error) {
+      console.error("Error setting default template:", error);
+      res.status(500).json({ 
+        message: "Failed to set default template",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
   // Performance Scan Endpoints
   
   // Get performance scan history
