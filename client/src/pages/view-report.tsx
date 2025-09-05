@@ -31,6 +31,42 @@ interface WhiteLabelConfig {
   canCustomize: boolean;
 }
 
+interface SEOReportData {
+  id: number;
+  websiteId: number;
+  generatedAt: string;
+  overallScore: number;
+  metrics: {
+    technicalSeo: number;
+    contentQuality: number;
+    userExperience: number;
+    backlinks: number;
+    onPageSeo: number;
+  };
+  issues: {
+    critical: number;
+    warnings: number;
+    suggestions: number;
+  };
+  scanDuration: number;
+  technicalFindings: {
+    pagespeed: {
+      desktop: number;
+      mobile: number;
+    };
+    sslEnabled: boolean;
+    metaTags: {
+      missingTitle: number;
+      missingDescription: number;
+      duplicateTitle: number;
+    };
+    headingStructure: {
+      missingH1: number;
+      improperHierarchy: number;
+    };
+  };
+}
+
 interface ClientReportData {
   id: number;
   title: string;
@@ -149,25 +185,9 @@ interface ClientReportData {
       ysloScore: number;
     }>;
   };
-  seo: {
-    visibilityChange: number;
-    competitors: number;
-    keywords: Array<{
-      keyword: string;
-      currentRank: number;
-      previousRank: number;
-      page?: string;
-    }>;
-    topRankKeywords: number;
-    firstPageKeywords: number;
-    visibility: number;
-    topCompetitors: Array<{
-      domain: string;
-      visibilityScore: number;
-    }>;
-  };
+  seo?: SEOReportData;
   branding?: {
-    whiteLabelEnabled?: boolean;
+    whiteLabelEnabled: boolean;
     brandName?: string;
     brandLogo?: string;
     brandColor?: string;
@@ -196,10 +216,20 @@ export default function ViewReport() {
     retry: 1
   });
 
-  // Fetch branding data if reportData is available and has website ID
+  // Extract website ID from reportData or report
+  const websiteId = reportData?.website?.id || (report?.websiteIds as number[])?.[0];
+
+  // Fetch branding data if website ID is available
   const { data: brandingData, isLoading: isLoadingBranding } = useQuery<WhiteLabelConfig>({
-    queryKey: [`/api/websites/${reportData?.website?.id}/white-label`],
-    enabled: !!reportData?.website?.id,
+    queryKey: [`/api/websites/${websiteId}/white-label`],
+    enabled: !!websiteId,
+    retry: 1
+  });
+
+  // Fetch SEO data from the real endpoint
+  const { data: seoData, isLoading: isLoadingSEO } = useQuery<{success: boolean; report: SEOReportData}>({
+    queryKey: [`/api/websites/${websiteId}/seo-reports`],
+    enabled: !!websiteId,
     retry: 1
   });
 
@@ -217,11 +247,18 @@ export default function ViewReport() {
       console.log('=== REPORT BASIC STRUCTURE ===');
       console.log('Report title:', report.title);
       console.log('Report status:', report.status);
-      console.log('Client name:', report.clientName);
-      console.log('Website name:', report.websiteName);
+      console.log('Client ID:', report.clientId);
+      console.log('Website IDs:', report.websiteIds);
       console.log('Date range:', report.dateFrom, 'to', report.dateTo);
       console.log('Created at:', report.createdAt);
       console.log('Full report object:', report);
+    }
+    
+    if (seoData) {
+      console.log('=== SEO DATA STRUCTURE ===');
+      console.log('SEO report:', seoData.report);
+      console.log('Overall score:', seoData.report?.overallScore);
+      console.log('Technical findings:', seoData.report?.technicalFindings);
     }
     
     if (reportData) {
@@ -287,13 +324,13 @@ export default function ViewReport() {
       id: parseInt(reportId || '1'),
       title: report?.title || 'Website Care Report',
       client: {
-        name: report?.clientName || 'Client',
+        name: 'Client',
         email: '',
-        contactPerson: report?.clientName || 'Client'
+        contactPerson: 'Client'
       },
       website: {
-        id: report?.websiteId || 0,
-        name: report?.websiteName || 'Website',
+        id: websiteId || 0,
+        name: 'Website',
         url: '',
         ipAddress: '',
         wordpressVersion: ''
@@ -306,9 +343,9 @@ export default function ViewReport() {
         backupsCreated: 0,
         uptimePercentage: 0,
         analyticsChange: 0,
-        securityStatus: 'safe',
+        securityStatus: 'safe' as const,
         performanceScore: 0,
-        seoScore: 0,
+        seoScore: seoData?.report?.overallScore || 0,
         keywordsTracked: 0
       },
       customWork: [],
@@ -346,9 +383,9 @@ export default function ViewReport() {
         totalScans: 0,
         lastScan: {
           date: '',
-          status: 'clean',
-          malware: 'clean',
-          webTrust: 'clean',
+          status: 'clean' as const,
+          malware: 'clean' as const,
+          webTrust: 'clean' as const,
           vulnerabilities: 0
         },
         scanHistory: []
@@ -365,16 +402,50 @@ export default function ViewReport() {
         },
         history: []
       },
-      seo: {
-        visibilityChange: 0,
-        competitors: 0,
-        keywords: [],
-        topRankKeywords: 0,
-        firstPageKeywords: 0,
-        visibility: 0,
-        topCompetitors: []
+      seo: seoData?.report || {
+        id: 0,
+        websiteId: websiteId || 0,
+        generatedAt: new Date().toISOString(),
+        overallScore: 0,
+        metrics: {
+          technicalSeo: 0,
+          contentQuality: 0,
+          userExperience: 0,
+          backlinks: 0,
+          onPageSeo: 0
+        },
+        issues: {
+          critical: 0,
+          warnings: 0,
+          suggestions: 0
+        },
+        scanDuration: 0,
+        technicalFindings: {
+          pagespeed: {
+            desktop: 0,
+            mobile: 0
+          },
+          sslEnabled: false,
+          metaTags: {
+            missingTitle: 0,
+            missingDescription: 0,
+            duplicateTitle: 0
+          },
+          headingStructure: {
+            missingH1: 0,
+            improperHierarchy: 0
+          }
+        }
       },
-      branding: brandingData || undefined
+      branding: brandingData ? {
+        whiteLabelEnabled: brandingData.whiteLabelEnabled,
+        brandName: brandingData.brandName,
+        brandLogo: brandingData.brandLogo,
+        brandColor: brandingData.brandColor,
+        brandWebsite: brandingData.brandWebsite,
+        brandingData: brandingData.brandingData,
+        footerText: brandingData.brandingData?.footerText
+      } : undefined
     };
     
     console.log('=== MOCK REPORT DATA STRUCTURE ===');
@@ -410,11 +481,20 @@ export default function ViewReport() {
     }
 
     // Use extracted branding as primary, fallback to fetched branding data
-    const finalBranding = extractedBranding || brandingData || undefined;
+    const finalBranding = extractedBranding || (brandingData ? {
+      whiteLabelEnabled: brandingData.whiteLabelEnabled,
+      brandName: brandingData.brandName,
+      brandLogo: brandingData.brandLogo,
+      brandColor: brandingData.brandColor,
+      brandWebsite: brandingData.brandWebsite,
+      brandingData: brandingData.brandingData,
+      footerText: brandingData.brandingData?.footerText
+    } : undefined);
 
     const enhancedData = {
       ...reportData,
-      branding: finalBranding
+      branding: finalBranding,
+      seo: seoData?.report || reportData.seo
     };
 
     console.log('=== ENHANCED REPORT DATA ===');
@@ -427,13 +507,13 @@ export default function ViewReport() {
   };
 
   // Show loading if any query is loading
-  if (isLoading || isLoadingData || isLoadingBranding) {
+  if (isLoading || isLoadingData || isLoadingBranding || isLoadingSEO) {
     return (
       <AppLayout title="Loading Report..." defaultOpen={false}>
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-            <p className="text-muted-foreground">Loading report and branding...</p>
+            <p className="text-muted-foreground">Loading report, branding, and SEO data...</p>
           </div>
         </div>
       </AppLayout>
