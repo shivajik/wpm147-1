@@ -5473,6 +5473,8 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
     try {
       const userId = (req as AuthRequest).user!.id;
       
+      console.log(`[CLIENT_REPORT] Creating report for user ${userId} with websites: ${req.body.websiteIds}`);
+      
       // Convert string dates to Date objects for Drizzle
       const reportData = {
         ...req.body,
@@ -5481,6 +5483,26 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
         dateTo: req.body.dateTo ? new Date(req.body.dateTo) : undefined,
         createdAt: new Date(),
         updatedAt: new Date()
+      };
+
+      // Collect real maintenance data including SEO reports for the specified websites and date range
+      console.log(`[CLIENT_REPORT] Fetching maintenance data for ${req.body.websiteIds?.length || 0} websites`);
+      const maintenanceData = await fetchMaintenanceData(
+        req.body.websiteIds || [], 
+        userId, 
+        reportData.dateFrom || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // Default: 30 days ago
+        reportData.dateTo || new Date()
+      );
+      
+      // Merge the collected maintenance data with any existing report data
+      reportData.reportData = {
+        ...maintenanceData,
+        ...reportData.reportData, // Preserve any additional data from the frontend
+        generatedAt: new Date().toISOString(),
+        hasMaintenanceActivity: maintenanceData.updates.total > 0 || 
+                                 (maintenanceData.security?.totalScans || 0) > 0 || 
+                                 (maintenanceData.performance?.totalChecks || 0) > 0 ||
+                                 (maintenanceData.seo?.keywords?.length || 0) > 0
       };
       
       // If includeActivityLog is enabled, collect activity data for each website
@@ -5514,11 +5536,10 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
         }
         
         // Add activity logs to report data
-        reportData.reportData = {
-          ...reportData.reportData,
-          activityLogs
-        };
+        reportData.reportData.activityLogs = activityLogs;
       }
+      
+      console.log(`[CLIENT_REPORT] Report data includes SEO score: ${reportData.reportData.overview?.seoScore}, keywords: ${reportData.reportData.seo?.keywords?.length || 0}`);
       
       const report = await storage.createClientReport(reportData);
       res.status(201).json(report);
