@@ -3060,21 +3060,106 @@ const getBrandInfo = (reportData) => {
         </div>
       ` : ''}
       
-      ${reportData.overview?.keywordsTracked > 0 || reportData.overview?.seoScore > 0 ? `
+      ${(reportData as any).seoComprehensive || reportData.overview?.keywordsTracked > 0 || reportData.overview?.seoScore > 0 ? `
         <div class="section">
-          <div class="section-title">🔍 SEO Overview</div>
+          <div class="section-title">🔍 COMPREHENSIVE SEO ANALYSIS</div>
           <div class="card">
-            <h4>SEO Metrics</h4>
-            <div class="metrics-grid">
-              <div class="metric-card">
-                <div class="metric-value ${reportData.overview?.seoScore >= 80 ? 'status-good' : reportData.overview?.seoScore >= 60 ? 'status-warning' : 'status-error'}">${reportData.overview?.seoScore || 0}/100</div>
-                <div class="metric-label">SEO Score</div>
+            ${(reportData as any).seoComprehensive ? `
+              <h4>SEO Performance Metrics</h4>
+              <div class="metrics-grid">
+                <div class="metric-card">
+                  <div class="metric-value ${(reportData as any).seoComprehensive.overallScore >= 80 ? 'status-good' : (reportData as any).seoComprehensive.overallScore >= 60 ? 'status-warning' : 'status-error'}">${(reportData as any).seoComprehensive.overallScore}/100</div>
+                  <div class="metric-label">Overall Score</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-value ${(reportData as any).seoComprehensive.metrics?.technicalSeo >= 80 ? 'status-good' : (reportData as any).seoComprehensive.metrics?.technicalSeo >= 60 ? 'status-warning' : 'status-error'}">${(reportData as any).seoComprehensive.metrics?.technicalSeo || 0}/100</div>
+                  <div class="metric-label">Technical SEO</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-value ${(reportData as any).seoComprehensive.metrics?.contentQuality >= 80 ? 'status-good' : (reportData as any).seoComprehensive.metrics?.contentQuality >= 60 ? 'status-warning' : 'status-error'}">${(reportData as any).seoComprehensive.metrics?.contentQuality || 0}/100</div>
+                  <div class="metric-label">Content Quality</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-value ${(reportData as any).seoComprehensive.metrics?.userExperience >= 80 ? 'status-good' : (reportData as any).seoComprehensive.metrics?.userExperience >= 60 ? 'status-warning' : 'status-error'}">${(reportData as any).seoComprehensive.metrics?.userExperience || 0}/100</div>
+                  <div class="metric-label">User Experience</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-value ${(reportData as any).seoComprehensive.metrics?.onPageSeo >= 80 ? 'status-good' : (reportData as any).seoComprehensive.metrics?.onPageSeo >= 60 ? 'status-warning' : 'status-error'}">${(reportData as any).seoComprehensive.metrics?.onPageSeo || 0}/100</div>
+                  <div class="metric-label">On-Page SEO</div>
+                </div>
               </div>
-              <div class="metric-card">
-                <div class="metric-value">${reportData.overview?.keywordsTracked || 0}</div>
-                <div class="metric-label">Keywords Tracked</div>
+              
+              <h4>Issues Summary</h4>
+              <div class="metrics-grid" style="grid-template-columns: repeat(3, 1fr);">
+                <div class="metric-card" style="border-left: 4px solid #dc2626;">
+                  <div class="metric-value status-error">${(reportData as any).seoComprehensive.issues?.critical || 0}</div>
+                  <div class="metric-label">Critical Issues</div>
+                </div>
+                <div class="metric-card" style="border-left: 4px solid #d97706;">
+                  <div class="metric-value status-warning">${(reportData as any).seoComprehensive.issues?.warnings || 0}</div>
+                  <div class="metric-label">Warnings</div>
+                </div>
+                <div class="metric-card" style="border-left: 4px solid #2563eb;">
+                  <div class="metric-value">${(reportData as any).seoComprehensive.issues?.suggestions || 0}</div>
+                  <div class="metric-label">Suggestions</div>
+                </div>
               </div>
-            </div>
+              
+              ${(reportData as any).seoComprehensive.recommendations && (reportData as any).seoComprehensive.recommendations.length > 0 ? `
+                <h4>SEO Recommendations</h4>
+                <ul style="list-style: none; padding: 0; margin: 10px 0;">
+                  ${(reportData as any).seoComprehensive.recommendations.slice(0, 10).map((rec: string) => `
+                    <li style="padding: 8px 0; border-bottom: 1px solid #f3f4f6; display: flex; align-items: flex-start;">
+                      <span style="margin-right: 8px; color: #059669; font-weight: bold;">•</span>
+                      <span>${rec}</span>
+                    </li>
+                  `).join('')}
+                </ul>
+              ` : ''}
+              
+              ${(reportData as any).seoComprehensive.technicalFindings ? `
+                <h4>Technical Findings</h4>
+                <div class="metrics-grid" style="grid-template-columns: repeat(2, 1fr);">
+                  <div class="metric-card">
+                    <div class="metric-value">Desktop: ${(reportData as any).seoComprehensive.technicalFindings.pagespeed?.desktop || 0}/100</div>
+                    <div class="metric-value">Mobile: ${(reportData as any).seoComprehensive.technicalFindings.pagespeed?.mobile || 0}/100</div>
+                    <div class="metric-label">PageSpeed Scores</div>
+                  </div>
+                  <div class="metric-card">
+                    <div class="metric-value ${(reportData as any).seoComprehensive.technicalFindings.sslEnabled ? 'status-good' : 'status-error'}">${(reportData as any).seoComprehensive.technicalFindings.sslEnabled ? 'Enabled' : 'Not Enabled'}</div>
+                    <div class="metric-label">SSL Certificate</div>
+                  </div>
+                </div>
+                
+                <div class="metrics-grid" style="grid-template-columns: repeat(2, 1fr);">
+                  <div class="metric-card">
+                    <div class="metric-value">Missing: ${(reportData as any).seoComprehensive.technicalFindings.metaTags?.missingDescription || 0}</div>
+                    <div class="metric-label">Meta Descriptions</div>
+                  </div>
+                  <div class="metric-card">
+                    <div class="metric-value ${(reportData as any).seoComprehensive.technicalFindings.headingStructure?.missingH1 ? 'status-error' : 'status-good'}">${(reportData as any).seoComprehensive.technicalFindings.headingStructure?.missingH1 ? 'Missing H1' : 'H1 Present'}</div>
+                    <div class="metric-label">Heading Structure</div>
+                  </div>
+                </div>
+              ` : ''}
+              
+              <p style="margin-top: 20px; font-size: 12px; color: #666;">
+                <strong>Scan Duration:</strong> ${(reportData as any).seoComprehensive.scanDuration || 0}ms | 
+                <strong>Generated:</strong> ${(reportData as any).seoComprehensive.generatedAt ? formatDate((reportData as any).seoComprehensive.generatedAt) : 'N/A'}
+              </p>
+            ` : `
+              <h4>Basic SEO Metrics</h4>
+              <div class="metrics-grid">
+                <div class="metric-card">
+                  <div class="metric-value ${reportData.overview?.seoScore >= 80 ? 'status-good' : reportData.overview?.seoScore >= 60 ? 'status-warning' : 'status-error'}">${reportData.overview?.seoScore || 0}/100</div>
+                  <div class="metric-label">SEO Score</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-value">${reportData.overview?.keywordsTracked || 0}</div>
+                  <div class="metric-label">Keywords Tracked</div>
+                </div>
+              </div>
+            `}
           </div>
         </div>
       ` : ''}
