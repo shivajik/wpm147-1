@@ -1042,7 +1042,22 @@ export class ManageWPStylePDFGenerator {
       topRankKeywords: 0,
       firstPageKeywords: 0,
       visibility: 0,
-      topCompetitors: []
+      topCompetitors: [],
+      // Add comprehensive SEO data
+      overallScore: 0,
+      metrics: {
+        technicalSeo: 0,
+        contentQuality: 0,
+        userExperience: 0,
+        backlinks: 0,
+        onPageSeo: 0
+      },
+      issues: {
+        critical: 0,
+        warnings: 0,
+        suggestions: 0
+      },
+      technicalFindings: {}
     };
     const dateRange = this.getDateRange(dateFrom, dateTo);
 
@@ -1054,9 +1069,51 @@ export class ManageWPStylePDFGenerator {
         </div>
         
         <h1 class="section-title">SEO</h1>
-        <div class="summary-title">Visibility change: ${seo.visibilityChange >= 0 ? '+' : ''}${seo.visibilityChange}% &nbsp;&nbsp;&nbsp;&nbsp; Competitors: ${seo.competitors}</div>
+        <div class="summary-title">Overall Score: ${seo.overallScore || 0}/100 &nbsp;&nbsp;&nbsp;&nbsp; Visibility change: ${seo.visibilityChange >= 0 ? '+' : ''}${seo.visibilityChange}% &nbsp;&nbsp;&nbsp;&nbsp; Competitors: ${seo.competitors}</div>
         
-        <h3 style="margin: 30px 0 20px;">OVERVIEW</h3>
+        ${seo.overallScore ? `
+        <h3 style="margin: 30px 0 20px;">SEO SCORE BREAKDOWN</h3>
+        <div class="summary-stats" style="margin-bottom: 30px;">
+            <div class="stat-item">
+                <div class="stat-label">Technical SEO</div>
+                <div class="stat-value">${seo.metrics?.technicalSeo || 0}/100</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Content Quality</div>
+                <div class="stat-value">${seo.metrics?.contentQuality || 0}/100</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">User Experience</div>
+                <div class="stat-value">${seo.metrics?.userExperience || 0}/100</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Backlinks</div>
+                <div class="stat-value">${seo.metrics?.backlinks || 0}/100</div>
+            </div>
+        </div>
+        
+        <h3 style="margin: 30px 0 20px;">ISSUES IDENTIFIED</h3>
+        <div class="summary-stats" style="margin-bottom: 30px;">
+            <div class="stat-item">
+                <div class="stat-label">Critical Issues</div>
+                <div class="stat-value" style="color: #dc2626;">${seo.issues?.critical || 0}</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Warnings</div>
+                <div class="stat-value" style="color: #ca8a04;">${seo.issues?.warnings || 0}</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Suggestions</div>
+                <div class="stat-value" style="color: #16a34a;">${seo.issues?.suggestions || 0}</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Overall Score</div>
+                <div class="stat-value" style="color: ${seo.overallScore >= 80 ? '#16a34a' : seo.overallScore >= 60 ? '#ca8a04' : '#dc2626'};">${seo.overallScore || 0}/100</div>
+            </div>
+        </div>
+        ` : ''}
+        
+        <h3 style="margin: 30px 0 20px;">KEYWORD OVERVIEW</h3>
         <div class="summary-stats" style="margin-bottom: 30px;">
             <div class="stat-item">
                 <div class="stat-label">Keywords</div>

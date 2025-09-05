@@ -1337,8 +1337,8 @@ export class EnhancedPDFGenerator {
   }
 
   private generateEnhancedSEOPage(reportData: ClientReportData): string {
-    // Check for comprehensive SEO data first, then fall back to legacy format
-    const seoData = (reportData as any).seoComprehensive || reportData.seo;
+    // Use the comprehensive SEO data directly from reportData.seo
+    const seoData = reportData.seo;
     
     // Only include SEO section if SEO data exists
     if (!seoData && (!reportData.seo || 
@@ -1349,8 +1349,8 @@ export class EnhancedPDFGenerator {
       return '';
     }
     
-    // Use comprehensive SEO data if available
-    const useComprehensiveData = !!(reportData as any).seoComprehensive;
+    // Use comprehensive SEO data if available  
+    const useComprehensiveData = !!(seoData && (seoData.overallScore || seoData.metrics));
 
     return `
       <div class="page content-page">
