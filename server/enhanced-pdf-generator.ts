@@ -1337,28 +1337,114 @@ export class EnhancedPDFGenerator {
   }
 
   private generateEnhancedSEOPage(reportData: ClientReportData): string {
-    // Only include SEO section if keywords are being tracked or SEO data exists
-    if (!reportData.seo || 
+    // Check for comprehensive SEO data first, then fall back to legacy format
+    const seoData = (reportData as any).seoComprehensive || reportData.seo;
+    
+    // Only include SEO section if SEO data exists
+    if (!seoData && (!reportData.seo || 
         (!reportData.seo.keywords || reportData.seo.keywords.length === 0) && 
         !reportData.seo.visibility && 
         !reportData.seo.topRankKeywords && 
-        !reportData.seo.firstPageKeywords) {
+        !reportData.seo.firstPageKeywords)) {
       return '';
     }
+    
+    // Use comprehensive SEO data if available
+    const useComprehensiveData = !!(reportData as any).seoComprehensive;
 
     return `
       <div class="page content-page">
         <div class="section-header" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-color: #7dd3fc;">
           <div class="section-title" style="color: #0369a1;">
-            🔍 SEO MONITORING
+            🔍 SEO ANALYSIS REPORT
           </div>
           <div class="section-subtitle">
             <div style="color: #0284c7; font-weight: 500;">
-              Keywords tracked: ${reportData.seo.keywords?.length || 0} | Visibility change: ${reportData.seo.visibilityChange >= 0 ? '+' : ''}${reportData.seo.visibilityChange || 0}%
+              ${useComprehensiveData 
+                ? `Overall Score: ${seoData.overallScore}/100 | Issues: ${seoData.issues.critical} Critical, ${seoData.issues.warnings} Warnings, ${seoData.issues.suggestions} Suggestions`
+                : `Keywords tracked: ${reportData.seo.keywords?.length || 0} | Visibility change: ${reportData.seo.visibilityChange >= 0 ? '+' : ''}${reportData.seo.visibilityChange || 0}%`
+              }
             </div>
           </div>
         </div>
         
+        ${useComprehensiveData ? `
+        <!-- Comprehensive SEO Metrics -->
+        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; margin-bottom: 32px;">
+          <div style="text-align: center; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); border: 1px solid #e5e7eb;">
+            <div style="font-size: 28px; font-weight: bold; color: #0891b2; margin-bottom: 8px;">${seoData.overallScore}</div>
+            <div style="font-weight: 600; color: #374151;">Overall Score</div>
+          </div>
+          <div style="text-align: center; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); border: 1px solid #e5e7eb;">
+            <div style="font-size: 28px; font-weight: bold; color: #16a34a; margin-bottom: 8px;">${seoData.metrics?.technicalSeo || 0}</div>
+            <div style="font-weight: 600; color: #374151;">Technical SEO</div>
+          </div>
+          <div style="text-align: center; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); border: 1px solid #e5e7eb;">
+            <div style="font-size: 28px; font-weight: bold; color: #ca8a04; margin-bottom: 8px;">${seoData.metrics?.contentQuality || 0}</div>
+            <div style="font-weight: 600; color: #374151;">Content Quality</div>
+          </div>
+          <div style="text-align: center; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); border: 1px solid #e5e7eb;">
+            <div style="font-size: 28px; font-weight: bold; color: #9333ea; margin-bottom: 8px;">${seoData.metrics?.userExperience || 0}</div>
+            <div style="font-weight: 600; color: #374151;">User Experience</div>
+          </div>
+          <div style="text-align: center; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); border: 1px solid #e5e7eb;">
+            <div style="font-size: 28px; font-weight: bold; color: #dc2626; margin-bottom: 8px;">${seoData.metrics?.onPageSeo || 0}</div>
+            <div style="font-weight: 600; color: #374151;">On-Page SEO</div>
+          </div>
+        </div>
+
+        <!-- SEO Issues Summary -->
+        <div style="margin-bottom: 32px;">
+          <h4 style="font-size: 18px; font-weight: 600; margin-bottom: 12px;">ISSUES SUMMARY</h4>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+            <div style="padding: 16px; background: #fef2f2; border-radius: 8px; border: 1px solid #fecaca;">
+              <div style="font-size: 24px; font-weight: bold; color: #dc2626; margin-bottom: 4px;">${seoData.issues?.critical || 0}</div>
+              <div style="font-weight: 600; color: #7f1d1d;">Critical Issues</div>
+            </div>
+            <div style="padding: 16px; background: #fef3c7; border-radius: 8px; border: 1px solid #fed7aa;">
+              <div style="font-size: 24px; font-weight: bold; color: #d97706; margin-bottom: 4px;">${seoData.issues?.warnings || 0}</div>
+              <div style="font-weight: 600; color: #92400e;">Warnings</div>
+            </div>
+            <div style="padding: 16px; background: #f0f9ff; border-radius: 8px; border: 1px solid #bfdbfe;">
+              <div style="font-size: 24px; font-weight: bold; color: #2563eb; margin-bottom: 4px;">${seoData.issues?.suggestions || 0}</div>
+              <div style="font-weight: 600; color: #1d4ed8;">Suggestions</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SEO Recommendations -->
+        ${seoData.recommendations && seoData.recommendations.length > 0 ? `
+          <h4 style="font-size: 18px; font-weight: 600; margin-bottom: 12px;">RECOMMENDATIONS</h4>
+          <div style="background: white; border-radius: 8px; padding: 20px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); margin-bottom: 32px;">
+            <ul style="list-style: none; padding: 0; margin: 0;">
+              ${seoData.recommendations.slice(0, 10).map((rec: string) => `
+                <li style="padding: 8px 0; border-bottom: 1px solid #f3f4f6; display: flex; align-items: flex-start;">
+                  <span style="margin-right: 8px; color: #059669;">•</span>
+                  <span style="color: #374151; line-height: 1.5;">${rec}</span>
+                </li>
+              `).join('')}
+            </ul>
+          </div>
+        ` : ''}
+
+        <!-- Technical Findings -->
+        ${seoData.technicalFindings ? `
+          <h4 style="font-size: 18px; font-weight: 600; margin-bottom: 12px;">TECHNICAL FINDINGS</h4>
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 32px;">
+            <div style="background: white; border-radius: 8px; padding: 20px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);">
+              <h5 style="font-weight: 600; color: #374151; margin-bottom: 12px;">Page Speed</h5>
+              <div>Desktop: <span style="font-weight: 600; color: ${seoData.technicalFindings.pagespeed?.desktop >= 90 ? '#16a34a' : seoData.technicalFindings.pagespeed?.desktop >= 50 ? '#ca8a04' : '#dc2626'};">${seoData.technicalFindings.pagespeed?.desktop || 0}/100</span></div>
+              <div>Mobile: <span style="font-weight: 600; color: ${seoData.technicalFindings.pagespeed?.mobile >= 90 ? '#16a34a' : seoData.technicalFindings.pagespeed?.mobile >= 50 ? '#ca8a04' : '#dc2626'};">${seoData.technicalFindings.pagespeed?.mobile || 0}/100</span></div>
+            </div>
+            <div style="background: white; border-radius: 8px; padding: 20px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);">
+              <h5 style="font-weight: 600; color: #374151; margin-bottom: 12px;">Security & Structure</h5>
+              <div>SSL: <span style="font-weight: 600; color: ${seoData.technicalFindings.sslEnabled ? '#16a34a' : '#dc2626'};">${seoData.technicalFindings.sslEnabled ? 'Enabled' : 'Not Enabled'}</span></div>
+              <div>Missing H1: <span style="font-weight: 600; color: ${seoData.technicalFindings.headingStructure?.missingH1 ? '#dc2626' : '#16a34a'};">${seoData.technicalFindings.headingStructure?.missingH1 ? 'Yes' : 'No'}</span></div>
+            </div>
+          </div>
+        ` : ''}
+        ` : `
+        <!-- Legacy SEO Metrics -->
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 32px;">
           <div style="text-align: center; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); border: 1px solid #e5e7eb;">
             <div style="font-size: 28px; font-weight: bold; color: #0891b2; margin-bottom: 8px;">${reportData.seo.topRankKeywords || 0}</div>
@@ -1377,6 +1463,7 @@ export class EnhancedPDFGenerator {
             <div style="font-weight: 600; color: #374151;">Competitors</div>
           </div>
         </div>
+        `}
         
         ${reportData.seo.keywords && reportData.seo.keywords.length > 0 ? `
           <h4 style="font-size: 18px; font-weight: 600; margin-bottom: 12px;">KEYWORD RANKINGS</h4>

@@ -8,7 +8,6 @@ packages = ["zip", "jq", "unzip"]
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["npm", "start"]
 build = ["npm", "run", "build"]
 
 [[ports]]
