@@ -23,7 +23,10 @@ import {
   Timer,
   Database,
   HardDrive,
-  Gauge
+  Gauge,
+  Code,
+  Settings,
+  Image
 } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiCall } from '@/lib/queryClient';
@@ -358,6 +361,145 @@ export function PerformanceScan({ websiteId }: PerformanceScanProps) {
                 </div>
               </CardContent>
             </Card>
+
+            {/* HTTP Requests Analysis */}
+            {latestScan.scanData && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Globe className="h-5 w-5" />
+                    HTTP Requests Analysis
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200">
+                    <p className="text-sm text-blue-800 dark:text-blue-200">
+                      The webpage makes {latestScan.scanData.yslow_metrics?.num_requests || 'several'} HTTP requests with a total size of {latestScan.scanData.yslow_metrics?.page_size ? `${(latestScan.scanData.yslow_metrics.page_size / 1024 / 1024).toFixed(2)} MB` : 'calculating...'}.
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                        {latestScan.scanData.yslow_metrics?.js_files || 0}
+                      </div>
+                      <div className="text-sm text-green-800 dark:text-green-200">JavaScript Files</div>
+                    </div>
+                    <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                      <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                        {latestScan.scanData.yslow_metrics?.css_files || 0}
+                      </div>
+                      <div className="text-sm text-purple-800 dark:text-purple-200">CSS Files</div>
+                    </div>
+                    <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                      <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                        {latestScan.scanData.yslow_metrics?.image_files || 0}
+                      </div>
+                      <div className="text-sm text-orange-800 dark:text-orange-200">Images</div>
+                    </div>
+                  </div>
+
+                  {/* Resource Breakdown */}
+                  <div className="space-y-4">
+                    <h4 className="font-medium text-gray-900 dark:text-white">Resource Breakdown</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                      <div className="flex justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded">
+                        <span>External:</span>
+                        <Badge variant="outline">{latestScan.scanData.yslow_metrics?.external_requests || 0}</Badge>
+                      </div>
+                      <div className="flex justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded">
+                        <span>Internal:</span>
+                        <Badge variant="outline">{latestScan.scanData.yslow_metrics?.internal_requests || 0}</Badge>
+                      </div>
+                      <div className="flex justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded">
+                        <span>Blocking:</span>
+                        <Badge variant="destructive">{latestScan.scanData.yslow_metrics?.blocking_requests || 0}</Badge>
+                      </div>
+                      <div className="flex justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded">
+                        <span>Async:</span>
+                        <Badge variant="default">{latestScan.scanData.yslow_metrics?.async_requests || 0}</Badge>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Performance Metrics */}
+                  <div className="mt-6 space-y-4">
+                    <h4 className="font-medium text-gray-900 dark:text-white">Performance Metrics</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-medium">Load Time</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                            {latestScan.scanData.yslow_metrics?.load_time ? `${(latestScan.scanData.yslow_metrics.load_time / 1000).toFixed(2)}s` : 'N/A'}
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-500">Time to fully load the webpage</div>
+                      </div>
+                      <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-medium">Page Size</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                            {latestScan.scanData.yslow_metrics?.page_size ? `${(latestScan.scanData.yslow_metrics.page_size / 1024).toFixed(2)} KB` : 'N/A'}
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-500">Total document size including resources</div>
+                      </div>
+                      <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-medium">CDN Usage</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                            {latestScan.scanData.yslow_metrics?.cdn_usage ? 'Enabled' : 'Not Detected'}
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-500">Content delivery network optimization</div>
+                      </div>
+                      <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-medium">GZIP Compression</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                            {latestScan.scanData.yslow_metrics?.gzip_compression ? 'Enabled' : 'Disabled'}
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-500">Text content compression status</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Lighthouse Scores */}
+                  {latestScan.scanData.lighthouse_metrics && (
+                    <div className="mt-6 space-y-4">
+                      <h4 className="font-medium text-gray-900 dark:text-white">Lighthouse Scores</h4>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="text-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                          <div className={`text-xl font-bold ${getScoreColor(latestScan.scanData.lighthouse_metrics.performance_score)}`}>
+                            {latestScan.scanData.lighthouse_metrics.performance_score}
+                          </div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400">Performance</div>
+                        </div>
+                        <div className="text-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                          <div className={`text-xl font-bold ${getScoreColor(latestScan.scanData.lighthouse_metrics.accessibility_score)}`}>
+                            {latestScan.scanData.lighthouse_metrics.accessibility_score}
+                          </div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400">Accessibility</div>
+                        </div>
+                        <div className="text-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                          <div className={`text-xl font-bold ${getScoreColor(latestScan.scanData.lighthouse_metrics.best_practices_score)}`}>
+                            {latestScan.scanData.lighthouse_metrics.best_practices_score}
+                          </div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400">Best Practices</div>
+                        </div>
+                        <div className="text-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                          <div className={`text-xl font-bold ${getScoreColor(latestScan.scanData.lighthouse_metrics.seo_score)}`}>
+                            {latestScan.scanData.lighthouse_metrics.seo_score}
+                          </div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400">SEO</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="metrics" className="space-y-4">
