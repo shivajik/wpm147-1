@@ -146,7 +146,7 @@ export class PerformanceScanner {
     console.log(`[PerformanceScanner] Making API request to: ${this.GOOGLE_PAGESPEED_API_URL} with params`);
 
     const response = await axios.get(requestUrl, {
-      timeout: 30000, // 30 second timeout
+      timeout: 60000, // 60 second timeout
       headers: {
         'User-Agent': 'WordPress-Performance-Scanner/1.0'
       }
