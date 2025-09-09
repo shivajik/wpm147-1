@@ -912,7 +912,13 @@ export function ComprehensiveSeoReport({ report, websiteName, websiteUrl }: Comp
                 <Accordion type="multiple" className="w-full">
                   <AccordionItem value="javascripts">
                     <AccordionTrigger>
-                      <span className="font-semibold">JavaScripts <Badge variant="outline" className="ml-2">{technicalData.httpRequests?.javascript?.total || 0}</Badge></span>
+                      <span className="font-semibold">JavaScript 
+                        <Badge variant="outline" className="ml-2">
+                          {technicalData.httpRequests?.javascript?.total || 
+                           technicalData.httpRequests?.requests?.filter((req: any) => req.type === 'javascript' || req.url?.includes('.js')).length || 
+                           0}
+                        </Badge>
+                      </span>
                     </AccordionTrigger>
                     <AccordionContent>
                       <div className="space-y-4">
@@ -950,7 +956,30 @@ export function ComprehensiveSeoReport({ report, websiteName, websiteUrl }: Comp
                         <div className="space-y-3">
                           <h5 className="font-medium text-sm">JavaScript Files:</h5>
                           <div className="space-y-2 max-h-64 overflow-y-auto">
-                            {technicalData.httpRequests?.javascript?.files?.length > 0 ? (
+                            {/* Show JavaScript files from httpRequests.requests array */}
+                            {technicalData.httpRequests?.requests?.filter((req: any) => req.type === 'javascript' || req.url?.includes('.js')).length > 0 ? (
+                              technicalData.httpRequests.requests
+                                .filter((req: any) => req.type === 'javascript' || req.url?.includes('.js'))
+                                .map((script: any, index: number) => (
+                                <div key={index} className="flex items-center justify-between p-2 bg-white dark:bg-gray-700 rounded border">
+                                  <div className="flex items-center gap-2">
+                                    <Code className="h-3 w-3 text-blue-500 flex-shrink-0" />
+                                    <span className="text-xs text-gray-600 dark:text-gray-300 font-mono truncate max-w-72">
+                                      {script.url}
+                                    </span>
+                                  </div>
+                                  <div className="flex gap-1">
+                                    <Badge variant="outline" className="text-xs">
+                                      {script.isExternal ? 'External' : 'Internal'}
+                                    </Badge>
+                                    <Badge variant={script.isExternal ? 'secondary' : 'default'} className="text-xs">
+                                      {script.type || 'JS'}
+                                    </Badge>
+                                  </div>
+                                </div>
+                              ))
+                            ) : technicalData.httpRequests?.javascript?.files?.length > 0 ? (
+                              // Fallback to the original files structure if requests array is not available
                               technicalData.httpRequests.javascript.files.map((script: any, index: number) => (
                                 <div key={index} className="flex items-center justify-between p-2 bg-white dark:bg-gray-700 rounded border">
                                   <div className="flex items-center gap-2">
@@ -975,7 +1004,7 @@ export function ComprehensiveSeoReport({ report, websiteName, websiteUrl }: Comp
                             ) : (
                               <div className="text-center p-4 text-xs text-gray-500">
                                 <Code className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                                <p>JavaScript file analysis not available for this domain.</p>
+                                <p>No JavaScript files found in this analysis.</p>
                               </div>
                             )}
                           </div>
@@ -986,7 +1015,14 @@ export function ComprehensiveSeoReport({ report, websiteName, websiteUrl }: Comp
                   
                   <AccordionItem value="css">
                     <AccordionTrigger>
-                      <span className="font-semibold">CSS <Badge variant="outline" className="ml-2">{technicalData.httpRequests?.css?.total || 0}</Badge></span>
+                      <span className="font-semibold">CSS 
+                        <Badge variant="outline" className="ml-2">
+                          {technicalData.httpRequests?.css?.total || 
+                           technicalData.cssAnalysis?.totalStylesheets ||
+                           technicalData.httpRequests?.requests?.filter((req: any) => req.type === 'css' || req.url?.includes('.css')).length || 
+                           0}
+                        </Badge>
+                      </span>
                     </AccordionTrigger>
                     <AccordionContent>
                       <div className="space-y-4">
@@ -1024,7 +1060,53 @@ export function ComprehensiveSeoReport({ report, websiteName, websiteUrl }: Comp
                         <div className="space-y-3">
                           <h5 className="font-medium text-sm">CSS Files:</h5>
                           <div className="space-y-2 max-h-64 overflow-y-auto">
-                            {technicalData.httpRequests?.css?.files?.length > 0 ? (
+                            {/* Show CSS files from httpRequests.requests array or cssAnalysis.stylesheets */}
+                            {technicalData.httpRequests?.requests?.filter((req: any) => req.type === 'css' || req.url?.includes('.css')).length > 0 ? (
+                              technicalData.httpRequests.requests
+                                .filter((req: any) => req.type === 'css' || req.url?.includes('.css'))
+                                .map((css: any, index: number) => (
+                                <div key={index} className="flex items-center justify-between p-2 bg-white dark:bg-gray-700 rounded border">
+                                  <div className="flex items-center gap-2">
+                                    <Settings className="h-3 w-3 text-purple-500 flex-shrink-0" />
+                                    <span className="text-xs text-gray-600 dark:text-gray-300 font-mono truncate max-w-72">
+                                      {css.url}
+                                    </span>
+                                  </div>
+                                  <div className="flex gap-1">
+                                    <Badge variant="outline" className="text-xs">
+                                      {css.isExternal ? 'External' : 'Internal'}
+                                    </Badge>
+                                    <Badge variant={css.isExternal ? 'secondary' : 'default'} className="text-xs">
+                                      {css.type || 'CSS'}
+                                    </Badge>
+                                  </div>
+                                </div>
+                              ))
+                            ) : technicalData.cssAnalysis?.stylesheets?.length > 0 ? (
+                              // Show CSS files from cssAnalysis.stylesheets array
+                              technicalData.cssAnalysis.stylesheets.map((css: any, index: number) => (
+                                <div key={index} className="flex items-center justify-between p-2 bg-white dark:bg-gray-700 rounded border">
+                                  <div className="flex items-center gap-2">
+                                    <Settings className="h-3 w-3 text-purple-500 flex-shrink-0" />
+                                    <span className="text-xs text-gray-600 dark:text-gray-300 font-mono truncate max-w-72">
+                                      {css.href}
+                                    </span>
+                                  </div>
+                                  <div className="flex gap-1">
+                                    <Badge variant="outline" className="text-xs">
+                                      {css.type || 'External'}
+                                    </Badge>
+                                    <Badge 
+                                      variant={css.isCritical ? 'default' : css.isMinified ? 'secondary' : 'destructive'} 
+                                      className="text-xs"
+                                    >
+                                      {css.isCritical ? 'Critical' : css.isMinified ? 'Minified' : 'Blocking'}
+                                    </Badge>
+                                  </div>
+                                </div>
+                              ))
+                            ) : technicalData.httpRequests?.css?.files?.length > 0 ? (
+                              // Fallback to the original files structure if other arrays are not available
                               technicalData.httpRequests.css.files.map((css: any, index: number) => (
                                 <div key={index} className="flex items-center justify-between p-2 bg-white dark:bg-gray-700 rounded border">
                                   <div className="flex items-center gap-2">
@@ -1049,7 +1131,7 @@ export function ComprehensiveSeoReport({ report, websiteName, websiteUrl }: Comp
                             ) : (
                               <div className="text-center p-4 text-xs text-gray-500">
                                 <Settings className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                                <p>CSS file analysis not available for this domain.</p>
+                                <p>No CSS files found in this analysis.</p>
                               </div>
                             )}
                           </div>
@@ -1060,7 +1142,14 @@ export function ComprehensiveSeoReport({ report, websiteName, websiteUrl }: Comp
                   
                   <AccordionItem value="images">
                     <AccordionTrigger>
-                      <span className="font-semibold">Images <Badge variant="outline" className="ml-2">{technicalData.httpRequests?.images?.total || 0}</Badge></span>
+                      <span className="font-semibold">Images 
+                        <Badge variant="outline" className="ml-2">
+                          {technicalData.httpRequests?.images?.total || 
+                           technicalData.images?.total ||
+                           technicalData.httpRequests?.requests?.filter((req: any) => req.type === 'image' || req.url?.match(/\.(jpg|jpeg|png|gif|svg|webp|avif)$/i)).length || 
+                           0}
+                        </Badge>
+                      </span>
                     </AccordionTrigger>
                     <AccordionContent>
                       <div className="space-y-4">
@@ -1096,9 +1185,32 @@ export function ComprehensiveSeoReport({ report, websiteName, websiteUrl }: Comp
                         </div>
                         
                         <div className="space-y-3">
-                          <h5 className="font-medium text-sm">Images Not Using Modern Formats:</h5>
+                          <h5 className="font-medium text-sm">Image Files:</h5>
                           <div className="space-y-2 max-h-64 overflow-y-auto">
-                            {technicalData.httpRequests?.images?.files?.length > 0 ? (
+                            {/* Show image files from httpRequests.requests array */}
+                            {technicalData.httpRequests?.requests?.filter((req: any) => req.type === 'image' || req.url?.match(/\.(jpg|jpeg|png|gif|svg|webp|avif)$/i)).length > 0 ? (
+                              technicalData.httpRequests.requests
+                                .filter((req: any) => req.type === 'image' || req.url?.match(/\.(jpg|jpeg|png|gif|svg|webp|avif)$/i))
+                                .map((image: any, index: number) => (
+                                <div key={index} className="flex items-center justify-between p-2 bg-white dark:bg-gray-700 rounded border">
+                                  <div className="flex items-center gap-2">
+                                    <Image className="h-3 w-3 text-orange-500 flex-shrink-0" />
+                                    <span className="text-xs text-gray-600 dark:text-gray-300 font-mono truncate max-w-64">
+                                      {image.url.split('/').pop() || image.url}
+                                    </span>
+                                  </div>
+                                  <div className="flex gap-1">
+                                    <Badge variant="outline" className="text-xs">
+                                      {image.url.split('.').pop()?.toUpperCase() || 'Unknown'}
+                                    </Badge>
+                                    <Badge variant={image.isExternal ? 'secondary' : 'default'} className="text-xs">
+                                      {image.isExternal ? 'External' : 'Internal'}
+                                    </Badge>
+                                  </div>
+                                </div>
+                              ))
+                            ) : technicalData.httpRequests?.images?.files?.length > 0 ? (
+                              // Fallback to the original files structure if requests array is not available
                               technicalData.httpRequests.images.files.map((image: any, index: number) => (
                                 <div key={index} className="flex items-center justify-between p-2 bg-white dark:bg-gray-700 rounded border">
                                   <div className="flex items-center gap-2">
@@ -1125,17 +1237,17 @@ export function ComprehensiveSeoReport({ report, websiteName, websiteUrl }: Comp
                             ) : (
                               <div className="text-center p-4 text-xs text-gray-500">
                                 <Image className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                                <p>Image optimization analysis not available for this domain.</p>
+                                <p>No image files found in this analysis.</p>
                               </div>
                             )}
                           </div>
                           
-                          <div className="mt-3 p-3 bg-orange-50 dark:bg-orange-900/20 rounded text-xs text-orange-800 dark:text-orange-200">
-                            <strong>Recommendation:</strong> Convert images to modern formats like WebP or AVIF to reduce file sizes by up to 30-50% while maintaining quality. 
-                            {technicalData.images?.total > 0 && 
-                              ` Found ${technicalData.images.total} images, ${technicalData.images.total - (technicalData.images.formats?.webp || 0) - (technicalData.images.formats?.avif || 0)} need optimization.`
-                            }
-                          </div>
+                          {technicalData.httpRequests?.images?.total > 0 && (
+                            <div className="mt-3 p-3 bg-orange-50 dark:bg-orange-900/20 rounded text-xs text-orange-800 dark:text-orange-200">
+                              <strong>Recommendation:</strong> Convert images to modern formats like WebP or AVIF to reduce file sizes by up to 30-50% while maintaining quality. 
+                              Found {technicalData.httpRequests.images.total} images total.
+                            </div>
+                          )}
                         </div>
                       </div>
                     </AccordionContent>
