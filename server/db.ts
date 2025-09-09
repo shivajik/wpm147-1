@@ -3,8 +3,10 @@ import postgres from 'postgres';
 import * as schema from "@shared/schema";
 
 
-// Database Configuration - Use Replit PostgreSQL database
-const DATABASE_URL = process.env.DATABASE_URL;
+
+// Database Configuration - Use Supabase consistently for development and production
+const SUPABASE_URL = 'postgresql://postgres.tqumlkxxzlncilcwoczn:SraCvROITgRPeZLG@aws-0-ap-south-1.pooler.supabase.com:6543/postgres';
+const DATABASE_URL = SUPABASE_URL;
 
 
 if (!DATABASE_URL) {
