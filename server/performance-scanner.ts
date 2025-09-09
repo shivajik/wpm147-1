@@ -378,7 +378,7 @@ export class PerformanceScanner {
     let seoData: SeoAnalysisResult | null = null;
     
     try {
-      seoData = await seoAnalyzer.analyzeWebsite(url);
+      seoData = await seoAnalyzer.analyzeSite(url);
       console.log(`[PerformanceScanner] SEO analysis completed, extracting performance data`);
     } catch (error) {
       console.error('[PerformanceScanner] SEO analysis failed, using basic fallback:', error);
