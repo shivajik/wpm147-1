@@ -1,0 +1,537 @@
+{
+    "id": 36,
+    "websiteId": 3,
+    "overallScore": 86,
+    "technicalScore": 100,
+    "contentScore": 63,
+    "backlinksScore": 100,
+    "userExperienceScore": 96,
+    "onPageSeoScore": 70,
+    "reportData": {
+        "url": "https://ascollegechincholi.com",
+        "links": {
+            "broken": 0,
+            "dofollow": 4,
+            "external": 0,
+            "internal": 4,
+            "nofollow": 0,
+            "redirectChains": 0
+        },
+        "title": "AS College Chincholi – Tq Kannad Dist.Aurangabad(M.S.)",
+        "domain": "ascollegechincholi.com",
+        "h1Tags": [
+            "AS College Chincholi",
+            "Home"
+        ],
+        "h2Tags": [
+            "Drive Your Future With Us !!",
+            "Welcome to the Leading Institution in the Chincholi.",
+            "Our Featured Courses"
+        ],
+        "h3Tags": [
+            "Quality Education",
+            "Affordable Courses",
+            "Skilled Teachers",
+            "Our Mission",
+            "Our Vision"
+        ],
+        "images": {
+            "total": 4,
+            "formats": {
+                "jpg": 4
+            },
+            "withAlt": 2,
+            "oversized": 0,
+            "lazyLoaded": 0,
+            "missingAlt": 2
+        },
+        "socialMeta": {
+            "hasOpenGraph": true,
+            "openGraphData": {
+                "og:url": "https://ascollegechincholi.com/",
+                "og:type": "article",
+                "og:image": "https://ascollegechincholi.com/wp-content/uploads/2022/08/Frame-53.svg",
+                "og:title": "Home",
+                "og:locale": "en_US",
+                "og:site_name": "AS College Chincholi",
+                "og:description": "/*! elementor - v3.18.0 - 20-12-2023 */ .elementor-heading-title{padding:0;margin:0;line-height:1}.elementor-widget-heading .elementor-heading-title[class*=elementor-size-]>a{color:inherit;font-size:inherit;line-height:inherit}.elementor-widget-heading .elementor-heading-title.elementor-size-small{font-size:15px}.elementor-widget-heading .elementor-heading-title.elementor-size-medium{font-size:19px}.elementor-widget-heading .elementor-heading-title.elementor-size-large{font-size:29px}.elementor-widget-heading .elementor-heading-title.elementor-size-xl{font-size:39px}.elementor-widget-heading .elementor-heading-title.elementor-size-xxl{font-size:59px}Drive Your Future With Us !! Education … "
+            },
+            "hasFacebookMeta": false,
+            "hasTwitterCards": true,
+            "twitterCardData": {
+                "twitter:card": "summary_large_image"
+            }
+        },
+        "cssAnalysis": {
+            "stylesheets": [
+                {
+                    "href": "https://ascollegechincholi.com/wp-includes/css/dist/block-library/style.min.css?ver=6.8.2",
+                    "type": "external",
+                    "media": "all",
+                    "isCritical": false,
+                    "isMinified": true,
+                    "hasIntegrity": false
+                },
+   ],
+            "inlineStyles": 0,
+            "totalInlineSize": 0,
+            "criticalCssCount": 0,
+            "totalStylesheets": 12,
+            "largestInlineStyle": 0,
+            "optimizationIssues": [
+                "3 unminified CSS files detected",
+                "No critical CSS optimization detected"
+            ],
+            "externalStylesheets": 12,
+            "inlineStyleElements": 0,
+            "minifiedStylesheets": 9
+        },
+        "pageContent": {
+            "sentences": 25,
+            "wordCount": 255,
+            "paragraphs": 18,
+            "keywordDensity": {
+                "well": 1.6,
+                "with": 1.6,
+                "believe": 1.2,
+                "courses": 2,
+                "quality": 2.4,
+                "society": 2,
+                "powerful": 1.2,
+                "students": 1.2,
+                "chincholi": 1.2,
+                "education": 4.3
+            },
+            "readabilityScore": 10,
+            "avgWordsPerSentence": 10.2
+        },
+        "performance": {
+            "loadTime": 1404,
+            "pageSize": 92,
+            "requests": 33,
+            "minifiedJS": false,
+            "compression": false,
+            "minifiedCSS": false,
+            "cacheHeaders": false,
+            "optimizations": {
+                "hasAvif": false,
+                "hasWebP": false,
+                "hasAsyncJS": true,
+                "minifiedJS": false,
+                "compression": false,
+                "minifiedCSS": false,
+                "cacheHeaders": false,
+                "hasCriticalCSS": false,
+                "hasLazyLoading": false
+            },
+            "pageSizeBytes": 94060,
+            "recommendations": [
+                "Combine CSS/JS files to reduce HTTP requests",
+                "Enable CSS minification for faster loading",
+                "Enable JavaScript minification for better performance",
+                "Enable Gzip/Brotli compression on your server",
+                "Implement lazy loading for images below the fold"
+            ],
+            "performanceScore": 40,
+            "performanceIssues": [
+                "CSS files are not minified",
+                "JavaScript files are not minified",
+                "No compression detected"
+            ],
+            "resourceBreakdown": {
+                "fonts": 2,
+                "images": 4,
+                "scripts": 14,
+                "preloads": 0,
+                "prefetches": 0,
+                "stylesheets": 12
+            }
+        },
+        "httpRequests": {
+            "css": {
+                "files": [
+                    {
+                        "src": "https://ascollegechincholi.com/wp-includes/css/dist/block-library/style.min.css?ver=6.8.2",
+                        "name": "style.min.css?ver=6.8.2",
+                        "size": "N/A",
+                        "blocking": true
+                    },
+            
+    ],
+                "total": 12,
+                "inline": 0,
+                "blocking": 12,
+                "critical": 0,
+                "external": 12,
+                "nonCritical": 12
+            },
+            "total": 18,
+            "images": {
+                "total": 4,
+                "optimized": 0,
+                "unoptimized": 4
+            },
+            "requests": [
+                {
+                    "url": "https://ascollegechincholi.com/wp-includes/css/dist/block-library/style.min.css?ver=6.8.2",
+                    "type": "css",
+                    "isExternal": false
+                },
+ {
+                    "url": "https://ascollegechincholi.com/wp-content/uploads/2022/12/mission.jpg",
+                    "type": "image",
+                    "isExternal": false
+                },
+                {
+                    "url": "https://fonts.googleapis.com/",
+                    "type": "font",
+                    "isExternal": true
+                },
+                {
+                    "url": "https://fonts.googleapis.com/css?family=Archivo%3A100%2C200%2C300%2Cregular%2C500%2C600%2C700%2C800%2C900%2C100italic%2C200italic%2C300italic%2Citalic%2C500italic%2C600italic%2C700italic%2C800italic%2C900italic%7CQuicksand%3A300%2Cregular%2C500%2C600%2C700%7CMulish%3A200%2C300%2Cregular%2C500%2C600%2C700%2C800%2C900%2C200italic%2C300italic%2Citalic%2C500italic%2C600italic%2C700italic%2C800italic%2C900italic%7CNunito+Sans%3A200%2C200italic%2C300%2C300italic%2Cregular%2Citalic%2C600%2C600italic%2C700%2C700italic%2C800%2C800italic%2C900%2C900italic%7CRoboto%3A100%2C100italic%2C300%2C300italic%2Cregular%2Citalic%2C500%2C500italic%2C700%2C700italic%2C900%2C900italic%7CRoboto%3A700&subset",
+                    "type": "font",
+                    "isExternal": true
+                }
+            ],
+            "javascript": {
+                "async": 0,
+                "defer": 0,
+                "files": [],
+                "total": 0,
+                "inline": 0,
+                "blocking": 0,
+                "external": 0
+            },
+            "totalRequests": 18,
+            "requestsByType": {
+                "css": 12,
+                "font": 2,
+                "image": 4
+            },
+            "externalRequests": 3,
+            "internalRequests": 15
+        },
+        "technicalSeo": {
+            "lang": "en-US",
+            "hasSSL": true,
+            "charset": "UTF-8",
+            "doctype": "<!DOCTYPE html>",
+            "hreflang": [],
+            "hasSitemap": true,
+            "statusCode": 200,
+            "httpHeaders": {},
+            "canonicalTag": "https://ascollegechincholi.com/",
+            "hasRobotsTxt": true,
+            "isResponsive": true,
+            "metaViewport": "width=device-width, initial-scale=1",
+            "responseTime": 1404,
+            "hasValidStructuredData": true
+        },
+        "accessibility": {
+            "score": 100,
+            "issues": [],
+            "skipLinks": false,
+            "missingLabels": 0,
+            "contrastIssues": 0,
+            "missingHeadings": false
+        },
+        "imageKeywords": {
+            "totalImages": 4,
+            "imageFormats": {
+                "jpg": 4
+            },
+            "topImageKeywords": [
+                {
+                    "count": 2,
+                    "keyword": "college"
+                },
+                {
+                    "count": 2,
+                    "keyword": "chincholi"
+                }
+            ],
+            "imagesWithKeywords": 2
+        },
+        "structuralData": {
+            "microdata": [
+                {
+                    "type": "Microdata",
+                    "itemType": "https://schema.org/WebSite",
+                    "itemScope": true
+                },
+  ],
+            "jsonLdCount": 0,
+            "microdataCount": 4,
+            "structuredData": [],
+            "hasStructuredData": true
+        },
+        "contentKeywords": {
+            "totalWords": 212,
+            "topKeywords": [
+                {
+                    "count": 11,
+                    "density": 5.2,
+                    "keyword": "education"
+                },
+                {
+                    "count": 6,
+                    "density": 2.8,
+                    "keyword": "quality"
+                },
+ ],
+            "uniqueWords": 131,
+            "avgWordLength": 7.19811320754717,
+            "keywordPhrases2": [
+                {
+                    "count": 6,
+                    "phrase": "quality education"
+                },
+                {
+                    "count": 3,
+                    "phrase": "believe quality"
+                },
+ ],
+            "keywordPhrases3": [
+                {
+                    "count": 3,
+                    "phrase": "believe quality education"
+                },
+ ]
+        },
+        "headingAnalysis": {
+            "h1Count": 2,
+            "h2Count": 3,
+            "h3Count": 5,
+            "h4Count": 0,
+            "h5Count": 0,
+            "h6Count": 0,
+            "hierarchy": {
+                "issues": [
+                    "Multiple H1 tags found (2). Should have only one H1 per page."
+                ],
+                "warnings": []
+            },
+            "structure": {
+                "h1": [
+                    {
+                        "text": "AS College Chincholi",
+                        "order": 1
+                    },
+                    {
+                        "text": "Home",
+                        "order": 2
+                    }
+                ],
+                "h2": [
+                    {
+                        "text": "Drive Your Future With Us !!",
+                        "order": 3
+                    },
+,”h3”:[]
+],
+                "h4": [],
+                "h5": [],
+                "h6": []
+            },
+            "totalHeadings": 10
+        },
+        "loadingAnalysis": {
+            "totalImages": 4,
+            "preloadLinks": 0,
+            "optimizations": [
+                "1 DNS preconnections"
+            ],
+            "prefetchLinks": 0,
+            "dnsPreconnects": 1,
+            "lazyLoadedImages": 0,
+            "lazyLoadingPercentage": 0
+        },
+        "metaDescription": "",
+        "securityHeaders": {
+            "hasCSP": false,
+            "hasHSTS": false,
+            "hasHTTPS": true,
+            "securityScore": 0,
+            "hasXFrameOptions": false,
+            "hasReferrerPolicy": false,
+            "hasXContentTypeOptions": false
+        },
+        "detailedFindings": {
+            "warnings": [
+                {
+                    "title": "Missing Meta Description",
+                    "impact": "high",
+                    "category": "On-Page SEO",
+                    "howToFix": "Add <meta name=\"description\" content=\"Your page description\"> in the head section",
+                    "resources": [
+                        "https://developers.google.com/search/docs/appearance/snippet"
+                    ],
+                    "description": "No meta description found. This affects how your page appears in search results.",
+                    "recommendation": "Add a compelling meta description (150-160 characters)",
+                    "technicalDetails": "HTML meta description tag is missing"
+                },
+  ],
+            "criticalIssues": [],
+            "recommendations": [
+                {
+                    "title": "Increase Content Length",
+                    "impact": "medium",
+                    "category": "Content Quality",
+                    "howToFix": "Add more relevant, valuable content that serves your users' needs",
+                    "resources": [
+                        "https://backlinko.com/content-study",
+                        "https://blog.hubspot.com/marketing/how-long-should-blog-posts-be"
+                    ],
+                    "description": "Page has only 255 words. More content may improve SEO.",
+                    "recommendation": "Aim for at least 300 words of quality content",
+                    "technicalDetails": "Current word count: 255 words"
+                }
+            ],
+            "positiveFindings": [
+                {
+                    "title": "SSL Certificate Active",
+                    "impact": "high",
+                    "category": "Security",
+                    "description": "Website properly uses HTTPS encryption for secure communication.",
+                    "recommendation": "Maintain SSL certificate and monitor expiration dates",
+                    "technicalDetails": "HTTPS protocol detected with valid SSL certificate"
+                },
+ ]
+        },
+        "metaTagsAnalysis": {
+            "allMetaTags": [
+                {
+                    "charset": "UTF-8"
+                },
+                {
+                    "name": "viewport",
+                    "content": "width=device-width, initial-scale=1"
+                },
+],
+            "seoMetaTags": [
+                {
+                    "name": "robots",
+                    "content": "max-image-preview:large"
+                }
+            ],
+            "viewportTags": [
+                {
+                    "name": "viewport",
+                    "content": "width=device-width, initial-scale=1"
+                }
+            ],
+            "totalMetaTags": 17,
+            "socialMetaTags": [
+                {
+                    "content": "Home",
+                    "property": "og:title"
+                },
+  ]
+        },
+        "javascriptAnalysis": {
+            "scripts": [],
+            "asyncScripts": 0,
+            "deferScripts": 0,
+            "totalScripts": 0,
+            "inlineScripts": 0,
+            "htmlScriptTags": 17,
+            "blockingScripts": 0,
+            "externalScripts": 0,
+            "securityFeatures": 0,
+            "optimizationIssues": [],
+            "largestInlineScript": 0
+        }
+    },
+    "recommendations": [
+        "📄 Add a compelling meta description (150-160 characters)",
+        "🏷️ Use only one H1 tag per page for optimal SEO",
+        "✍️ Increase content length - aim for at least 300 words",
+        "📖 Improve content readability with shorter sentences and simpler words",
+        "🖼️ Add alt text to 2 images for accessibility and SEO"
+    ],
+    "criticalIssues": 0,
+    "warnings": 1,
+    "notices": 2,
+    "reportType": "automated",
+    "detailedFindings": {},
+    "shareToken": null,
+    "isShareable": false,
+    "generatedAt": "2025-09-09T10:01:09.148Z",
+    "createdAt": "2025-09-09T10:01:09.148Z",
+    "updatedAt": "2025-09-09T10:01:09.148Z",
+    "scanDuration": 4610,
+    "scanStatus": "completed",
+    "errorMessage": null,
+    "metrics": {
+        "id": 29,
+        "websiteId": 3,
+        "reportId": 36,
+        "totalPages": 1,
+        "indexedPages": 1,
+        "organicKeywords": 10,
+        "backlinks": 0,
+        "domainAuthority": 0,
+        "pagespeedScore": 72,
+        "mobileScore": 85,
+        "coreWebVitalsScore": 96,
+        "securityScore": 100,
+        "sslStatus": true,
+        "robotsTxtStatus": true,
+        "sitemapStatus": true,
+        "h1Count": 2,
+        "missingMetaDescriptions": 1,
+        "missingAltTags": 2,
+        "duplicateTitles": 0,
+        "internalLinks": 4,
+        "externalLinks": 0,
+        "createdAt": "2025-09-09T10:01:13.854Z"
+    },
+    "pageAnalysis": [
+        {
+            "id": 29,
+            "websiteId": 3,
+            "reportId": 36,
+            "url": "https://ascollegechincholi.com",
+            "title": "AS College Chincholi – Tq Kannad Dist.Aurangabad(M.S.)",
+            "metaDescription": "",
+            "h1Tag": "AS College Chincholi",
+            "wordCount": 255,
+            "internalLinksCount": 4,
+            "externalLinksCount": 0,
+            "imageCount": 4,
+            "missingAltTags": 2,
+            "loadTime": 1404,
+            "mobileScore": 85,
+            "pagespeedScore": 72,
+            "issues": [],
+            "recommendations": [
+                "📄 Add a compelling meta description (150-160 characters)",
+                "🏷️ Use only one H1 tag per page for optimal SEO",
+                "✍️ Increase content length - aim for at least 300 words",
+                "📖 Improve content readability with shorter sentences and simpler words",
+                "🖼️ Add alt text to 2 images for accessibility and SEO"
+            ],
+            "lastAnalyzed": "2025-09-09T10:01:13.912Z",
+            "createdAt": "2025-09-09T10:01:13.912Z"
+        }
+    ],
+    "keywords": [
+        {
+            "id": 281,
+            "websiteId": 3,
+            "reportId": 36,
+            "keyword": "education",
+            "searchVolume": 430,
+            "difficulty": 82,
+            "currentPosition": 13,
+            "previousPosition": null,
+            "positionChange": 0,
+            "url": "https://ascollegechincholi.com",
+            "searchEngine": "google",
+            "location": "global",
+            "device": "desktop",
+            "createdAt": "2025-09-09T10:01:13.974Z"
+        },
+    ]
+}
+
