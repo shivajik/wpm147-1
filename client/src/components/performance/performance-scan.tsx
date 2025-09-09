@@ -90,9 +90,9 @@ export function PerformanceScan({ websiteId }: PerformanceScanProps) {
   // Get the latest SEO report ID from the list
   const latestSeoReportId = seoReports && Array.isArray(seoReports) && seoReports.length > 0 ? seoReports[0]?.id : null;
 
-  // Fetch the full SEO report details using the same approach as seo-report.tsx
+  // Fetch the full SEO report details using the same API as seo-report.tsx
   const { data: seoReportDetails, isLoading: isLoadingSeoDetails } = useQuery<any>({
-    queryKey: [`/api/websites/${websiteId}/seo-reports/${latestSeoReportId}`],
+    queryKey: ['/api/seo-reports', latestSeoReportId],
     enabled: !!websiteId && !!latestSeoReportId,
   });
 
