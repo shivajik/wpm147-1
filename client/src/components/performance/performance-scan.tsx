@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { 
   Zap, 
   TrendingUp, 
@@ -411,26 +412,41 @@ export function PerformanceScan({ websiteId }: PerformanceScanProps) {
                     )}
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    {/* JavaScript Analysis Card */}
-                    <Card className="bg-green-50 dark:bg-green-900/20 border-green-200">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-base text-green-800 dark:text-green-200 flex items-center gap-2">
-                          <Code className="h-4 w-4" />
-                          JavaScript
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-2">
-                        <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                          {finalTechnicalData.httpRequests?.javascript?.total || 
-                           finalTechnicalData.javascriptAnalysis?.totalScripts ||
-                           finalTechnicalData.javascriptAnalysis?.htmlScriptTags || 
-                           latestScan.scanData.yslow_metrics?.js_files || 'N/A'}
+                  <Accordion type="multiple" className="w-full mb-6">
+                    {/* JavaScript Analysis Accordion */}
+                    <AccordionItem value="javascript" className="bg-green-50 dark:bg-green-900/20 border-green-200 rounded-lg mb-2">
+                      <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                        <div className="flex items-center justify-between w-full">
+                          <div className="flex items-center gap-3">
+                            <Code className="h-4 w-4 text-green-600" />
+                            <span className="font-semibold text-green-800 dark:text-green-200">JavaScript</span>
+                          </div>
+                          <div className="flex items-center gap-4 mr-4">
+                            <div className="text-right">
+                              <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                                {finalTechnicalData.httpRequests?.javascript?.total || 
+                                 finalTechnicalData.javascriptAnalysis?.totalScripts ||
+                                 finalTechnicalData.javascriptAnalysis?.htmlScriptTags || 
+                                 latestScan.scanData.yslow_metrics?.js_files || 'N/A'}
+                              </div>
+                              <div className="text-xs text-green-700 dark:text-green-300">Total Scripts</div>
+                            </div>
+                            {(finalTechnicalData.httpRequests?.javascript || finalTechnicalData.javascriptAnalysis) && (
+                              <div className="flex gap-2">
+                                <Badge variant="outline" className="text-xs">
+                                  External: {finalTechnicalData.httpRequests?.javascript?.external || finalTechnicalData.javascriptAnalysis?.externalScripts || 0}
+                                </Badge>
+                                <Badge variant="destructive" className="text-xs">
+                                  Blocking: {finalTechnicalData.httpRequests?.javascript?.blocking || finalTechnicalData.javascriptAnalysis?.blockingScripts || 0}
+                                </Badge>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                        <div className="text-xs text-green-700 dark:text-green-300">Total Scripts</div>
-                        
-                        {(finalTechnicalData.httpRequests?.javascript || finalTechnicalData.javascriptAnalysis) && (
-                          <div className="grid grid-cols-2 gap-2 text-xs mt-2">
+                      </AccordionTrigger>
+                      <AccordionContent className="px-4 pb-4">
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
                             <div className="flex justify-between">
                               <span>External:</span>
                               <Badge variant="outline" className="text-xs h-5">
@@ -460,35 +476,77 @@ export function PerformanceScan({ websiteId }: PerformanceScanProps) {
                               </Badge>
                             </div>
                           </div>
-                        )}
-                        
-                        {!finalTechnicalData.httpRequests?.javascript?.total && 
-                         !finalTechnicalData.javascriptAnalysis?.totalScripts && 
-                         !finalTechnicalData.javascriptAnalysis?.htmlScriptTags && 
-                         !latestScan.scanData.yslow_metrics?.js_files && (
-                          <div className="text-xs text-green-600 mt-1">Run SEO analysis for detailed breakdown</div>
-                        )}
-                      </CardContent>
-                    </Card>
-
-                    {/* CSS Analysis Card */}
-                    <Card className="bg-purple-50 dark:bg-purple-900/20 border-purple-200">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-base text-purple-800 dark:text-purple-200 flex items-center gap-2">
-                          <FileText className="h-4 w-4" />
-                          CSS
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-2">
-                        <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                          {finalTechnicalData.httpRequests?.css?.total || 
-                           finalTechnicalData.cssAnalysis?.totalStylesheets ||
-                           latestScan.scanData.yslow_metrics?.css_files || 'N/A'}
+                          
+                          {/* JavaScript Files List */}
+                          <div className="space-y-3">
+                            <h5 className="font-medium text-sm text-green-800 dark:text-green-200">JavaScript Files:</h5>
+                            <div className="space-y-2 max-h-64 overflow-y-auto">
+                              {finalTechnicalData.httpRequests?.requests?.filter((req: any) => req.type === 'javascript' || req.url?.includes('.js')).length > 0 ? (
+                                finalTechnicalData.httpRequests.requests
+                                  .filter((req: any) => req.type === 'javascript' || req.url?.includes('.js'))
+                                  .map((script: any, index: number) => (
+                                  <div key={index} className="flex items-center justify-between p-2 bg-white dark:bg-gray-700 rounded border">
+                                    <div className="flex items-center gap-2">
+                                      <Code className="h-3 w-3 text-green-500 flex-shrink-0" />
+                                      <span className="text-xs text-gray-600 dark:text-gray-300 font-mono truncate max-w-72">
+                                        {script.url}
+                                      </span>
+                                    </div>
+                                    <div className="flex gap-1">
+                                      <Badge variant="outline" className="text-xs">
+                                        {script.isExternal ? 'External' : 'Internal'}
+                                      </Badge>
+                                      <Badge variant={script.isExternal ? 'secondary' : 'default'} className="text-xs">
+                                        JS
+                                      </Badge>
+                                    </div>
+                                  </div>
+                                ))
+                              ) : (
+                                <div className="text-center p-4 text-xs text-gray-500">
+                                  <Code className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                                  <p>No JavaScript files found in detailed analysis. Run SEO analysis for complete file listings.</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-xs text-purple-700 dark:text-purple-300">Total Stylesheets</div>
-                        
-                        {(finalTechnicalData.httpRequests?.css || finalTechnicalData.cssAnalysis) && (
-                          <div className="grid grid-cols-2 gap-2 text-xs mt-2">
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    {/* CSS Analysis Accordion */}
+                    <AccordionItem value="css" className="bg-purple-50 dark:bg-purple-900/20 border-purple-200 rounded-lg mb-2">
+                      <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                        <div className="flex items-center justify-between w-full">
+                          <div className="flex items-center gap-3">
+                            <FileText className="h-4 w-4 text-purple-600" />
+                            <span className="font-semibold text-purple-800 dark:text-purple-200">CSS</span>
+                          </div>
+                          <div className="flex items-center gap-4 mr-4">
+                            <div className="text-right">
+                              <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                                {finalTechnicalData.httpRequests?.css?.total || 
+                                 finalTechnicalData.cssAnalysis?.totalStylesheets ||
+                                 latestScan.scanData.yslow_metrics?.css_files || 'N/A'}
+                              </div>
+                              <div className="text-xs text-purple-700 dark:text-purple-300">Total Stylesheets</div>
+                            </div>
+                            {(finalTechnicalData.httpRequests?.css || finalTechnicalData.cssAnalysis) && (
+                              <div className="flex gap-2">
+                                <Badge variant="outline" className="text-xs">
+                                  External: {finalTechnicalData.httpRequests?.css?.external || finalTechnicalData.cssAnalysis?.externalStylesheets || 0}
+                                </Badge>
+                                <Badge variant="destructive" className="text-xs">
+                                  Blocking: {finalTechnicalData.httpRequests?.css?.blocking || ((finalTechnicalData.cssAnalysis?.totalStylesheets || 0) - (finalTechnicalData.cssAnalysis?.criticalCssCount || 0)) || 0}
+                                </Badge>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="px-4 pb-4">
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
                             <div className="flex justify-between">
                               <span>External:</span>
                               <Badge variant="outline" className="text-xs h-5">
@@ -518,34 +576,96 @@ export function PerformanceScan({ websiteId }: PerformanceScanProps) {
                               </Badge>
                             </div>
                           </div>
-                        )}
-                        
-                        {!finalTechnicalData.httpRequests?.css?.total && 
-                         !finalTechnicalData.cssAnalysis?.totalStylesheets && 
-                         !latestScan.scanData.yslow_metrics?.css_files && (
-                          <div className="text-xs text-purple-600 mt-1">Run SEO analysis for detailed breakdown</div>
-                        )}
-                      </CardContent>
-                    </Card>
-
-                    {/* Images Analysis Card */}
-                    <Card className="bg-orange-50 dark:bg-orange-900/20 border-orange-200">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-base text-orange-800 dark:text-orange-200 flex items-center gap-2">
-                          <Image className="h-4 w-4" />
-                          Images
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-2">
-                        <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                          {finalTechnicalData.httpRequests?.images?.total || 
-                           finalTechnicalData.images?.total ||
-                           latestScan.scanData.yslow_metrics?.image_files || 'N/A'}
+                          
+                          {/* CSS Files List */}
+                          <div className="space-y-3">
+                            <h5 className="font-medium text-sm text-purple-800 dark:text-purple-200">CSS Files:</h5>
+                            <div className="space-y-2 max-h-64 overflow-y-auto">
+                              {finalTechnicalData.httpRequests?.requests?.filter((req: any) => req.type === 'css' || req.url?.includes('.css')).length > 0 ? (
+                                finalTechnicalData.httpRequests.requests
+                                  .filter((req: any) => req.type === 'css' || req.url?.includes('.css'))
+                                  .map((css: any, index: number) => (
+                                  <div key={index} className="flex items-center justify-between p-2 bg-white dark:bg-gray-700 rounded border">
+                                    <div className="flex items-center gap-2">
+                                      <FileText className="h-3 w-3 text-purple-500 flex-shrink-0" />
+                                      <span className="text-xs text-gray-600 dark:text-gray-300 font-mono truncate max-w-72">
+                                        {css.url}
+                                      </span>
+                                    </div>
+                                    <div className="flex gap-1">
+                                      <Badge variant="outline" className="text-xs">
+                                        {css.isExternal ? 'External' : 'Internal'}
+                                      </Badge>
+                                      <Badge variant={css.isExternal ? 'secondary' : 'default'} className="text-xs">
+                                        CSS
+                                      </Badge>
+                                    </div>
+                                  </div>
+                                ))
+                              ) : finalTechnicalData.cssAnalysis?.stylesheets?.length > 0 ? (
+                                finalTechnicalData.cssAnalysis.stylesheets.map((css: any, index: number) => (
+                                  <div key={index} className="flex items-center justify-between p-2 bg-white dark:bg-gray-700 rounded border">
+                                    <div className="flex items-center gap-2">
+                                      <FileText className="h-3 w-3 text-purple-500 flex-shrink-0" />
+                                      <span className="text-xs text-gray-600 dark:text-gray-300 font-mono truncate max-w-72">
+                                        {css.href}
+                                      </span>
+                                    </div>
+                                    <div className="flex gap-1">
+                                      <Badge variant="outline" className="text-xs">
+                                        {css.type || 'External'}
+                                      </Badge>
+                                      <Badge variant={css.isCritical ? 'default' : css.isMinified ? 'secondary' : 'destructive'} className="text-xs">
+                                        {css.isCritical ? 'Critical' : css.isMinified ? 'Minified' : 'Blocking'}
+                                      </Badge>
+                                    </div>
+                                  </div>
+                                ))
+                              ) : (
+                                <div className="text-center p-4 text-xs text-gray-500">
+                                  <FileText className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                                  <p>No CSS files found in detailed analysis. Run SEO analysis for complete file listings.</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-xs text-orange-700 dark:text-orange-300">Total Images</div>
-                        
-                        {(finalTechnicalData.httpRequests?.images || finalTechnicalData.images) && (
-                          <div className="grid grid-cols-2 gap-2 text-xs mt-2">
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    {/* Images Analysis Accordion */}
+                    <AccordionItem value="images" className="bg-orange-50 dark:bg-orange-900/20 border-orange-200 rounded-lg mb-2">
+                      <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                        <div className="flex items-center justify-between w-full">
+                          <div className="flex items-center gap-3">
+                            <Image className="h-4 w-4 text-orange-600" />
+                            <span className="font-semibold text-orange-800 dark:text-orange-200">Images</span>
+                          </div>
+                          <div className="flex items-center gap-4 mr-4">
+                            <div className="text-right">
+                              <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                                {finalTechnicalData.httpRequests?.images?.total || 
+                                 finalTechnicalData.images?.total ||
+                                 latestScan.scanData.yslow_metrics?.image_files || 'N/A'}
+                              </div>
+                              <div className="text-xs text-orange-700 dark:text-orange-300">Total Images</div>
+                            </div>
+                            {(finalTechnicalData.httpRequests?.images || finalTechnicalData.images) && (
+                              <div className="flex gap-2">
+                                <Badge variant="default" className="text-xs">
+                                  Optimized: {finalTechnicalData.httpRequests?.images?.optimized || ((finalTechnicalData.images?.formats?.webp || 0) + (finalTechnicalData.images?.formats?.avif || 0)) || 0}
+                                </Badge>
+                                <Badge variant="destructive" className="text-xs">
+                                  Legacy: {finalTechnicalData.httpRequests?.images?.unoptimized || ((finalTechnicalData.images?.total || 0) - ((finalTechnicalData.images?.formats?.webp || 0) + (finalTechnicalData.images?.formats?.avif || 0))) || 0}
+                                </Badge>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="px-4 pb-4">
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
                             <div className="flex justify-between">
                               <span>Optimized:</span>
                               <Badge variant="default" className="text-xs h-5">
@@ -572,16 +692,44 @@ export function PerformanceScan({ websiteId }: PerformanceScanProps) {
                               <Badge variant="destructive" className="text-xs h-5">{finalTechnicalData.images?.missingAlt || 0}</Badge>
                             </div>
                           </div>
-                        )}
-                        
-                        {!finalTechnicalData.httpRequests?.images?.total && 
-                         !finalTechnicalData.images?.total && 
-                         !latestScan.scanData.yslow_metrics?.image_files && (
-                          <div className="text-xs text-orange-600 mt-1">Run SEO analysis for detailed breakdown</div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </div>
+                          
+                          {/* Images Files List */}
+                          <div className="space-y-3">
+                            <h5 className="font-medium text-sm text-orange-800 dark:text-orange-200">Image Files:</h5>
+                            <div className="space-y-2 max-h-64 overflow-y-auto">
+                              {finalTechnicalData.httpRequests?.requests?.filter((req: any) => req.type === 'image' || req.url?.match(/\.(jpg|jpeg|png|gif|svg|webp|avif)$/i)).length > 0 ? (
+                                finalTechnicalData.httpRequests.requests
+                                  .filter((req: any) => req.type === 'image' || req.url?.match(/\.(jpg|jpeg|png|gif|svg|webp|avif)$/i))
+                                  .map((image: any, index: number) => (
+                                  <div key={index} className="flex items-center justify-between p-2 bg-white dark:bg-gray-700 rounded border">
+                                    <div className="flex items-center gap-2">
+                                      <Image className="h-3 w-3 text-orange-500 flex-shrink-0" />
+                                      <span className="text-xs text-gray-600 dark:text-gray-300 font-mono truncate max-w-64">
+                                        {image.url.split('/').pop() || image.url}
+                                      </span>
+                                    </div>
+                                    <div className="flex gap-1">
+                                      <Badge variant="outline" className="text-xs">
+                                        {image.url.split('.').pop()?.toUpperCase() || 'Unknown'}
+                                      </Badge>
+                                      <Badge variant={image.isExternal ? 'secondary' : 'default'} className="text-xs">
+                                        {image.isExternal ? 'External' : 'Internal'}
+                                      </Badge>
+                                    </div>
+                                  </div>
+                                ))
+                              ) : (
+                                <div className="text-center p-4 text-xs text-gray-500">
+                                  <Image className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                                  <p>No image files found in detailed analysis. Run SEO analysis for complete file listings.</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
 
                   {/* Resource Breakdown */}
                   <div className="space-y-4">
