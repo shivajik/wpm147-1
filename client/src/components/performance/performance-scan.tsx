@@ -26,7 +26,8 @@ import {
   Gauge,
   Code,
   Settings,
-  Image
+  Image,
+  FileText
 } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiCall } from '@/lib/queryClient';
