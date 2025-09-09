@@ -401,33 +401,128 @@ export function PerformanceScan({ websiteId }: PerformanceScanProps) {
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                        {technicalData.httpRequests?.javascript?.total || latestScan.scanData.yslow_metrics?.js_files || 'N/A'}
-                      </div>
-                      <div className="text-sm text-green-800 dark:text-green-200">JavaScript Files</div>
-                      {!technicalData.httpRequests?.javascript?.total && !latestScan.scanData.yslow_metrics?.js_files && (
-                        <div className="text-xs text-green-600 mt-1">Run SEO analysis to get detailed counts</div>
-                      )}
-                    </div>
-                    <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                      <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                        {technicalData.httpRequests?.css?.total || latestScan.scanData.yslow_metrics?.css_files || 'N/A'}
-                      </div>
-                      <div className="text-sm text-purple-800 dark:text-purple-200">CSS Files</div>
-                      {!technicalData.httpRequests?.css?.total && !latestScan.scanData.yslow_metrics?.css_files && (
-                        <div className="text-xs text-purple-600 mt-1">Run SEO analysis to get detailed counts</div>
-                      )}
-                    </div>
-                    <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                      <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                        {technicalData.httpRequests?.images?.total || latestScan.scanData.yslow_metrics?.image_files || 'N/A'}
-                      </div>
-                      <div className="text-sm text-orange-800 dark:text-orange-200">Images</div>
-                      {!technicalData.httpRequests?.images?.total && !latestScan.scanData.yslow_metrics?.image_files && (
-                        <div className="text-xs text-orange-600 mt-1">Run SEO analysis to get detailed counts</div>
-                      )}
-                    </div>
+                    {/* JavaScript Analysis Card */}
+                    <Card className="bg-green-50 dark:bg-green-900/20 border-green-200">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-base text-green-800 dark:text-green-200 flex items-center gap-2">
+                          <Code className="h-4 w-4" />
+                          JavaScript
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                          {technicalData.httpRequests?.javascript?.total || latestScan.scanData.yslow_metrics?.js_files || 'N/A'}
+                        </div>
+                        <div className="text-xs text-green-700 dark:text-green-300">Total Scripts</div>
+                        
+                        {technicalData.httpRequests?.javascript && (
+                          <div className="grid grid-cols-2 gap-2 text-xs mt-2">
+                            <div className="flex justify-between">
+                              <span>External:</span>
+                              <Badge variant="outline" className="text-xs h-5">{technicalData.httpRequests.javascript.external || 0}</Badge>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Inline:</span>
+                              <Badge variant="outline" className="text-xs h-5">{technicalData.httpRequests.javascript.inline || 0}</Badge>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Async:</span>
+                              <Badge variant="default" className="text-xs h-5">{technicalData.httpRequests.javascript.async || 0}</Badge>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Blocking:</span>
+                              <Badge variant="destructive" className="text-xs h-5">{technicalData.httpRequests.javascript.blocking || 0}</Badge>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {!technicalData.httpRequests?.javascript?.total && !latestScan.scanData.yslow_metrics?.js_files && (
+                          <div className="text-xs text-green-600 mt-1">Run SEO analysis for detailed breakdown</div>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    {/* CSS Analysis Card */}
+                    <Card className="bg-purple-50 dark:bg-purple-900/20 border-purple-200">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-base text-purple-800 dark:text-purple-200 flex items-center gap-2">
+                          <FileText className="h-4 w-4" />
+                          CSS
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                          {technicalData.httpRequests?.css?.total || latestScan.scanData.yslow_metrics?.css_files || 'N/A'}
+                        </div>
+                        <div className="text-xs text-purple-700 dark:text-purple-300">Total Stylesheets</div>
+                        
+                        {technicalData.httpRequests?.css && (
+                          <div className="grid grid-cols-2 gap-2 text-xs mt-2">
+                            <div className="flex justify-between">
+                              <span>External:</span>
+                              <Badge variant="outline" className="text-xs h-5">{technicalData.httpRequests.css.external || 0}</Badge>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Inline:</span>
+                              <Badge variant="outline" className="text-xs h-5">{technicalData.httpRequests.css.inline || 0}</Badge>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Critical:</span>
+                              <Badge variant="default" className="text-xs h-5">{technicalData.httpRequests.css.critical || 0}</Badge>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Blocking:</span>
+                              <Badge variant="destructive" className="text-xs h-5">{technicalData.httpRequests.css.blocking || 0}</Badge>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {!technicalData.httpRequests?.css?.total && !latestScan.scanData.yslow_metrics?.css_files && (
+                          <div className="text-xs text-purple-600 mt-1">Run SEO analysis for detailed breakdown</div>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    {/* Images Analysis Card */}
+                    <Card className="bg-orange-50 dark:bg-orange-900/20 border-orange-200">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-base text-orange-800 dark:text-orange-200 flex items-center gap-2">
+                          <Image className="h-4 w-4" />
+                          Images
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                          {technicalData.httpRequests?.images?.total || latestScan.scanData.yslow_metrics?.image_files || 'N/A'}
+                        </div>
+                        <div className="text-xs text-orange-700 dark:text-orange-300">Total Images</div>
+                        
+                        {technicalData.httpRequests?.images && (
+                          <div className="grid grid-cols-2 gap-2 text-xs mt-2">
+                            <div className="flex justify-between">
+                              <span>Optimized:</span>
+                              <Badge variant="default" className="text-xs h-5">{technicalData.httpRequests.images.optimized || 0}</Badge>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Legacy:</span>
+                              <Badge variant="destructive" className="text-xs h-5">{technicalData.httpRequests.images.unoptimized || 0}</Badge>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>WebP/AVIF:</span>
+                              <Badge variant="outline" className="text-xs h-5">{technicalData.httpRequests.images.optimized || 0}</Badge>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Alt Missing:</span>
+                              <Badge variant="destructive" className="text-xs h-5">{technicalData.images?.missingAlt || 0}</Badge>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {!technicalData.httpRequests?.images?.total && !latestScan.scanData.yslow_metrics?.image_files && (
+                          <div className="text-xs text-orange-600 mt-1">Run SEO analysis for detailed breakdown</div>
+                        )}
+                      </CardContent>
+                    </Card>
                   </div>
 
                   {/* Resource Breakdown */}
