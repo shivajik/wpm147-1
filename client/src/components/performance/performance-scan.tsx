@@ -90,6 +90,19 @@ export function PerformanceScan({ websiteId }: PerformanceScanProps) {
   const latestSeoReport = seoReports && Array.isArray(seoReports) && seoReports.length > 0 ? seoReports[0] : null;
   const technicalData = latestSeoReport?.reportData || {};
 
+  // Debug logging to see what data we have
+  React.useEffect(() => {
+    console.log('🔍 [Performance Debug] SEO Reports:', seoReports?.length || 0, 'reports found');
+    console.log('🔍 [Performance Debug] Latest SEO Report:', latestSeoReport ? 'Found' : 'Not found');
+    console.log('🔍 [Performance Debug] Technical Data:', technicalData);
+    console.log('🔍 [Performance Debug] HTTP Requests:', technicalData.httpRequests);
+    if (technicalData.httpRequests) {
+      console.log('🔍 [Performance Debug] CSS Total:', technicalData.httpRequests.css?.total);
+      console.log('🔍 [Performance Debug] JS Total:', technicalData.httpRequests.javascript?.total);
+      console.log('🔍 [Performance Debug] Images Total:', technicalData.httpRequests.images?.total);
+    }
+  }, [seoReports, latestSeoReport, technicalData]);
+
   // Fetch performance scan history
   const { data: scanHistory, isLoading: isLoadingHistory } = useQuery<PerformanceScanResult[]>({
     queryKey: [`/api/websites/${websiteId}/performance-scans`],
