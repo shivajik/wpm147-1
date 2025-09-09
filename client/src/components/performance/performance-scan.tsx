@@ -80,7 +80,15 @@ export function PerformanceScan({ websiteId }: PerformanceScanProps) {
     enabled: !!websiteId,
   });
 
+  // Fetch SEO reports to get technical data for HTTP requests analysis
+  const { data: seoReports } = useQuery<any[]>({
+    queryKey: ['/api/websites', websiteId, 'seo-reports'],
+    enabled: !!websiteId,
+  });
 
+  // Get the latest SEO report for technical data (same as comprehensive SEO report)
+  const latestSeoReport = seoReports && Array.isArray(seoReports) && seoReports.length > 0 ? seoReports[0] : null;
+  const technicalData = latestSeoReport?.reportData || {};
 
   // Fetch performance scan history
   const { data: scanHistory, isLoading: isLoadingHistory } = useQuery<PerformanceScanResult[]>({
@@ -374,26 +382,26 @@ export function PerformanceScan({ websiteId }: PerformanceScanProps) {
                 <CardContent>
                   <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200">
                     <p className="text-sm text-blue-800 dark:text-blue-200">
-                      The webpage makes {latestScan.scanData.httpRequests?.total || latestScan.scanData.yslow_metrics?.num_requests || 'several'} HTTP requests with a total size of {latestScan.scanData.yslow_metrics?.page_size ? `${(latestScan.scanData.yslow_metrics.page_size / 1024 / 1024).toFixed(2)} MB` : 'calculating...'}.
+                      The webpage makes {technicalData.httpRequests?.total || latestScan.scanData.yslow_metrics?.num_requests || 'several'} HTTP requests with a total size of {latestScan.scanData.yslow_metrics?.page_size ? `${(latestScan.scanData.yslow_metrics.page_size / 1024 / 1024).toFixed(2)} MB` : 'calculating...'}.
                     </p>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
                       <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                        {latestScan.scanData.httpRequests?.javascript?.total || latestScan.scanData.yslow_metrics?.js_files || 0}
+                        {technicalData.httpRequests?.javascript?.total || latestScan.scanData.yslow_metrics?.js_files || 0}
                       </div>
                       <div className="text-sm text-green-800 dark:text-green-200">JavaScript Files</div>
                     </div>
                     <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
                       <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                        {latestScan.scanData.httpRequests?.css?.total || latestScan.scanData.yslow_metrics?.css_files || 0}
+                        {technicalData.httpRequests?.css?.total || latestScan.scanData.yslow_metrics?.css_files || 0}
                       </div>
                       <div className="text-sm text-purple-800 dark:text-purple-200">CSS Files</div>
                     </div>
                     <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
                       <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                        {latestScan.scanData.httpRequests?.images?.total || latestScan.scanData.yslow_metrics?.image_files || 0}
+                        {technicalData.httpRequests?.images?.total || latestScan.scanData.yslow_metrics?.image_files || 0}
                       </div>
                       <div className="text-sm text-orange-800 dark:text-orange-200">Images</div>
                     </div>
