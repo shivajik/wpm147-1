@@ -6791,6 +6791,55 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
           pagespeedScore: scanResult.pagespeedScore, 
           yslowScore: scanResult.yslowScore 
         });
+
+        // Also run SEO analysis to get detailed resource breakdown for CSS, JS, and Images
+        console.log(`[performance] Running SEO analysis to get resource breakdown...`);
+        try {
+          const analysisResults = await performComprehensiveSeoAnalysis(website.url);
+          
+          // Transform and add the resource data to the scan result
+          const resourceData = {
+            httpRequests: {
+              total: (analysisResults as any).httpRequests?.totalRequests || (analysisResults as any).performance?.requests || 0,
+              javascript: {
+                total: analysisResults.javascriptAnalysis?.totalScripts || 0,
+                external: analysisResults.javascriptAnalysis?.externalScripts || 0,
+                inline: analysisResults.javascriptAnalysis?.inlineScripts || 0,
+                async: analysisResults.javascriptAnalysis?.asyncScripts || 0,
+                defer: analysisResults.javascriptAnalysis?.deferScripts || 0,
+                blocking: analysisResults.javascriptAnalysis?.blockingScripts || 0,
+              },
+              css: {
+                total: analysisResults.cssAnalysis?.totalStylesheets || 0,
+                external: analysisResults.cssAnalysis?.externalStylesheets || 0,
+                inline: analysisResults.cssAnalysis?.inlineStyles || 0,
+                critical: analysisResults.cssAnalysis?.criticalCssCount || 0,
+                nonCritical: (analysisResults.cssAnalysis?.totalStylesheets || 0) - (analysisResults.cssAnalysis?.criticalCssCount || 0),
+                blocking: (analysisResults.cssAnalysis?.totalStylesheets || 0) - (analysisResults.cssAnalysis?.criticalCssCount || 0),
+              },
+              images: {
+                total: analysisResults.images?.total || 0,
+                optimized: (analysisResults.images?.formats?.webp || 0) + (analysisResults.images?.formats?.avif || 0),
+                unoptimized: (analysisResults.images?.total || 0) - ((analysisResults.images?.formats?.webp || 0) + (analysisResults.images?.formats?.avif || 0))
+              }
+            },
+            images: analysisResults.images
+          };
+
+          // Add resource data to scan result
+          scanResult.scanData = {
+            ...scanResult.scanData,
+            ...resourceData
+          };
+
+          console.log(`[performance] Added resource breakdown from SEO analysis:`, {
+            totalJS: resourceData.httpRequests.javascript.total,
+            totalCSS: resourceData.httpRequests.css.total,
+            totalImages: resourceData.httpRequests.images.total
+          });
+        } catch (seoError) {
+          console.warn(`[performance] SEO analysis failed, continuing without resource breakdown:`, seoError);
+        }
       } catch (error) {
         console.error(`[performance] ERROR in PerformanceScanner:`, error);
         console.error(`[performance] Error message:`, error instanceof Error ? error.message : error);
