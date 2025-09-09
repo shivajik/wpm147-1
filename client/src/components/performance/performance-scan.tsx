@@ -81,24 +81,23 @@ export function PerformanceScan({ websiteId }: PerformanceScanProps) {
     enabled: !!websiteId,
   });
 
-  // Fetch SEO reports to get technical data for HTTP requests analysis
+  // Fetch SEO reports list to get the latest report ID
   const { data: seoReports, isLoading: isLoadingSeoReports } = useQuery<any[]>({
-    queryKey: ['/api/websites', websiteId, 'seo-reports'],
+    queryKey: [`/api/websites/${websiteId}/seo-reports`],
     enabled: !!websiteId,
   });
 
-  // Get the latest SEO report for technical data (same as comprehensive SEO report)
-  const latestSeoReport = seoReports && Array.isArray(seoReports) && seoReports.length > 0 ? seoReports[0] : null;
-  const technicalData = latestSeoReport?.reportData || {};
+  // Get the latest SEO report ID from the list
+  const latestSeoReportId = seoReports && Array.isArray(seoReports) && seoReports.length > 0 ? seoReports[0]?.id : null;
 
-  // Also try to get SEO report directly if no reports found in the list
-  const { data: directSeoReport } = useQuery<any>({
-    queryKey: [`/api/websites/${websiteId}/seo-reports/latest`],
-    enabled: !!websiteId && !latestSeoReport,
+  // Fetch the full SEO report details using the same approach as seo-report.tsx
+  const { data: seoReportDetails, isLoading: isLoadingSeoDetails } = useQuery<any>({
+    queryKey: [`/api/websites/${websiteId}/seo-reports/${latestSeoReportId}`],
+    enabled: !!websiteId && !!latestSeoReportId,
   });
 
-  // Use direct SEO report data if available and no reports list
-  const finalTechnicalData = technicalData.httpRequests ? technicalData : (directSeoReport?.reportData || {});
+  // Extract technical data from the SEO report details (same as comprehensive SEO report)
+  const finalTechnicalData = seoReportDetails?.reportData || {};
 
   // Check if we have technical data available
   const hasTechnicalData = finalTechnicalData.httpRequests && (
@@ -126,6 +125,8 @@ export function PerformanceScan({ websiteId }: PerformanceScanProps) {
       queryClient.setQueryData([`/api/websites/${websiteId}/performance-scans/latest`], data);
       // Invalidate scan history to refetch
       queryClient.invalidateQueries({ queryKey: [`/api/websites/${websiteId}/performance-scans`] });
+      // Also invalidate SEO reports to refetch latest technical data
+      queryClient.invalidateQueries({ queryKey: [`/api/websites/${websiteId}/seo-reports`] });
     },
   });
 
