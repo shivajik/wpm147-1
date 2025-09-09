@@ -90,18 +90,12 @@ export function PerformanceScan({ websiteId }: PerformanceScanProps) {
   const latestSeoReport = seoReports && Array.isArray(seoReports) && seoReports.length > 0 ? seoReports[0] : null;
   const technicalData = latestSeoReport?.reportData || {};
 
-  // Debug logging to see what data we have
-  React.useEffect(() => {
-    console.log('🔍 [Performance Debug] SEO Reports:', seoReports?.length || 0, 'reports found');
-    console.log('🔍 [Performance Debug] Latest SEO Report:', latestSeoReport ? 'Found' : 'Not found');
-    console.log('🔍 [Performance Debug] Technical Data:', technicalData);
-    console.log('🔍 [Performance Debug] HTTP Requests:', technicalData.httpRequests);
-    if (technicalData.httpRequests) {
-      console.log('🔍 [Performance Debug] CSS Total:', technicalData.httpRequests.css?.total);
-      console.log('🔍 [Performance Debug] JS Total:', technicalData.httpRequests.javascript?.total);
-      console.log('🔍 [Performance Debug] Images Total:', technicalData.httpRequests.images?.total);
-    }
-  }, [seoReports, latestSeoReport, technicalData]);
+  // Check if we have technical data available
+  const hasTechnicalData = technicalData.httpRequests && (
+    technicalData.httpRequests.css?.total > 0 || 
+    technicalData.httpRequests.javascript?.total > 0 || 
+    technicalData.httpRequests.images?.total > 0
+  );
 
   // Fetch performance scan history
   const { data: scanHistory, isLoading: isLoadingHistory } = useQuery<PerformanceScanResult[]>({
@@ -397,26 +391,42 @@ export function PerformanceScan({ websiteId }: PerformanceScanProps) {
                     <p className="text-sm text-blue-800 dark:text-blue-200">
                       The webpage makes {technicalData.httpRequests?.total || latestScan.scanData.yslow_metrics?.num_requests || 'several'} HTTP requests with a total size of {latestScan.scanData.yslow_metrics?.page_size ? `${(latestScan.scanData.yslow_metrics.page_size / 1024 / 1024).toFixed(2)} MB` : 'calculating...'}.
                     </p>
+                    {!hasTechnicalData && (
+                      <div className="mt-2 p-2 bg-amber-50 dark:bg-amber-900/20 rounded border border-amber-200">
+                        <p className="text-xs text-amber-700 dark:text-amber-300">
+                          📊 For detailed resource analysis, visit the <strong>SEO</strong> section and run a comprehensive analysis to get accurate CSS, JavaScript, and Image counts.
+                        </p>
+                      </div>
+                    )}
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
                       <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                        {technicalData.httpRequests?.javascript?.total || latestScan.scanData.yslow_metrics?.js_files || 0}
+                        {technicalData.httpRequests?.javascript?.total || latestScan.scanData.yslow_metrics?.js_files || 'N/A'}
                       </div>
                       <div className="text-sm text-green-800 dark:text-green-200">JavaScript Files</div>
+                      {!technicalData.httpRequests?.javascript?.total && !latestScan.scanData.yslow_metrics?.js_files && (
+                        <div className="text-xs text-green-600 mt-1">Run SEO analysis to get detailed counts</div>
+                      )}
                     </div>
                     <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
                       <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                        {technicalData.httpRequests?.css?.total || latestScan.scanData.yslow_metrics?.css_files || 0}
+                        {technicalData.httpRequests?.css?.total || latestScan.scanData.yslow_metrics?.css_files || 'N/A'}
                       </div>
                       <div className="text-sm text-purple-800 dark:text-purple-200">CSS Files</div>
+                      {!technicalData.httpRequests?.css?.total && !latestScan.scanData.yslow_metrics?.css_files && (
+                        <div className="text-xs text-purple-600 mt-1">Run SEO analysis to get detailed counts</div>
+                      )}
                     </div>
                     <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
                       <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                        {technicalData.httpRequests?.images?.total || latestScan.scanData.yslow_metrics?.image_files || 0}
+                        {technicalData.httpRequests?.images?.total || latestScan.scanData.yslow_metrics?.image_files || 'N/A'}
                       </div>
                       <div className="text-sm text-orange-800 dark:text-orange-200">Images</div>
+                      {!technicalData.httpRequests?.images?.total && !latestScan.scanData.yslow_metrics?.image_files && (
+                        <div className="text-xs text-orange-600 mt-1">Run SEO analysis to get detailed counts</div>
+                      )}
                     </div>
                   </div>
 
