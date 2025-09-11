@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import UpdatesCard from "./updates-card";
 import UpdateLogs from "./update-logs";
 import OptimizationCard from "./optimization-card";
-import { WRMDebugPanel } from "../debug/wrm-debug-panel";
 import { 
   Shield, 
   Zap, 
@@ -405,8 +404,6 @@ const getDatabaseVersion = (version: string) => {
           {/* Update Logs */}
           <UpdateLogs websiteId={websiteId} />
 
-          {/* WRM Debug Panel */}
-          <WRMDebugPanel websiteId={websiteId} />
         </div>
 
         {/* Right Column - Quick Actions and Status */}
