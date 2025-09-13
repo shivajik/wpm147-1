@@ -13,8 +13,8 @@ export default function PluginDownloadSection() {
     // Download the WP Remote Manager plugin installer zip
     const timestamp = Date.now();
     const link = document.createElement('a');
-    link.href = `/wp-remote-manager-plugin-installer.zip?v=${timestamp}`;
-    link.download = 'wp-remote-manager-plugin-installer.zip';
+    link.href = `/aiowebcare-1.0.0.zip?v=${timestamp}`;
+    link.download = 'aiowebcare-1.0.0.zip';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
