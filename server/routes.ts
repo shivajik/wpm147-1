@@ -4842,6 +4842,228 @@ app.post("/api/websites/:id/plugins/update", authenticateToken, async (req, res)
     }
   });
 
+  // SEO Keywords Management endpoints
+  app.get("/api/websites/:id/seo/keywords", authenticateToken, async (req, res) => {
+    try {
+      const websiteId = parseInt(req.params.id);
+      const userId = (req as AuthRequest).user!.id;
+
+      if (isNaN(websiteId)) {
+        return res.status(400).json({ message: "Invalid website ID" });
+      }
+
+      const keywords = await storage.getWebsiteSeoKeywords(websiteId, userId);
+      res.json({ success: true, keywords });
+    } catch (error) {
+      console.error("Error fetching SEO keywords:", error);
+      res.status(500).json({ message: "Failed to fetch SEO keywords" });
+    }
+  });
+
+  app.post("/api/websites/:id/seo/keywords", authenticateToken, async (req, res) => {
+    try {
+      const websiteId = parseInt(req.params.id);
+      const userId = (req as AuthRequest).user!.id;
+
+      if (isNaN(websiteId)) {
+        return res.status(400).json({ message: "Invalid website ID" });
+      }
+
+      const { keyword, searchVolume, difficulty, currentPosition, searchEngine, location, device } = req.body;
+
+      if (!keyword) {
+        return res.status(400).json({ message: "Keyword is required" });
+      }
+
+      const keywordData = {
+        keyword,
+        searchVolume: parseInt(searchVolume) || 0,
+        difficulty: parseInt(difficulty) || 0,
+        currentPosition: currentPosition ? parseInt(currentPosition) : undefined,
+        searchEngine: searchEngine || 'google',
+        location: location || 'global',
+        device: device || 'desktop'
+      };
+
+      const newKeyword = await storage.addSeoKeyword(websiteId, userId, keywordData);
+      res.json({ success: true, keyword: newKeyword });
+    } catch (error) {
+      console.error("Error adding SEO keyword:", error);
+      res.status(500).json({ message: "Failed to add SEO keyword" });
+    }
+  });
+
+  app.delete("/api/websites/:id/seo/keywords/:keywordId", authenticateToken, async (req, res) => {
+    try {
+      const websiteId = parseInt(req.params.id);
+      const keywordId = parseInt(req.params.keywordId);
+      const userId = (req as AuthRequest).user!.id;
+
+      if (isNaN(websiteId) || isNaN(keywordId)) {
+        return res.status(400).json({ message: "Invalid website ID or keyword ID" });
+      }
+
+      await storage.removeSeoKeyword(keywordId, websiteId, userId);
+      res.json({ success: true, message: "Keyword removed successfully" });
+    } catch (error) {
+      console.error("Error removing SEO keyword:", error);
+      res.status(500).json({ message: "Failed to remove SEO keyword" });
+    }
+  });
+
+  app.post("/api/websites/:id/seo/keywords/csv", authenticateToken, async (req, res) => {
+    try {
+      const websiteId = parseInt(req.params.id);
+      const userId = (req as AuthRequest).user!.id;
+
+      if (isNaN(websiteId)) {
+        return res.status(400).json({ message: "Invalid website ID" });
+      }
+
+      const { csvData } = req.body;
+
+      if (!csvData || !Array.isArray(csvData)) {
+        return res.status(400).json({ message: "CSV data is required and must be an array" });
+      }
+
+      // Parse CSV data and validate
+      const keywordsData = csvData.map((row: any) => ({
+        keyword: row.keyword || row.Keyword || '',
+        searchVolume: parseInt(row.searchVolume || row['Search Volume'] || '0') || 0,
+        difficulty: parseInt(row.difficulty || row.Difficulty || '0') || 0,
+        currentPosition: row.currentPosition || row['Current Position'] ? parseInt(row.currentPosition || row['Current Position']) : undefined,
+        searchEngine: row.searchEngine || row['Search Engine'] || 'google',
+        location: row.location || row.Location || 'global',
+        device: row.device || row.Device || 'desktop'
+      })).filter((row: any) => row.keyword.trim() !== '');
+
+      if (keywordsData.length === 0) {
+        return res.status(400).json({ message: "No valid keywords found in CSV data" });
+      }
+
+      const importedKeywords = await storage.importSeoKeywordsFromCsv(websiteId, userId, keywordsData);
+      res.json({ 
+        success: true, 
+        message: `Successfully imported ${importedKeywords.length} keywords`,
+        keywords: importedKeywords 
+      });
+    } catch (error) {
+      console.error("Error importing SEO keywords from CSV:", error);
+      res.status(500).json({ message: "Failed to import SEO keywords from CSV" });
+    }
+  });
+
+  // SEO Competitors Management endpoints
+  app.get("/api/websites/:id/seo/competitors", authenticateToken, async (req, res) => {
+    try {
+      const websiteId = parseInt(req.params.id);
+      const userId = (req as AuthRequest).user!.id;
+
+      if (isNaN(websiteId)) {
+        return res.status(400).json({ message: "Invalid website ID" });
+      }
+
+      const competitors = await storage.getWebsiteSeoCompetitors(websiteId, userId);
+      res.json({ success: true, competitors });
+    } catch (error) {
+      console.error("Error fetching SEO competitors:", error);
+      res.status(500).json({ message: "Failed to fetch SEO competitors" });
+    }
+  });
+
+  app.post("/api/websites/:id/seo/competitors", authenticateToken, async (req, res) => {
+    try {
+      const websiteId = parseInt(req.params.id);
+      const userId = (req as AuthRequest).user!.id;
+
+      if (isNaN(websiteId)) {
+        return res.status(400).json({ message: "Invalid website ID" });
+      }
+
+      const { competitorName, competitorUrl, domainAuthority, organicKeywords, estimatedTraffic, backlinks, notes } = req.body;
+
+      if (!competitorName || !competitorUrl) {
+        return res.status(400).json({ message: "Competitor name and URL are required" });
+      }
+
+      const competitorData = {
+        competitorName,
+        competitorUrl,
+        domainAuthority: parseInt(domainAuthority) || 0,
+        organicKeywords: parseInt(organicKeywords) || 0,
+        estimatedTraffic: parseInt(estimatedTraffic) || 0,
+        backlinks: parseInt(backlinks) || 0,
+        notes
+      };
+
+      const newCompetitor = await storage.addSeoCompetitor(websiteId, userId, competitorData);
+      res.json({ success: true, competitor: newCompetitor });
+    } catch (error) {
+      console.error("Error adding SEO competitor:", error);
+      res.status(500).json({ message: "Failed to add SEO competitor" });
+    }
+  });
+
+  app.delete("/api/websites/:id/seo/competitors/:competitorId", authenticateToken, async (req, res) => {
+    try {
+      const websiteId = parseInt(req.params.id);
+      const competitorId = parseInt(req.params.competitorId);
+      const userId = (req as AuthRequest).user!.id;
+
+      if (isNaN(websiteId) || isNaN(competitorId)) {
+        return res.status(400).json({ message: "Invalid website ID or competitor ID" });
+      }
+
+      await storage.removeSeoCompetitor(competitorId, websiteId, userId);
+      res.json({ success: true, message: "Competitor removed successfully" });
+    } catch (error) {
+      console.error("Error removing SEO competitor:", error);
+      res.status(500).json({ message: "Failed to remove SEO competitor" });
+    }
+  });
+
+  app.post("/api/websites/:id/seo/competitors/csv", authenticateToken, async (req, res) => {
+    try {
+      const websiteId = parseInt(req.params.id);
+      const userId = (req as AuthRequest).user!.id;
+
+      if (isNaN(websiteId)) {
+        return res.status(400).json({ message: "Invalid website ID" });
+      }
+
+      const { csvData } = req.body;
+
+      if (!csvData || !Array.isArray(csvData)) {
+        return res.status(400).json({ message: "CSV data is required and must be an array" });
+      }
+
+      // Parse CSV data and validate
+      const competitorsData = csvData.map((row: any) => ({
+        competitorName: row.competitorName || row['Competitor Name'] || row.name || '',
+        competitorUrl: row.competitorUrl || row['Competitor URL'] || row.url || row.website || '',
+        domainAuthority: parseInt(row.domainAuthority || row['Domain Authority'] || row.DA || '0') || 0,
+        organicKeywords: parseInt(row.organicKeywords || row['Organic Keywords'] || '0') || 0,
+        estimatedTraffic: parseInt(row.estimatedTraffic || row['Estimated Traffic'] || '0') || 0,
+        backlinks: parseInt(row.backlinks || row.Backlinks || '0') || 0,
+        notes: row.notes || row.Notes || ''
+      })).filter((row: any) => row.competitorName.trim() !== '' && row.competitorUrl.trim() !== '');
+
+      if (competitorsData.length === 0) {
+        return res.status(400).json({ message: "No valid competitors found in CSV data" });
+      }
+
+      const importedCompetitors = await storage.importSeoCompetitorsFromCsv(websiteId, userId, competitorsData);
+      res.json({ 
+        success: true, 
+        message: `Successfully imported ${importedCompetitors.length} competitors`,
+        competitors: importedCompetitors 
+      });
+    } catch (error) {
+      console.error("Error importing SEO competitors from CSV:", error);
+      res.status(500).json({ message: "Failed to import SEO competitors from CSV" });
+    }
+  });
+
   // Notification endpoints
   app.get("/api/notifications", authenticateToken, async (req, res) => {
     try {
