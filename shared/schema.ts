@@ -291,6 +291,24 @@ export const seoKeywords = pgTable("seo_keywords", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// SEO Competitors table
+export const seoCompetitors = pgTable("seo_competitors", {
+  id: serial("id").primaryKey(),
+  websiteId: integer("website_id").notNull().references(() => websites.id),
+  reportId: integer("report_id").references(() => seoReports.id),
+  competitorName: varchar("competitor_name", { length: 255 }).notNull(),
+  competitorUrl: varchar("competitor_url", { length: 500 }).notNull(),
+  domainAuthority: integer("domain_authority").default(0),
+  organicKeywords: integer("organic_keywords").default(0),
+  estimatedTraffic: integer("estimated_traffic").default(0),
+  backlinks: integer("backlinks").default(0),
+  competitorScore: integer("competitor_score").default(0),
+  status: varchar("status", { length: 20 }).default("active"), // active, inactive, removed
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Security Scan History table
 export const securityScanHistory = pgTable("security_scan_history", {
   id: serial("id").primaryKey(),
@@ -823,6 +841,12 @@ export const insertSeoKeywordsSchema = createInsertSchema(seoKeywords).omit({
   createdAt: true,
 });
 
+export const insertSeoCompetitorsSchema = createInsertSchema(seoCompetitors).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertNotificationSchema = createInsertSchema(notifications).omit({
   id: true,
   createdAt: true,
@@ -931,6 +955,8 @@ export type SeoPageAnalysis = typeof seoPageAnalysis.$inferSelect;
 export type InsertSeoPageAnalysis = z.infer<typeof insertSeoPageAnalysisSchema>;
 export type SeoKeywords = typeof seoKeywords.$inferSelect;
 export type InsertSeoKeywords = z.infer<typeof insertSeoKeywordsSchema>;
+export type SeoCompetitors = typeof seoCompetitors.$inferSelect;
+export type InsertSeoCompetitors = z.infer<typeof insertSeoCompetitorsSchema>;
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type SecurityScanHistory = typeof securityScanHistory.$inferSelect;
