@@ -10,6 +10,7 @@ import {
   seoMetrics,
   seoPageAnalysis,
   seoKeywords,
+  seoCompetitors,
   notifications,
   securityScanHistory,
   googleAnalyticsData,
@@ -38,6 +39,8 @@ import {
   type InsertSeoPageAnalysis,
   type SeoKeywords,
   type InsertSeoKeywords,
+  type SeoCompetitors,
+  type InsertSeoCompetitors,
   type Notification,
   type InsertNotification,
   type SecurityScanHistory,
@@ -159,6 +162,18 @@ export interface IStorage {
   // SEO Keywords operations
   createSeoKeywords(reportId: number, websiteId: number, keywords: Partial<InsertSeoKeywords>[]): Promise<SeoKeywords[]>;
   getSeoKeywords(reportId: number): Promise<SeoKeywords[]>;
+  
+  // SEO Keywords management operations (for website-level management)
+  getWebsiteSeoKeywords(websiteId: number, userId: number): Promise<SeoKeywords[]>;
+  addSeoKeyword(websiteId: number, userId: number, keywordData: Partial<InsertSeoKeywords>): Promise<SeoKeywords>;
+  removeSeoKeyword(keywordId: number, websiteId: number, userId: number): Promise<void>;
+  importSeoKeywordsFromCsv(websiteId: number, userId: number, keywords: Partial<InsertSeoKeywords>[]): Promise<SeoKeywords[]>;
+  
+  // SEO Competitors operations
+  getWebsiteSeoCompetitors(websiteId: number, userId: number): Promise<SeoCompetitors[]>;
+  addSeoCompetitor(websiteId: number, userId: number, competitorData: Partial<InsertSeoCompetitors>): Promise<SeoCompetitors>;
+  removeSeoCompetitor(competitorId: number, websiteId: number, userId: number): Promise<void>;
+  importSeoCompetitorsFromCsv(websiteId: number, userId: number, competitors: Partial<InsertSeoCompetitors>[]): Promise<SeoCompetitors[]>;
 
   // Notification operations
   createNotification(notificationData: InsertNotification): Promise<Notification>;
@@ -1026,6 +1041,187 @@ export class DatabaseStorage implements IStorage {
       .where(eq(seoKeywords.reportId, reportId));
     
     return keywords;
+  }
+
+  // SEO Keywords management operations (for website-level management)
+  async getWebsiteSeoKeywords(websiteId: number, userId: number): Promise<SeoKeywords[]> {
+    // Verify user has access to the website
+    const website = await this.getWebsite(websiteId, userId);
+    if (!website) {
+      throw new Error("Website not found or access denied");
+    }
+
+    const keywords = await db
+      .select()
+      .from(seoKeywords)
+      .where(eq(seoKeywords.websiteId, websiteId))
+      .orderBy(desc(seoKeywords.createdAt));
+    
+    return keywords;
+  }
+
+  async addSeoKeyword(websiteId: number, userId: number, keywordData: Partial<InsertSeoKeywords>): Promise<SeoKeywords> {
+    // Verify user has access to the website
+    const website = await this.getWebsite(websiteId, userId);
+    if (!website) {
+      throw new Error("Website not found or access denied");
+    }
+
+    const [keyword] = await db
+      .insert(seoKeywords)
+      .values({
+        websiteId,
+        keyword: keywordData.keyword || '',
+        searchVolume: keywordData.searchVolume || 0,
+        difficulty: keywordData.difficulty || 0,
+        currentPosition: keywordData.currentPosition,
+        previousPosition: keywordData.previousPosition,
+        positionChange: keywordData.positionChange || 0,
+        url: keywordData.url,
+        searchEngine: keywordData.searchEngine || 'google',
+        location: keywordData.location || 'global',
+        device: keywordData.device || 'desktop',
+        reportId: keywordData.reportId,
+      })
+      .returning();
+
+    return keyword;
+  }
+
+  async removeSeoKeyword(keywordId: number, websiteId: number, userId: number): Promise<void> {
+    // Verify user has access to the website
+    const website = await this.getWebsite(websiteId, userId);
+    if (!website) {
+      throw new Error("Website not found or access denied");
+    }
+
+    await db
+      .delete(seoKeywords)
+      .where(and(eq(seoKeywords.id, keywordId), eq(seoKeywords.websiteId, websiteId)));
+  }
+
+  async importSeoKeywordsFromCsv(websiteId: number, userId: number, keywords: Partial<InsertSeoKeywords>[]): Promise<SeoKeywords[]> {
+    // Verify user has access to the website
+    const website = await this.getWebsite(websiteId, userId);
+    if (!website) {
+      throw new Error("Website not found or access denied");
+    }
+
+    if (keywords.length === 0) {
+      return [];
+    }
+
+    const keywordData = keywords.map(keyword => ({
+      websiteId,
+      keyword: keyword.keyword || '',
+      searchVolume: keyword.searchVolume || 0,
+      difficulty: keyword.difficulty || 0,
+      currentPosition: keyword.currentPosition,
+      previousPosition: keyword.previousPosition,
+      positionChange: keyword.positionChange || 0,
+      url: keyword.url,
+      searchEngine: keyword.searchEngine || 'google',
+      location: keyword.location || 'global',
+      device: keyword.device || 'desktop',
+      reportId: keyword.reportId,
+    }));
+
+    const result = await db
+      .insert(seoKeywords)
+      .values(keywordData)
+      .returning();
+
+    return result;
+  }
+
+  // SEO Competitors operations
+  async getWebsiteSeoCompetitors(websiteId: number, userId: number): Promise<SeoCompetitors[]> {
+    // Verify user has access to the website
+    const website = await this.getWebsite(websiteId, userId);
+    if (!website) {
+      throw new Error("Website not found or access denied");
+    }
+
+    const competitors = await db
+      .select()
+      .from(seoCompetitors)
+      .where(and(eq(seoCompetitors.websiteId, websiteId), eq(seoCompetitors.status, 'active')))
+      .orderBy(desc(seoCompetitors.createdAt));
+    
+    return competitors;
+  }
+
+  async addSeoCompetitor(websiteId: number, userId: number, competitorData: Partial<InsertSeoCompetitors>): Promise<SeoCompetitors> {
+    // Verify user has access to the website
+    const website = await this.getWebsite(websiteId, userId);
+    if (!website) {
+      throw new Error("Website not found or access denied");
+    }
+
+    const [competitor] = await db
+      .insert(seoCompetitors)
+      .values({
+        websiteId,
+        competitorName: competitorData.competitorName || '',
+        competitorUrl: competitorData.competitorUrl || '',
+        domainAuthority: competitorData.domainAuthority || 0,
+        organicKeywords: competitorData.organicKeywords || 0,
+        estimatedTraffic: competitorData.estimatedTraffic || 0,
+        backlinks: competitorData.backlinks || 0,
+        competitorScore: competitorData.competitorScore || 0,
+        status: competitorData.status || 'active',
+        notes: competitorData.notes,
+        reportId: competitorData.reportId,
+      })
+      .returning();
+
+    return competitor;
+  }
+
+  async removeSeoCompetitor(competitorId: number, websiteId: number, userId: number): Promise<void> {
+    // Verify user has access to the website
+    const website = await this.getWebsite(websiteId, userId);
+    if (!website) {
+      throw new Error("Website not found or access denied");
+    }
+
+    await db
+      .update(seoCompetitors)
+      .set({ status: 'removed' })
+      .where(and(eq(seoCompetitors.id, competitorId), eq(seoCompetitors.websiteId, websiteId)));
+  }
+
+  async importSeoCompetitorsFromCsv(websiteId: number, userId: number, competitors: Partial<InsertSeoCompetitors>[]): Promise<SeoCompetitors[]> {
+    // Verify user has access to the website
+    const website = await this.getWebsite(websiteId, userId);
+    if (!website) {
+      throw new Error("Website not found or access denied");
+    }
+
+    if (competitors.length === 0) {
+      return [];
+    }
+
+    const competitorData = competitors.map(competitor => ({
+      websiteId,
+      competitorName: competitor.competitorName || '',
+      competitorUrl: competitor.competitorUrl || '',
+      domainAuthority: competitor.domainAuthority || 0,
+      organicKeywords: competitor.organicKeywords || 0,
+      estimatedTraffic: competitor.estimatedTraffic || 0,
+      backlinks: competitor.backlinks || 0,
+      competitorScore: competitor.competitorScore || 0,
+      status: competitor.status || 'active',
+      notes: competitor.notes,
+      reportId: competitor.reportId,
+    }));
+
+    const result = await db
+      .insert(seoCompetitors)
+      .values(competitorData)
+      .returning();
+
+    return result;
   }
 
   // Notification operations
