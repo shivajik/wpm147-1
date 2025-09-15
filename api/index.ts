@@ -30,7 +30,11 @@ import {
   performanceScans as performanceScansTable,
   clientReports as clientReportsTable,
   seoReports as seoReportsTable,
-  linkScanHistory as linkScanHistoryTable 
+  linkScanHistory as linkScanHistoryTable,
+  seoKeywords,
+  seoCompetitors,
+  insertSeoKeywordsSchema,
+  insertSeoCompetitorsSchema
 } from '../shared/schema.js';
 
 // Import WP Remote Manager Client
@@ -5129,6 +5133,404 @@ async function handleRequest(req: any, res: any) {
       } catch (error) {
         console.error("Error generating share link:", error);
         return res.status(500).json({ message: "Failed to generate share link" });
+      }
+    }
+
+    // SEO Keywords Management endpoints
+    
+    // Get website SEO keywords
+    if (path.match(/^\/api\/websites\/\d+\/seo\/keywords$/) && req.method === 'GET') {
+      const user = authenticateToken(req);
+      if (!user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const websiteId = parseInt(path.split('/')[3]);
+      if (isNaN(websiteId)) {
+        return res.status(400).json({ message: 'Invalid website ID' });
+      }
+
+      try {
+        // Verify user has access to the website using proper authorization pattern
+        const websiteResult = await db.select()
+          .from(websites)
+          .innerJoin(clients, eq(websites.clientId, clients.id))
+          .where(and(eq(websites.id, websiteId), eq(clients.userId, user.id)))
+          .limit(1);
+          
+        if (websiteResult.length === 0) {
+          return res.status(404).json({ message: "Website not found" });
+        }
+
+        const keywords = await db
+          .select()
+          .from(seoKeywords)
+          .where(eq(seoKeywords.websiteId, websiteId))
+          .orderBy(desc(seoKeywords.createdAt));
+        
+        return res.json({ success: true, keywords });
+      } catch (error) {
+        console.error("Error fetching SEO keywords:", error);
+        return res.status(500).json({ message: "Failed to fetch SEO keywords" });
+      }
+    }
+
+    // Add SEO keyword
+    if (path.match(/^\/api\/websites\/\d+\/seo\/keywords$/) && req.method === 'POST') {
+      const user = authenticateToken(req);
+      if (!user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const websiteId = parseInt(path.split('/')[3]);
+      if (isNaN(websiteId)) {
+        return res.status(400).json({ message: 'Invalid website ID' });
+      }
+
+      try {
+        // Parse and validate request body using Zod
+        const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+        const validatedData = insertSeoKeywordsSchema.parse({
+          ...body,
+          websiteId
+        });
+
+        // Verify user has access to the website using proper authorization pattern
+        const websiteResult = await db.select()
+          .from(websites)
+          .innerJoin(clients, eq(websites.clientId, clients.id))
+          .where(and(eq(websites.id, websiteId), eq(clients.userId, user.id)))
+          .limit(1);
+          
+        if (websiteResult.length === 0) {
+          return res.status(404).json({ message: "Website not found" });
+        }
+
+        const [newKeyword] = await db
+          .insert(seoKeywords)
+          .values(validatedData)
+          .returning();
+
+        return res.json({ success: true, keyword: newKeyword });
+      } catch (error) {
+        console.error("Error adding SEO keyword:", error);
+        if (error instanceof z.ZodError) {
+          return res.status(400).json({ 
+            message: "Validation failed",
+            errors: error.errors
+          });
+        }
+        return res.status(500).json({ message: "Failed to add SEO keyword" });
+      }
+    }
+
+    // Remove SEO keyword
+    if (path.match(/^\/api\/websites\/\d+\/seo\/keywords\/\d+$/) && req.method === 'DELETE') {
+      const user = authenticateToken(req);
+      if (!user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const websiteId = parseInt(path.split('/')[3]);
+      const keywordId = parseInt(path.split('/')[6]);
+      
+      if (isNaN(websiteId) || isNaN(keywordId)) {
+        return res.status(400).json({ message: 'Invalid website ID or keyword ID' });
+      }
+
+      try {
+        // Verify user has access to the website using proper authorization pattern
+        const websiteResult = await db.select()
+          .from(websites)
+          .innerJoin(clients, eq(websites.clientId, clients.id))
+          .where(and(eq(websites.id, websiteId), eq(clients.userId, user.id)))
+          .limit(1);
+          
+        if (websiteResult.length === 0) {
+          return res.status(404).json({ message: "Website not found" });
+        }
+
+        await db
+          .delete(seoKeywords)
+          .where(and(eq(seoKeywords.id, keywordId), eq(seoKeywords.websiteId, websiteId)));
+
+        return res.json({ success: true, message: "Keyword removed successfully" });
+      } catch (error) {
+        console.error("Error removing SEO keyword:", error);
+        return res.status(500).json({ message: "Failed to remove SEO keyword" });
+      }
+    }
+
+    // Import SEO keywords from CSV
+    if (path.match(/^\/api\/websites\/\d+\/seo\/keywords\/csv$/) && req.method === 'POST') {
+      const user = authenticateToken(req);
+      if (!user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const websiteId = parseInt(path.split('/')[3]);
+      if (isNaN(websiteId)) {
+        return res.status(400).json({ message: 'Invalid website ID' });
+      }
+
+      try {
+        const { csvData } = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+
+        if (!csvData || !Array.isArray(csvData)) {
+          return res.status(400).json({ message: "CSV data is required and must be an array" });
+        }
+
+        // Verify user has access to the website using proper authorization pattern
+        const websiteResult = await db.select()
+          .from(websites)
+          .innerJoin(clients, eq(websites.clientId, clients.id))
+          .where(and(eq(websites.id, websiteId), eq(clients.userId, user.id)))
+          .limit(1);
+          
+        if (websiteResult.length === 0) {
+          return res.status(404).json({ message: "Website not found" });
+        }
+
+        // Parse CSV data and validate using Zod
+        const keywordsData = csvData.map((row: any) => ({
+          websiteId,
+          keyword: row.keyword || row.Keyword || '',
+          searchVolume: parseInt(row.searchVolume || row['Search Volume'] || '0') || 0,
+          difficulty: parseInt(row.difficulty || row.Difficulty || '0') || 0,
+          currentPosition: row.currentPosition || row['Current Position'] ? parseInt(row.currentPosition || row['Current Position']) : undefined,
+          searchEngine: row.searchEngine || row['Search Engine'] || 'google',
+          location: row.location || row.Location || 'global',
+          device: row.device || row.Device || 'desktop'
+        })).filter((row: any) => row.keyword.trim() !== '');
+
+        if (keywordsData.length === 0) {
+          return res.status(400).json({ message: "No valid keywords found in CSV data" });
+        }
+
+        // Validate each keyword using Zod schema
+        const validatedKeywords = keywordsData.map(keyword => 
+          insertSeoKeywordsSchema.parse(keyword)
+        );
+
+        const importedKeywords = await db
+          .insert(seoKeywords)
+          .values(validatedKeywords)
+          .returning();
+
+        return res.json({ 
+          success: true, 
+          message: `Successfully imported ${importedKeywords.length} keywords`,
+          keywords: importedKeywords 
+        });
+      } catch (error) {
+        console.error("Error importing SEO keywords from CSV:", error);
+        if (error instanceof z.ZodError) {
+          return res.status(400).json({ 
+            message: "Validation failed for CSV data",
+            errors: error.errors
+          });
+        }
+        return res.status(500).json({ message: "Failed to import SEO keywords from CSV" });
+      }
+    }
+
+    // SEO Competitors Management endpoints
+    
+    // Get website SEO competitors
+    if (path.match(/^\/api\/websites\/\d+\/seo\/competitors$/) && req.method === 'GET') {
+      const user = authenticateToken(req);
+      if (!user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const websiteId = parseInt(path.split('/')[3]);
+      if (isNaN(websiteId)) {
+        return res.status(400).json({ message: 'Invalid website ID' });
+      }
+
+      try {
+        // Verify user has access to the website using proper authorization pattern
+        const websiteResult = await db.select()
+          .from(websites)
+          .innerJoin(clients, eq(websites.clientId, clients.id))
+          .where(and(eq(websites.id, websiteId), eq(clients.userId, user.id)))
+          .limit(1);
+          
+        if (websiteResult.length === 0) {
+          return res.status(404).json({ message: "Website not found" });
+        }
+
+        const competitors = await db
+          .select()
+          .from(seoCompetitors)
+          .where(and(eq(seoCompetitors.websiteId, websiteId), eq(seoCompetitors.status, 'active')))
+          .orderBy(desc(seoCompetitors.createdAt));
+        
+        return res.json({ success: true, competitors });
+      } catch (error) {
+        console.error("Error fetching SEO competitors:", error);
+        return res.status(500).json({ message: "Failed to fetch SEO competitors" });
+      }
+    }
+
+    // Add SEO competitor
+    if (path.match(/^\/api\/websites\/\d+\/seo\/competitors$/) && req.method === 'POST') {
+      const user = authenticateToken(req);
+      if (!user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const websiteId = parseInt(path.split('/')[3]);
+      if (isNaN(websiteId)) {
+        return res.status(400).json({ message: 'Invalid website ID' });
+      }
+
+      try {
+        // Parse and validate request body using Zod
+        const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+        const validatedData = insertSeoCompetitorsSchema.parse({
+          ...body,
+          websiteId
+        });
+
+        // Verify user has access to the website using proper authorization pattern
+        const websiteResult = await db.select()
+          .from(websites)
+          .innerJoin(clients, eq(websites.clientId, clients.id))
+          .where(and(eq(websites.id, websiteId), eq(clients.userId, user.id)))
+          .limit(1);
+          
+        if (websiteResult.length === 0) {
+          return res.status(404).json({ message: "Website not found" });
+        }
+
+        const [newCompetitor] = await db
+          .insert(seoCompetitors)
+          .values(validatedData)
+          .returning();
+
+        return res.json({ success: true, competitor: newCompetitor });
+      } catch (error) {
+        console.error("Error adding SEO competitor:", error);
+        if (error instanceof z.ZodError) {
+          return res.status(400).json({ 
+            message: "Validation failed",
+            errors: error.errors
+          });
+        }
+        return res.status(500).json({ message: "Failed to add SEO competitor" });
+      }
+    }
+
+    // Remove SEO competitor
+    if (path.match(/^\/api\/websites\/\d+\/seo\/competitors\/\d+$/) && req.method === 'DELETE') {
+      const user = authenticateToken(req);
+      if (!user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const websiteId = parseInt(path.split('/')[3]);
+      const competitorId = parseInt(path.split('/')[6]);
+      
+      if (isNaN(websiteId) || isNaN(competitorId)) {
+        return res.status(400).json({ message: 'Invalid website ID or competitor ID' });
+      }
+
+      try {
+        // Verify user has access to the website using proper authorization pattern
+        const websiteResult = await db.select()
+          .from(websites)
+          .innerJoin(clients, eq(websites.clientId, clients.id))
+          .where(and(eq(websites.id, websiteId), eq(clients.userId, user.id)))
+          .limit(1);
+          
+        if (websiteResult.length === 0) {
+          return res.status(404).json({ message: "Website not found" });
+        }
+
+        await db
+          .update(seoCompetitors)
+          .set({ status: 'removed' })
+          .where(and(eq(seoCompetitors.id, competitorId), eq(seoCompetitors.websiteId, websiteId)));
+
+        return res.json({ success: true, message: "Competitor removed successfully" });
+      } catch (error) {
+        console.error("Error removing SEO competitor:", error);
+        return res.status(500).json({ message: "Failed to remove SEO competitor" });
+      }
+    }
+
+    // Import SEO competitors from CSV
+    if (path.match(/^\/api\/websites\/\d+\/seo\/competitors\/csv$/) && req.method === 'POST') {
+      const user = authenticateToken(req);
+      if (!user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const websiteId = parseInt(path.split('/')[3]);
+      if (isNaN(websiteId)) {
+        return res.status(400).json({ message: 'Invalid website ID' });
+      }
+
+      try {
+        const { csvData } = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+
+        if (!csvData || !Array.isArray(csvData)) {
+          return res.status(400).json({ message: "CSV data is required and must be an array" });
+        }
+
+        // Verify user has access to the website using proper authorization pattern
+        const websiteResult = await db.select()
+          .from(websites)
+          .innerJoin(clients, eq(websites.clientId, clients.id))
+          .where(and(eq(websites.id, websiteId), eq(clients.userId, user.id)))
+          .limit(1);
+          
+        if (websiteResult.length === 0) {
+          return res.status(404).json({ message: "Website not found" });
+        }
+
+        // Parse CSV data and validate using Zod
+        const competitorsData = csvData.map((row: any) => ({
+          websiteId,
+          competitorName: row.competitorName || row['Competitor Name'] || row.name || '',
+          competitorUrl: row.competitorUrl || row['Competitor URL'] || row.url || row.website || '',
+          domainAuthority: parseInt(row.domainAuthority || row['Domain Authority'] || row.DA || '0') || 0,
+          organicKeywords: parseInt(row.organicKeywords || row['Organic Keywords'] || '0') || 0,
+          estimatedTraffic: parseInt(row.estimatedTraffic || row['Estimated Traffic'] || '0') || 0,
+          backlinks: parseInt(row.backlinks || row.Backlinks || '0') || 0,
+          status: 'active' as const,
+          notes: row.notes || row.Notes || ''
+        })).filter((row: any) => row.competitorName.trim() !== '' && row.competitorUrl.trim() !== '');
+
+        if (competitorsData.length === 0) {
+          return res.status(400).json({ message: "No valid competitors found in CSV data" });
+        }
+
+        // Validate each competitor using Zod schema
+        const validatedCompetitors = competitorsData.map(competitor => 
+          insertSeoCompetitorsSchema.parse(competitor)
+        );
+
+        const importedCompetitors = await db
+          .insert(seoCompetitors)
+          .values(validatedCompetitors)
+          .returning();
+
+        return res.json({ 
+          success: true, 
+          message: `Successfully imported ${importedCompetitors.length} competitors`,
+          competitors: importedCompetitors 
+        });
+      } catch (error) {
+        console.error("Error importing SEO competitors from CSV:", error);
+        if (error instanceof z.ZodError) {
+          return res.status(400).json({ 
+            message: "Validation failed for CSV data",
+            errors: error.errors
+          });
+        }
+        return res.status(500).json({ message: "Failed to import SEO competitors from CSV" });
       }
     }
 
@@ -13168,7 +13570,15 @@ if (path.match(/^\/api\/websites\/\d+\/comments$/) && req.method === 'GET') {
         'GET /api/websites/:id/wrm/updates',
         'GET /api/websites/:id/wrm-plugins',
         'GET /api/websites/:id/wrm-themes',
-        'GET /api/websites/:id/wrm-users'
+        'GET /api/websites/:id/wrm-users',
+        'GET /api/websites/:id/seo/keywords',
+        'POST /api/websites/:id/seo/keywords',
+        'DELETE /api/websites/:id/seo/keywords/:keywordId',
+        'POST /api/websites/:id/seo/keywords/csv',
+        'GET /api/websites/:id/seo/competitors',
+        'POST /api/websites/:id/seo/competitors',
+        'DELETE /api/websites/:id/seo/competitors/:competitorId',
+        'POST /api/websites/:id/seo/competitors/csv'
       ],
       timestamp: new Date().toISOString()
     });
