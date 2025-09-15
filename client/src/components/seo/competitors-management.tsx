@@ -48,7 +48,9 @@ export function CompetitorsManagement({ websiteId }: CompetitorsManagementProps)
         title: "Competitor Added",
         description: "SEO competitor has been added successfully.",
       });
-      refetch();
+      queryClient.invalidateQueries({
+        queryKey: ['/api/websites', websiteId, 'seo', 'competitors'],
+      });
       setIsAddDialogOpen(false);
       setNewCompetitor({
         competitorName: "",
@@ -80,7 +82,9 @@ export function CompetitorsManagement({ websiteId }: CompetitorsManagementProps)
         title: "Competitor Removed",
         description: "SEO competitor has been removed successfully.",
       });
-      refetch();
+      queryClient.invalidateQueries({
+        queryKey: ['/api/websites', websiteId, 'seo', 'competitors'],
+      });
     },
     onError: (error: any) => {
       toast({

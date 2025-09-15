@@ -375,10 +375,10 @@ export default function WebsiteSEO() {
                 <TabsTrigger value="competitors" data-testid="tab-competitors">Competitors Management</TabsTrigger>
               </TabsList>
               <TabsContent value="keywords" className="mt-6">
-                <KeywordsManagement websiteId={parseInt(websiteId || '0')} />
+                <KeywordsManagement websiteId={parseInt(websiteId || '0', 10)} />
               </TabsContent>
               <TabsContent value="competitors" className="mt-6">
-                <CompetitorsManagement websiteId={parseInt(websiteId || '0')} />
+                <CompetitorsManagement websiteId={parseInt(websiteId || '0', 10)} />
               </TabsContent>
             </Tabs>
 

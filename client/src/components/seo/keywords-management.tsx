@@ -48,7 +48,9 @@ export function KeywordsManagement({ websiteId }: KeywordsManagementProps) {
         title: "Keyword Added",
         description: "SEO keyword has been added successfully.",
       });
-      refetch();
+      queryClient.invalidateQueries({
+        queryKey: ['/api/websites', websiteId, 'seo', 'keywords'],
+      });
       setIsAddDialogOpen(false);
       setNewKeyword({
         keyword: "",
@@ -80,7 +82,9 @@ export function KeywordsManagement({ websiteId }: KeywordsManagementProps) {
         title: "Keyword Removed",
         description: "SEO keyword has been removed successfully.",
       });
-      refetch();
+      queryClient.invalidateQueries({
+        queryKey: ['/api/websites', websiteId, 'seo', 'keywords'],
+      });
     },
     onError: (error: any) => {
       toast({
@@ -191,6 +195,7 @@ export function KeywordsManagement({ websiteId }: KeywordsManagementProps) {
                       <Input
                         id="searchVolume"
                         type="number"
+                        min="0"
                         value={newKeyword.searchVolume || 0}
                         onChange={(e) => setNewKeyword(prev => ({ ...prev, searchVolume: parseInt(e.target.value) || 0 }))}
                         placeholder="0"
