@@ -26,6 +26,8 @@ import { apiCall } from '@/lib/queryClient';
 import { useState } from "react";
 import { SeoAnalysisProgress } from "@/components/seo/seo-analysis-progress";
 import { ReportHistoryTable } from "@/components/seo/report-history-table";
+import { KeywordsManagement } from "@/components/seo/keywords-management";
+import { CompetitorsManagement } from "@/components/seo/competitors-management";
 
 export default function WebsiteSEO() {
   const params = useParams();
@@ -365,6 +367,20 @@ export default function WebsiteSEO() {
                 </CardContent>
               </Card>
             )}
+
+            {/* SEO Management Tabs */}
+            <Tabs defaultValue="keywords" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="keywords" data-testid="tab-keywords">Keywords Management</TabsTrigger>
+                <TabsTrigger value="competitors" data-testid="tab-competitors">Competitors Management</TabsTrigger>
+              </TabsList>
+              <TabsContent value="keywords" className="mt-6">
+                <KeywordsManagement websiteId={parseInt(websiteId || '0')} />
+              </TabsContent>
+              <TabsContent value="competitors" className="mt-6">
+                <CompetitorsManagement websiteId={parseInt(websiteId || '0')} />
+              </TabsContent>
+            </Tabs>
 
             {/* Report History */}
             <Card>
